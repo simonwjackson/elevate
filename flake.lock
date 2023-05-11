@@ -44,7 +44,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-LPIOzsZKBUK4oCe/rROKPSaMpvFtRodaB1FZe21LSOU=",
+        "narHash": "sha256-tqhOnoOuW94oJBn1An9G/0SR76qBeOKUS4E0sk3OgSU=",
         "path": "./subdir",
         "type": "path"
       },
