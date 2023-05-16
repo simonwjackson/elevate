@@ -10,8 +10,10 @@
       writeShellApplication = nixpkgs.legacyPackages.x86_64-linux.writeShellApplication;
     in
     {
-      defaultPackage.x86_64-linux = writeShellApplication {
-        name = "elevate";
+      defaultPackage.x86_64-linux = self.cli;
+
+      cli = writeShellApplication {
+        name = "cli";
         runtimeInputs = [
           pkgs.fzf
           pkgs.jq
