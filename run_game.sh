@@ -39,7 +39,8 @@ if [ -n "$gameJson" ]; then
   if [ "$platformCode" = "steam" ]; then
     printf "%s" "$gameJson" \
       | jq --raw-output '.meta.platform.uid' \
-      | xargs steam -applaunch & withPidFile
+      | xargs steam -applaunch \
+      & withPidFile
 
   elif [ "$platformCode" = "wiiu" ]; then
     cemu -f -g "$uri" & withPidFile
