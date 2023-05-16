@@ -18,4 +18,5 @@ EOF
 
 gameJson=$({ echo "$steamRegistry"; echo "$gamesYaml" | yq --no-colors --output-format=json | jq --raw-output -c '.[]'; } | fzf)
 
-echo "$gameJson" | launch
+echo "$gameJson" | run_game.sh
+```

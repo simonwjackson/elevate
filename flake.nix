@@ -32,6 +32,7 @@
           pkgs.jq
           pkgs.yq-go
           self.vdf2json
+          self.run_game
         ];
         text = builtins.readFile ./find_game.sh;
       };
