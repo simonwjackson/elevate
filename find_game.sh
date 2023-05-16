@@ -16,6 +16,6 @@ gamesYaml=$(cat <<EOF
 EOF
 )
 
-gameJson=$({ echo "$steamRegistry"; echo "$gamesYaml" | yq --no-colors --output-format=json | jq --raw-output -c '.[]'; } | fzf)
+gameJson=$({ echo "$steamRegistry"; echo "$gamesYaml" | yq --no-colors --output-format=json | jq -c '.[]'; } | fzf)
 
 echo "$gameJson" | run_game
