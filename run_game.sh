@@ -38,7 +38,7 @@ if [ -n "$gameJson" ]; then
 
   if [ "$platformCode" = "steam" ]; then
     printf "%s" "$gameJson" \
-      | jq --raw '.meta.platform.uid' \
+      | jq --raw-output '.meta.platform.uid' \
       | xargs steam -applaunch & withPidFile
 
   elif [ "$platformCode" = "wiiu" ]; then
