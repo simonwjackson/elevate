@@ -26,5 +26,5 @@ gameJson=$({ echo "$steamRegistry"; echo "$gamesYaml" | yq --no-colors --output-
 # )
 
 
-echo "$gameJson" | ./launch.sh
+echo "$gameJson" | launch
 # rewrite above comamnd to use the same path as the current file
