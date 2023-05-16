@@ -18,13 +18,4 @@ EOF
 
 gameJson=$({ echo "$steamRegistry"; echo "$gamesYaml" | yq --no-colors --output-format=json | jq --raw-output -c '.[]'; } | fzf)
 
-
-# launcherYaml=$(cat <<EOF
-# ---
-# steam: steam -applaunch %.meta.platform.uid%
-# EOF
-# )
-
-
 echo "$gameJson" | launch
-# rewrite above comamnd to use the same path as the current file

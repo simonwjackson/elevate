@@ -16,19 +16,33 @@
           pkgs.fzf
           pkgs.jq
           pkgs.yq-go
+          pkgs.docopts
           subdir_flake.defaultPackage.x86_64-linux
-          self.launch
+          self.find_game
+          self.run_game
         ];
-        text = builtins.readFile ./elevate.sh;
+        text = builtins.readFile ./cli.sh;
       };
 
-      launch = writeShellApplication {
-        name = "launch";
+      find_game = writeShellApplication {
+        name = "find_game";
         runtimeInputs = [
+          pkgs.fzf
+          pkgs.jq
+          pkgs.yq-go
+          subdir_flake.defaultPackage.x86_64-linux
+        ];
+        text = builtins.readFile ./find_game.sh;
+      };
+
+      run_game = writeShellApplication {
+        name = "run_game";
+        runtimeInputs = [
+          pkgs.docopts
           pkgs.fd
           pkgs.jq
         ];
-        text = builtins.readFile ./launch.sh;
+        text = builtins.readFile ./run_game.sh;
       };
     };
 }
