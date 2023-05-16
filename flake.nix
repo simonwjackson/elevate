@@ -8,6 +8,16 @@
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux.pkgs;
       writeShellApplication = nixpkgs.legacyPackages.x86_64-linux.writeShellApplication;
+
+      launch = writeShellApplication {
+        name = "launch";
+        runtimeInputs = [
+          pkgs.fd
+          pkgs.jq
+        ];
+        text = builtins.readFile ./launch.sh;
+      };
+
     in
     {
       defaultPackage.x86_64-linux = writeShellApplication {
@@ -17,18 +27,9 @@
           pkgs.jq
           pkgs.yq-go
           subdir_flake.defaultPackage.x86_64-linux
-          self.launch
+          launch
         ];
         text = builtins.readFile ./elevate.sh;
-      };
-
-      launch = writeShellApplication {
-        name = "launch";
-        runtimeInputs = [
-          pkgs.fd
-          pkgs.jq
-        ];
-        text = builtins.readFile ./launch.sh;
       };
     };
 }
