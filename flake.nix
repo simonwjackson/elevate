@@ -2,12 +2,12 @@
   description = "A simple derivation for the hello_main script";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.subdir_flake.url = "path:./vdf2json"; # Importing the subdirectory flake
 
-  outputs = { self, nixpkgs, subdir_flake }:
+  outputs = { self, nixpkgs }:
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux.pkgs;
       writeShellApplication = nixpkgs.legacyPackages.x86_64-linux.writeShellApplication;
+      python = pkgs.python3.withPackages (ps: with ps; [ vdf ]);
     in
     {
       defaultPackage.x86_64-linux = self.cli;
@@ -19,7 +19,6 @@
           pkgs.jq
           pkgs.yq-go
           pkgs.docopts
-          subdir_flake.defaultPackage.x86_64-linux
           self.find_game
           self.run_game
         ];
@@ -32,7 +31,7 @@
           pkgs.fzf
           pkgs.jq
           pkgs.yq-go
-          subdir_flake.defaultPackage.x86_64-linux
+          self.vdf2json
         ];
         text = builtins.readFile ./find_game.sh;
       };
@@ -45,6 +44,14 @@
           pkgs.jq
         ];
         text = builtins.readFile ./run_game.sh;
+      };
+
+      vdf2json = writeShellApplication {
+        name = "vdf2json";
+        runtimeInputs = [ python ];
+        text = ''
+          python -c "import sys, json; import vdf; print(json.dumps(vdf.parse(open('""$*""'))))" 
+        '';
       };
     };
 }
