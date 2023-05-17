@@ -27,7 +27,8 @@ launchRetroArch() {
     echo "retroarch could not be found"
     exit
   else
-    retroarch -L "$corePath" "$uri" & withPidFile
+    # launch fullscreen
+    retroarch --fullscreen -L "$corePath" "$uri" & withPidFile
   fi
 }
 
