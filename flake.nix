@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, ... }:
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux.pkgs;
       writeShellApplication = nixpkgs.legacyPackages.x86_64-linux.writeShellApplication;
@@ -15,9 +15,6 @@
       cli = writeShellApplication {
         name = "cli";
         runtimeInputs = [
-          pkgs.fzf
-          pkgs.jq
-          pkgs.yq-go
           pkgs.docopts
           self.find_game
           self.run_game

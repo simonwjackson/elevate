@@ -10,7 +10,7 @@ getLibretroCorePath() {
   core="$1"
   [ -z "$core" ] && echo "Missing core filename" && exit
 
-  corePath=$(fd -1 "$1" /nix/store "$core")
+  corePath=$(fd -1 "$core" /nix/store)
   [ -z "$corePath" ] && echo "$core could not be found" && exit
 
   echo "$corePath"
@@ -18,6 +18,8 @@ getLibretroCorePath() {
 
 launchRetroArch() {
   corePath=$(getLibretroCorePath "$1")
+  echo "$corePath"
+
   uri="$2"
   [ -z "$uri" ] && echo "Missing game URI" && exit
 
