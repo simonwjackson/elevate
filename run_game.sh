@@ -43,6 +43,10 @@ if [ -n "$gameJson" ]; then
       | jq --raw-output '.meta.platform.uid' \
       | xargs steam -applaunch \
       & withPidFile
+  fi
+
+  if [ ! -f "$uri" ]; then
+    echo "Game file not found"
 
   elif [ "$platformCode" = "wiiu" ]; then
     cemu -f -g "$uri" & withPidFile
