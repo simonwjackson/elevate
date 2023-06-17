@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 withPidFile() {
-  echo $! > pidfile
+  echo $! >pidfile
   wait $!
   rm pidfile
 }
@@ -23,12 +23,13 @@ launchRetroArch() {
   uri="$2"
   [ -z "$uri" ] && echo "Missing game URI" && exit
 
-  if ! command -v retroarch &> /dev/null; then
+  if ! command -v retroarch &>/dev/null; then
     echo "retroarch could not be found"
     exit
   else
     # launch fullscreen
-    retroarch --fullscreen -L "$corePath" "$uri" & withPidFile
+    retroarch --fullscreen -L "$corePath" "$uri" &
+    withPidFile
   fi
 }
 
@@ -40,20 +41,23 @@ if [ -n "$gameJson" ]; then
   uri=$(echo "$gameJson" | jq --raw-output '.meta.uri')
 
   if [ "$platformCode" = "steam" ]; then
-    printf "%s" "$gameJson" \
-      | jq --raw-output '.meta.platform.uid' \
-      | xargs steam -applaunch \
-      & withPidFile
+    printf "%s" "$gameJson" |
+      jq --raw-output '.meta.platform.uid' |
+      xargs steam -applaunch \
+      &
+    withPidFile
   fi
 
   if [ ! -f "$uri" ]; then
     echo "Game file not found"
 
   elif [ "$platformCode" = "wiiu" ]; then
-    cemu -f -g "$uri" & withPidFile
+    cemu -f -g "$uri" &
+    withPidFile
 
   elif [ "$platformCode" = "switch" ]; then
-    yuzu --fullscreen "$uri" & withPidFile
+    yuzu --fullscreen "$uri" &
+    withPidFile
 
   elif [ "$platformCode" = "snes" ]; then
     launchRetroArch snes9x_libretro.so "$uri"
@@ -61,7 +65,7 @@ if [ -n "$gameJson" ]; then
   elif [ "$platformCode" = "gba" ]; then
     launchRetroArch mgba_libretro.so "$uri"
 
-  else 
+  else
     echo "No game selected"
   fi
 else
