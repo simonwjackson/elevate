@@ -1,0 +1,8 @@
+default:
+  @just --choose
+
+dev:
+  ./node_modules/.bin/vite
+
+build:
+  ./node_modules/.bin/vite build
