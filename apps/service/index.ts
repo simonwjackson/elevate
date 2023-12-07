@@ -1,11 +1,21 @@
 import { exec } from "child_process";
+import { resolve } from "dns";
 
-type Message = {
+type LaunchMessage = {
   topic: "launch";
   payload: {
     id: number;
   };
 };
+
+type ResolutionMessage = {
+  topic: "resolution";
+  payload: {
+    resolution: string;
+  };
+};
+
+type Message = LaunchMessage | ResolutionMessage;
 
 type _Game = {
   title: string;
@@ -52,7 +62,25 @@ function runSteamApp(appId: number) {
   });
 }
 
-const parseLaunch = (payload: Message["payload"]) => {
+const setResolution(resolution: string) => {
+  // TODO: validate resolution
+
+  const command = `xrandr -display :0 --output DP-2-3 --mode ${resolution}`;
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+}
+
+const parseLaunch = (payload: LaunchMessage["payload"]) => {
   const game = gameDb[payload.id];
 
   switch (game.platform) {
@@ -68,6 +96,10 @@ const handleMessage = (message: Message) => {
   switch (message.topic) {
     case "launch": {
       parseLaunch(message.payload);
+    }
+    case "resolution": {
+      if ("resolution" in message.payload)
+        setResolution(message.payload.resolution);
     }
   }
 };
