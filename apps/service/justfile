@@ -1,0 +1,5 @@
+default:
+  @just --choose
+
+dev:
+  bun run ./index.ts
