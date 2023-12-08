@@ -1,31 +1,23 @@
-import { exec } from "child_process";
-const { JSONRPCServer } = require("json-rpc-2.0");
+import { promisify } from "util";
+const exec = promisify(require("child_process").exec);
 
-const rpcServer = new JSONRPCServer();
+import {
+  JSONRPCResponse,
+  JSONRPCServer,
+  TypedJSONRPCServer,
+  isJSONRPCRequest,
+} from "json-rpc-2.0";
 
-// First parameter is a method name.
-// Second parameter is a method itself.
-// A method takes JSON-RPC params and returns a result.
-// It can also return a promise of the result.
-rpcServer.addMethod("echo", ({ text }) => text);
-rpcServer.addMethod("log", ({ message }) => console.log(message));
+type BasicEcho = { message: string };
 
-const logMiddleware = (next, request, serverParams) => {
-  console.log(`Received ${JSON.stringify(request)}`);
-
-  return next(request, serverParams).then((response) => {
-    console.log(`Responding ${JSON.stringify(response)}`);
-    return response;
-  });
+type JsonRPCMethods = {
+  echo(params: BasicEcho): string;
+  "resolution/set"(params: { monitor?: string; x: number; y: number }): string;
+  launch(params: LaunchMessage): string;
 };
 
-rpcServer.applyMiddleware(logMiddleware);
-
 type LaunchMessage = {
-  topic: "launch";
-  payload: {
-    id: number;
-  };
+  id: number;
 };
 
 type ResolutionMessage = {
@@ -66,63 +58,40 @@ const gameDb: Record<string, Game> = {
   },
 };
 
+const state = {
+  monitor: "DP-2-3",
+};
+
+const setResolution = async (monitor: string, x: number, y: number) => {
+  // TODO: validate resolution
+  // TODO: validate monitor
+
+  const command = `xrandr -display :0 --output ${monitor} --mode ${x}x${y}`;
+
+  return exec(command);
+};
+
 function runSteamApp(appId: number) {
   const command = `flatpak run com.valvesoftware.Steam "steam://rungameid/${appId}"`;
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-  });
+  return exec(command);
 }
 
-const setResolution = (resolution: string) => {
-  // TODO: validate resolution
-
-  const command = `xrandr -display :0 --output DP-2-3 --mode ${resolution}`;
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-  });
-};
-
-const parseLaunch = (payload: LaunchMessage["payload"]) => {
+const parseLaunch = (payload: LaunchMessage) => {
   const game = gameDb[payload.id];
 
   switch (game.platform) {
     case "steam": {
-      runSteamApp(game.meta.steamAppId);
+      return runSteamApp(game.meta.steamAppId);
     }
+    default:
     case "nintendo-entertainment-system": {
+      return "";
     }
   }
 };
 
-const handleMessage = (message: Message) => {
-  switch (message.topic) {
-    case "launch": {
-      parseLaunch(message.payload);
-    }
-    case "resolution": {
-      if ("resolution" in message.payload)
-        setResolution(message.payload.resolution);
-    }
-  }
-};
+const rpcServer: TypedJSONRPCServer<JsonRPCMethods> = new JSONRPCServer();
 
 const server = Bun.serve({
   port: 3000,
@@ -147,10 +116,13 @@ const server = Bun.serve({
       ws.subscribe("game");
       ws.publish("game", msg);
     },
-    message(_, message) {
-      if (typeof message === "string") {
-        const obj = JSON.parse(message);
-        handleMessage(obj);
+    message(ws, payload) {
+      if (typeof payload === "string") {
+        const obj = JSON.parse(payload);
+
+        if (isJSONRPCRequest(obj)) {
+          rpcServer.receive(obj).then((x) => x);
+        }
       }
     },
     close(ws) {
@@ -162,5 +134,22 @@ const server = Bun.serve({
     },
   },
 });
+
+rpcServer.addMethod("echo", ({ message }) => message);
+rpcServer.addMethod("launch", parseLaunch);
+rpcServer.addMethod("resolution/set", ({ x, y }) =>
+  setResolution(state.monitor, x, y),
+);
+
+const logMiddleware = (next, request, serverParams) => {
+  console.log(`Received ${JSON.stringify(request)}`);
+
+  return next(request, serverParams).then((response) => {
+    console.log(`Responding ${JSON.stringify(response)}`);
+    return response;
+  });
+};
+
+rpcServer.applyMiddleware(logMiddleware);
 
 console.log(`Listening on http://localhost:${server.port} ...`);
