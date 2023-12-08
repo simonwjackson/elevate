@@ -24,6 +24,17 @@ init({
 
 const host = "reactNative";
 
+// WORKS!
+// const exampleSocket = new WebSocket("ws://zao:3000/socket");
+// setTimeout(() => {
+//   exampleSocket.send(
+//     JSON.stringify({
+//       topic: "resolution",
+//       payload: { resolution: "640x480" },
+//     }),
+//   );
+// }, 5000);
+
 const sendMessage = (msg: any) => {
   const str = JSON.stringify(msg);
 
@@ -314,7 +325,7 @@ function ContentRow({
                 onEnterPress={() =>
                   // onAssetPress()
                   sendMessage({
-                    type: "launch",
+                    topic: "launch",
                     payload: {
                       id,
                     },
