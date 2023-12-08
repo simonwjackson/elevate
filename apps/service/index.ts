@@ -1,5 +1,4 @@
 import { exec } from "child_process";
-import { resolve } from "dns";
 
 type LaunchMessage = {
   topic: "launch";
@@ -62,7 +61,7 @@ function runSteamApp(appId: number) {
   });
 }
 
-const setResolution(resolution: string) => {
+const setResolution = (resolution: string) => {
   // TODO: validate resolution
 
   const command = `xrandr -display :0 --output DP-2-3 --mode ${resolution}`;
@@ -78,7 +77,7 @@ const setResolution(resolution: string) => {
     }
     console.log(`stdout: ${stdout}`);
   });
-}
+};
 
 const parseLaunch = (payload: LaunchMessage["payload"]) => {
   const game = gameDb[payload.id];
