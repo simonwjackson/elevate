@@ -15,7 +15,8 @@
       in {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            bun
+            # TODO: replace with bun
+            nodejs_20
             just
           ];
         };

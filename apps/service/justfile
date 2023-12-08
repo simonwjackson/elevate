@@ -2,4 +2,4 @@ default:
   @just --choose
 
 dev:
-  bun run ./index.ts
+  find src | entr -r bun run ./src/index.ts

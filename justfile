@@ -1,10 +1,32 @@
 default:
-  @just --choose
+    @just --choose
 
-mobile-dev:
-  #!/usr/bin/env bash
-  set -euxo pipefail
+dev-service:
+    #!/usr/bin/env bash
+    set -euxo pipefail
 
-  just -f ./apps/mobile/justfile dev &
-  just -f ./apps/frontend/justfile dev &
-  wait
+    run() {
+      local cmd=$1
+      local app_path=$2
+      cd "$app_path"
+      nix develop .# --command just $cmd
+    }
+
+    run dev ./apps/service &
+    run dev ./apps/frontend &
+    wait
+
+dev-mobile:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    run() {
+      local cmd=$1
+      local app_path=$2
+      cd "$app_path"
+      nix develop .# --command just $cmd
+    }
+
+    run dev ./apps/mobile &
+    run dev ./apps/frontend &
+    wait

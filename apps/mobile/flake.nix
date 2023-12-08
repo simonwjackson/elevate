@@ -14,7 +14,9 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = import ./buildInputs {inherit pkgs;};
+          buildInputs = with pkgs; [
+            nodejs_20
+          ];
         };
       }
     );

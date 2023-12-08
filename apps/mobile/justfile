@@ -2,4 +2,4 @@ default:
   @just --choose
 
 dev:
-  ./node_modules/.bin/expo start --tunnel
+  npx expo start --tunnel

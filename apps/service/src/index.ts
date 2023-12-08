@@ -1,4 +1,25 @@
 import { exec } from "child_process";
+const { JSONRPCServer } = require("json-rpc-2.0");
+
+const rpcServer = new JSONRPCServer();
+
+// First parameter is a method name.
+// Second parameter is a method itself.
+// A method takes JSON-RPC params and returns a result.
+// It can also return a promise of the result.
+rpcServer.addMethod("echo", ({ text }) => text);
+rpcServer.addMethod("log", ({ message }) => console.log(message));
+
+const logMiddleware = (next, request, serverParams) => {
+  console.log(`Received ${JSON.stringify(request)}`);
+
+  return next(request, serverParams).then((response) => {
+    console.log(`Responding ${JSON.stringify(response)}`);
+    return response;
+  });
+};
+
+rpcServer.applyMiddleware(logMiddleware);
 
 type LaunchMessage = {
   topic: "launch";

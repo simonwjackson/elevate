@@ -2,7 +2,7 @@ default:
   @just --choose
 
 dev:
-  ./node_modules/.bin/vite
+  npx vite
 
 build:
-  ./node_modules/.bin/vite build
+  npx vite build
