@@ -1,11 +1,5 @@
-/**
- * Since this file is for development purposes only, some of the dependencies are in devDependencies
- * Disabling ESLint rules for these dependencies since we know it is only for development purposes
- */
-
+import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
 import React, { useCallback, useEffect, useState, useRef } from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-// eslint-disable-next-line import/no-extraneous-dependencies
 import styled, { createGlobalStyle } from "styled-components";
 import shuffle from "lodash/shuffle";
 import {
@@ -16,33 +10,76 @@ import {
   FocusableComponentLayout,
   KeyPressDetails,
 } from "@noriginmedia/norigin-spatial-navigation";
+import type { JsonRPCMethods } from "../../service/src/index";
 
 init({
   debug: false,
   visualDebug: false,
 });
 
-const host = "reactNative";
+const createWebSocketJsonRpc = (host: string, port: number) => {
+  const socket = new WebSocket(`ws://${host}:${port}/socket`);
+  const client: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
+    (request) => {
+      try {
+        socket.send(JSON.stringify(request));
+        return Promise.resolve();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    },
+  );
 
-// WORKS!
-// const exampleSocket = new WebSocket("ws://zao:3000/socket");
-// setTimeout(() => {
-//   exampleSocket.send(
-//     JSON.stringify({
-//       topic: "resolution",
-//       payload: { resolution: "640x480" },
-//     }),
-//   );
-// }, 5000);
+  socket.onmessage = (event) => {
+    client.receive(JSON.parse(event.data.toString()));
+  };
 
-const sendMessage = (msg: any) => {
-  const str = JSON.stringify(msg);
+  socket.onclose = (event) => {
+    client.rejectAllPendingRequests(`Connection is closed (${event.reason}).`);
+  };
 
-  if (host === "reactNative") {
-    // @ts-ignore
-    window.ReactNativeWebView.postMessage(str);
-  }
+  return client;
 };
+
+type Host = {
+  rpcClient: TypedJSONRPCClient<JsonRPCMethods, void>;
+  hasStreaming: boolean;
+  isHeadless: boolean;
+  os: "linux" | "android";
+};
+
+// HACK:
+const device = "yari";
+
+const hosts: Record<string, Host> = {
+  fiji: {
+    rpcClient: createWebSocketJsonRpc("fiji", 3000),
+    hasStreaming: true,
+    isHeadless: false,
+    os: "linux",
+  },
+  zao: {
+    rpcClient: createWebSocketJsonRpc("zao", 3000),
+    hasStreaming: true,
+    isHeadless: true,
+    os: "linux",
+  },
+  yari: {
+    rpcClient: null,
+    hasStreaming: false,
+    isHeadless: false,
+    os: "android",
+  },
+};
+
+// const sendMessage = (msg: any) => {
+//   const str = JSON.stringify(msg);
+//
+//   if (host === "reactNative") {
+//     // @ts-ignore
+//     window.ReactNativeWebView.postMessage(str);
+//   }
+// };
 
 const rows = shuffle([
   {
@@ -50,16 +87,20 @@ const rows = shuffle([
   },
 ]);
 
+// TODO: Type
 const assets = [
   {
-    title: "moonlight",
+    id: "fsd8j",
+    title: "Rouge Legacy 2",
+    hosts: ["zao"],
     media: {
-      wide: "https://cdn2.steamgriddb.com/thumb/8a8f67cacf3e3d2d63614f515a2079b8.jpg",
+      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1253920/header.jpg?t=1698842858",
     },
   },
   {
     title: "tetris",
     id: "😊🎉🍎🚀🌈",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn2.steamgriddb.com/thumb/27c9b75bf3a30d742ab67f61da2c5706.jpg",
       tall: "https://cdn2.steamgriddb.com/thumb/da2f5c70767a018829cb65f26d72fb8b.jpg",
@@ -69,6 +110,7 @@ const assets = [
   },
   {
     title: "warioLand4",
+    hosts: ["yari"],
     id: "🐶🌻🍕🎈🌙",
     media: {
       wide: "https://cdn2.steamgriddb.com/thumb/7921d5adb66fcddedfb157f74030bb24.jpg",
@@ -76,12 +118,14 @@ const assets = [
   },
   {
     title: "deadCells",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/588650/header.jpg?t=1678188017",
     },
   },
   {
     title: "dungreed",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/753420/header.jpg?t=1653456557",
       tall: "https://cdn2.steamgriddb.com/thumb/89aa482117c71b16333fa548ee5f0b86.jpg",
@@ -90,6 +134,7 @@ const assets = [
   },
   {
     title: "scourgeBringer",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1037020/header.jpg?t=1687186493",
       wallpaper:
@@ -291,7 +336,7 @@ interface ContentRowProps {
 
 function ContentRow({
   title: rowTitle,
-  onAssetPress,
+  // onAssetPress,
   onFocus,
 }: ContentRowProps) {
   const { ref, focusKey } = useFocusable({
@@ -302,6 +347,7 @@ function ContentRow({
 
   const onAssetFocus = useCallback(
     ({ x }: { x: number }) => {
+      // @ts-ignore
       scrollingRef.current.scrollTo({
         left: x,
         behavior: "smooth",
@@ -310,29 +356,56 @@ function ContentRow({
     [scrollingRef],
   );
 
+  const onSelect = async (asset: any) => {
+    // HACK: Dont assume single host
+    const hostName = asset.hosts[0] as string;
+
+    // HACK:
+    return Promise.resolve()
+      .then(() => {
+        if (device === "yari" && hostName === "zao") {
+          return hosts[hostName].request("resolution/set", {
+            x: 1024,
+            y: 768,
+          });
+        }
+
+        return Promise.resolve("next");
+      })
+      .then(() => {
+        return hosts["zao"].request("launch", {
+          id: asset.id,
+        });
+      })
+      .then(console.log);
+  };
+
   return (
     <FocusContext.Provider value={focusKey}>
       <ContentRowWrapper ref={ref}>
         <ContentRowTitle>{rowTitle}</ContentRowTitle>
         <ContentRowScrollingWrapper ref={scrollingRef}>
           <ContentRowScrollingContent>
-            {assets.map(({ media, title, id, color }) => (
-              <Asset
-                media={media}
-                key={title}
-                title={title}
-                color={color}
-                onEnterPress={() =>
-                  // onAssetPress()
-                  sendMessage({
-                    topic: "launch",
-                    payload: {
-                      id,
-                    },
-                  })
-                }
-                onFocus={onAssetFocus}
-              />
+            {assets.map((asset) => (
+              <div onClick={() => onSelect(asset)}>
+                <Asset
+                  media={asset.media}
+                  key={asset.title}
+                  title={asset.title}
+                  color={asset.color}
+                  onEnterPress={
+                    () => onSelect(asset)
+                    // onAssetPress()
+                    // sendMessage({
+                    //   topic: "launch",
+                    //   payload: {
+                    //     id,
+                    //   },
+                    // })
+                  }
+                  onFocus={onAssetFocus}
+                />
+              </div>
             ))}
           </ContentRowScrollingContent>
         </ContentRowScrollingWrapper>
