@@ -10,7 +10,7 @@ import {
 
 type BasicEcho = { message: string };
 
-type JsonRPCMethods = {
+export type JsonRPCMethods = {
   echo(params: BasicEcho): string;
   "resolution/set"(params: { monitor?: string; x: number; y: number }): string;
   launch(params: LaunchMessage): string;
@@ -109,29 +109,31 @@ const server = Bun.serve({
     return new Response("Hello world");
   },
   websocket: {
-    open(ws) {
-      console.log("open");
-      const msg = `has entered the chat`;
-
-      ws.subscribe("game");
-      ws.publish("game", msg);
-    },
+    // open(ws) {
+    //   console.log("open");
+    //   const msg = `has entered the chat`;
+    //
+    //   ws.subscribe("game");
+    //   ws.publish("game", msg);
+    // },
     message(ws, payload) {
       if (typeof payload === "string") {
         const obj = JSON.parse(payload);
 
         if (isJSONRPCRequest(obj)) {
-          rpcServer.receive(obj).then((x) => x);
+          rpcServer.receive(obj).then((x) => {
+            ws.sendText(JSON.stringify(x));
+          });
         }
       }
     },
-    close(ws) {
-      console.log("close");
-      const msg = `has left the chat`;
-
-      ws.unsubscribe("game");
-      server.publish("game", msg);
-    },
+    // close(ws) {
+    //   console.log("close");
+    //   const msg = `has left the chat`;
+    //
+    //   ws.unsubscribe("game");
+    //   server.publish("game", msg);
+    // },
   },
 });
 
