@@ -2,4 +2,13 @@ default:
   @just --choose
 
 dev:
-  npx expo start --tunnel
+  #!/usr/bin/env bash
+  set -euxo pipefail
+
+  npx expo start --tunnel &
+  { cd ../frontend; find ./src | entr -r just build; } &
+  find ../frontend/dist/index.html | entr -r just bundle-frontend &
+  wait
+
+bundle-frontend:
+  cp ../frontend/dist/index.html ./assets/index.html
