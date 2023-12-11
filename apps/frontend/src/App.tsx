@@ -1,4 +1,8 @@
-import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
+import {
+  JSONRPCClient,
+  JSONRPCResponse,
+  TypedJSONRPCClient,
+} from "json-rpc-2.0";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import shuffle from "lodash/shuffle";
@@ -16,6 +20,24 @@ init({
   debug: false,
   visualDebug: false,
 });
+
+// window.receiveMessageFromReactNative = (data: JSONRPCResponse) => {
+//   alert(data);
+//   console.log(data);
+// };
+
+const reactNativeClient: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
+  (request) => {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify(request));
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+);
+
+reactNativeClient.request("echo", { message: "sticky" });
 
 const createWebSocketJsonRpc = (host: string, port: number) => {
   const socket = new WebSocket(`ws://${host}:${port}/socket`);

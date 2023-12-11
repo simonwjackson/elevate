@@ -5,9 +5,13 @@ import { StyleSheet, Text, View } from "react-native";
 import { useAssets } from "expo-asset";
 import { StorageAccessFramework } from "expo-file-system";
 import { IntentLauncherParams, startActivityAsync } from "expo-intent-launcher";
-import Constants from "expo-constants";
 import { WebViewSource } from "react-native-webview/lib/WebViewTypes";
 import { StatusBar } from "expo-status-bar";
+import {
+  JSONRPCRequest,
+  JSONRPCServer,
+  TypedJSONRPCServer,
+} from "json-rpc-2.0";
 
 // INFO: How to "write" to the download directory
 // https://www.farhansayshi.com/post/how-to-save-files-to-a-device-folder-using-expo-and-react-native/
@@ -26,6 +30,16 @@ import { StatusBar } from "expo-status-bar";
 
 // am start -n org.ppsspp.ppsspp -a .PpssppActivity  -a android.intent.action.VIEW -e org.ppsspp.ppsspp.Shortcuts $FILE
 // am start -n org.ppsspp.ppsspp/.PpssppActivity -a android.intent.action.VIEW -c android.intent.category.DEFAULT -d $FILE -t application/octet-stream --activity-clear-task  --activity-clear-top  --activity-no-history
+
+type Methods = {
+  echo(params: { message: string }): string;
+};
+
+const rpcServer: TypedJSONRPCServer<Methods> = new JSONRPCServer();
+rpcServer.addMethod("echo", ({ message }) => {
+  alert(message);
+  return message;
+});
 
 const launch = (arr) => {
   startActivityAsync(arr[0] as string, arr[1] as IntentLauncherParams)
@@ -158,19 +172,30 @@ const launchGame = (obj: any) => {
   }
 };
 
-const processMessage = (msg: string) => {
-  const obj = JSON.parse(msg);
-
-  switch (obj.type) {
-    case "launch": {
-      launchGame(obj.payload);
+const processMessage = (msg: JSONRPCRequest) => {
+  rpcServer.receive(msg).then((jsonRPCResponse) => {
+    if (jsonRPCResponse) {
+      console.log(JSON.stringify(jsonRPCResponse));
+    } else {
+      // If response is absent, it was a JSON-RPC notification method.
+      // Respond with no content status (204).
+      // s.sendStatus(204);
+      alert("error");
     }
-  }
+  });
+  // const obj = JSON.parse(msg);
+  //
+  // switch (obj.type) {
+  //   case "launch": {
+  //     launchGame(obj.payload);
+  //   }
+  // }
 };
 
 const CustomWebView = () => {
   const [source, setSource] = React.useState<WebViewSource | null>(null);
   const [assets, error] = useAssets([require("./assets/index.html")]);
+  const webViewRef = React.useRef(null);
 
   React.useEffect(() => {
     if (assets) {
@@ -187,6 +212,8 @@ const CustomWebView = () => {
 
   return source ? (
     <WebView
+      // injectedJavaScript="window.receiveMessageFromReactNative('hi')"
+      ref={webViewRef}
       originWhitelist={["*"]}
       javaScriptEnabled={true}
       androidLayerType={"hardware"}
@@ -196,7 +223,7 @@ const CustomWebView = () => {
       allowUniversalAccessFromFileURLs={true}
       source={source}
       onMessage={(event) => {
-        processMessage(event.nativeEvent.data);
+        processMessage(JSON.parse(event.nativeEvent.data) as JSONRPCRequest);
       }}
     />
   ) : (
