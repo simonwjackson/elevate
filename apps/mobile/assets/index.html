@@ -370,7 +370,7 @@ reactJsxRuntime_production_min.jsxs = q$1;
   jsxRuntime.exports = reactJsxRuntime_production_min;
 }
 var jsxRuntimeExports = jsxRuntime.exports;
-var client = {};
+var client$1 = {};
 var reactDom = { exports: {} };
 var reactDom_production_min = {};
 var scheduler = { exports: {} };
@@ -7590,9 +7590,939 @@ function checkDCE() {
 var reactDomExports = reactDom.exports;
 var m = reactDomExports;
 {
-  client.createRoot = m.createRoot;
-  client.hydrateRoot = m.hydrateRoot;
+  client$1.createRoot = m.createRoot;
+  client$1.hydrateRoot = m.hydrateRoot;
 }
+var dist$1 = {};
+var client = {};
+var models = {};
+(function(exports) {
+  var __extends = commonjsGlobal && commonjsGlobal.__extends || /* @__PURE__ */ function() {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+        d2.__proto__ = b2;
+      } || function(d2, b2) {
+        for (var p2 in b2)
+          if (Object.prototype.hasOwnProperty.call(b2, p2))
+            d2[p2] = b2[p2];
+      };
+      return extendStatics(d, b);
+    };
+    return function(d, b) {
+      if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+      extendStatics(d, b);
+      function __() {
+        this.constructor = d;
+      }
+      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+  }();
+  Object.defineProperty(exports, "__esModule", { value: true });
+  exports.createJSONRPCNotification = exports.createJSONRPCRequest = exports.createJSONRPCSuccessResponse = exports.createJSONRPCErrorResponse = exports.JSONRPCErrorCode = exports.JSONRPCErrorException = exports.isJSONRPCResponses = exports.isJSONRPCResponse = exports.isJSONRPCRequests = exports.isJSONRPCRequest = exports.isJSONRPCID = exports.JSONRPC = void 0;
+  exports.JSONRPC = "2.0";
+  var isJSONRPCID = function(id2) {
+    return typeof id2 === "string" || typeof id2 === "number" || id2 === null;
+  };
+  exports.isJSONRPCID = isJSONRPCID;
+  var isJSONRPCRequest = function(payload) {
+    return payload.jsonrpc === exports.JSONRPC && payload.method !== void 0 && payload.result === void 0 && payload.error === void 0;
+  };
+  exports.isJSONRPCRequest = isJSONRPCRequest;
+  var isJSONRPCRequests = function(payload) {
+    return Array.isArray(payload) && payload.every(exports.isJSONRPCRequest);
+  };
+  exports.isJSONRPCRequests = isJSONRPCRequests;
+  var isJSONRPCResponse = function(payload) {
+    return payload.jsonrpc === exports.JSONRPC && payload.id !== void 0 && (payload.result !== void 0 || payload.error !== void 0);
+  };
+  exports.isJSONRPCResponse = isJSONRPCResponse;
+  var isJSONRPCResponses = function(payload) {
+    return Array.isArray(payload) && payload.every(exports.isJSONRPCResponse);
+  };
+  exports.isJSONRPCResponses = isJSONRPCResponses;
+  var createJSONRPCError = function(code, message, data) {
+    var error = { code, message };
+    if (data != null) {
+      error.data = data;
+    }
+    return error;
+  };
+  var JSONRPCErrorException = (
+    /** @class */
+    function(_super) {
+      __extends(JSONRPCErrorException2, _super);
+      function JSONRPCErrorException2(message, code, data) {
+        var _this = _super.call(this, message) || this;
+        Object.setPrototypeOf(_this, JSONRPCErrorException2.prototype);
+        _this.code = code;
+        _this.data = data;
+        return _this;
+      }
+      JSONRPCErrorException2.prototype.toObject = function() {
+        return createJSONRPCError(this.code, this.message, this.data);
+      };
+      return JSONRPCErrorException2;
+    }(Error)
+  );
+  exports.JSONRPCErrorException = JSONRPCErrorException;
+  (function(JSONRPCErrorCode) {
+    JSONRPCErrorCode[JSONRPCErrorCode["ParseError"] = -32700] = "ParseError";
+    JSONRPCErrorCode[JSONRPCErrorCode["InvalidRequest"] = -32600] = "InvalidRequest";
+    JSONRPCErrorCode[JSONRPCErrorCode["MethodNotFound"] = -32601] = "MethodNotFound";
+    JSONRPCErrorCode[JSONRPCErrorCode["InvalidParams"] = -32602] = "InvalidParams";
+    JSONRPCErrorCode[JSONRPCErrorCode["InternalError"] = -32603] = "InternalError";
+  })(exports.JSONRPCErrorCode || (exports.JSONRPCErrorCode = {}));
+  var createJSONRPCErrorResponse = function(id2, code, message, data) {
+    return {
+      jsonrpc: exports.JSONRPC,
+      id: id2,
+      error: createJSONRPCError(code, message, data)
+    };
+  };
+  exports.createJSONRPCErrorResponse = createJSONRPCErrorResponse;
+  var createJSONRPCSuccessResponse = function(id2, result) {
+    return {
+      jsonrpc: exports.JSONRPC,
+      id: id2,
+      result: result !== null && result !== void 0 ? result : null
+    };
+  };
+  exports.createJSONRPCSuccessResponse = createJSONRPCSuccessResponse;
+  var createJSONRPCRequest = function(id2, method, params) {
+    return {
+      jsonrpc: exports.JSONRPC,
+      id: id2,
+      method,
+      params
+    };
+  };
+  exports.createJSONRPCRequest = createJSONRPCRequest;
+  var createJSONRPCNotification = function(method, params) {
+    return {
+      jsonrpc: exports.JSONRPC,
+      method,
+      params
+    };
+  };
+  exports.createJSONRPCNotification = createJSONRPCNotification;
+})(models);
+var internal = {};
+Object.defineProperty(internal, "__esModule", { value: true });
+internal.DefaultErrorCode = void 0;
+internal.DefaultErrorCode = 0;
+var __awaiter$2 = commonjsGlobal && commonjsGlobal.__awaiter || function(thisArg, _arguments, P2, generator) {
+  function adopt(value) {
+    return value instanceof P2 ? value : new P2(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P2 || (P2 = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator$2 = commonjsGlobal && commonjsGlobal.__generator || function(thisArg, body) {
+  var _2 = { label: 0, sent: function() {
+    if (t2[0] & 1)
+      throw t2[1];
+    return t2[1];
+  }, trys: [], ops: [] }, f2, y2, t2, g2;
+  return g2 = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g2[Symbol.iterator] = function() {
+    return this;
+  }), g2;
+  function verb(n2) {
+    return function(v2) {
+      return step([n2, v2]);
+    };
+  }
+  function step(op) {
+    if (f2)
+      throw new TypeError("Generator is already executing.");
+    while (g2 && (g2 = 0, op[0] && (_2 = 0)), _2)
+      try {
+        if (f2 = 1, y2 && (t2 = op[0] & 2 ? y2["return"] : op[0] ? y2["throw"] || ((t2 = y2["return"]) && t2.call(y2), 0) : y2.next) && !(t2 = t2.call(y2, op[1])).done)
+          return t2;
+        if (y2 = 0, t2)
+          op = [op[0] & 2, t2.value];
+        switch (op[0]) {
+          case 0:
+          case 1:
+            t2 = op;
+            break;
+          case 4:
+            _2.label++;
+            return { value: op[1], done: false };
+          case 5:
+            _2.label++;
+            y2 = op[1];
+            op = [0];
+            continue;
+          case 7:
+            op = _2.ops.pop();
+            _2.trys.pop();
+            continue;
+          default:
+            if (!(t2 = _2.trys, t2 = t2.length > 0 && t2[t2.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+              _2 = 0;
+              continue;
+            }
+            if (op[0] === 3 && (!t2 || op[1] > t2[0] && op[1] < t2[3])) {
+              _2.label = op[1];
+              break;
+            }
+            if (op[0] === 6 && _2.label < t2[1]) {
+              _2.label = t2[1];
+              t2 = op;
+              break;
+            }
+            if (t2 && _2.label < t2[2]) {
+              _2.label = t2[2];
+              _2.ops.push(op);
+              break;
+            }
+            if (t2[2])
+              _2.ops.pop();
+            _2.trys.pop();
+            continue;
+        }
+        op = body.call(thisArg, _2);
+      } catch (e) {
+        op = [6, e];
+        y2 = 0;
+      } finally {
+        f2 = t2 = 0;
+      }
+    if (op[0] & 5)
+      throw op[1];
+    return { value: op[0] ? op[1] : void 0, done: true };
+  }
+};
+Object.defineProperty(client, "__esModule", { value: true });
+client.JSONRPCClient = void 0;
+var models_1$2 = models;
+var internal_1$1 = internal;
+var JSONRPCClient = (
+  /** @class */
+  function() {
+    function JSONRPCClient2(_send, createID) {
+      this._send = _send;
+      this.createID = createID;
+      this.idToResolveMap = /* @__PURE__ */ new Map();
+      this.id = 0;
+    }
+    JSONRPCClient2.prototype._createID = function() {
+      if (this.createID) {
+        return this.createID();
+      } else {
+        return ++this.id;
+      }
+    };
+    JSONRPCClient2.prototype.timeout = function(delay, overrideCreateJSONRPCErrorResponse) {
+      var _this = this;
+      if (overrideCreateJSONRPCErrorResponse === void 0) {
+        overrideCreateJSONRPCErrorResponse = function(id2) {
+          return (0, models_1$2.createJSONRPCErrorResponse)(id2, internal_1$1.DefaultErrorCode, "Request timeout");
+        };
+      }
+      var timeoutRequest = function(ids, request) {
+        var timeoutID = setTimeout(function() {
+          ids.forEach(function(id2) {
+            var resolve = _this.idToResolveMap.get(id2);
+            if (resolve) {
+              _this.idToResolveMap.delete(id2);
+              resolve(overrideCreateJSONRPCErrorResponse(id2));
+            }
+          });
+        }, delay);
+        return request().then(function(result) {
+          clearTimeout(timeoutID);
+          return result;
+        }, function(error) {
+          clearTimeout(timeoutID);
+          return Promise.reject(error);
+        });
+      };
+      var requestAdvanced = function(request, clientParams) {
+        var ids = (!Array.isArray(request) ? [request] : request).map(function(request2) {
+          return request2.id;
+        }).filter(isDefinedAndNonNull);
+        return timeoutRequest(ids, function() {
+          return _this.requestAdvanced(request, clientParams);
+        });
+      };
+      return {
+        request: function(method, params, clientParams) {
+          var id2 = _this._createID();
+          return timeoutRequest([id2], function() {
+            return _this.requestWithID(method, params, clientParams, id2);
+          });
+        },
+        requestAdvanced: function(request, clientParams) {
+          return requestAdvanced(request, clientParams);
+        }
+      };
+    };
+    JSONRPCClient2.prototype.request = function(method, params, clientParams) {
+      return this.requestWithID(method, params, clientParams, this._createID());
+    };
+    JSONRPCClient2.prototype.requestWithID = function(method, params, clientParams, id2) {
+      return __awaiter$2(this, void 0, void 0, function() {
+        var request, response;
+        return __generator$2(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              request = (0, models_1$2.createJSONRPCRequest)(id2, method, params);
+              return [4, this.requestAdvanced(request, clientParams)];
+            case 1:
+              response = _a.sent();
+              if (response.result !== void 0 && !response.error) {
+                return [2, response.result];
+              } else if (response.result === void 0 && response.error) {
+                return [2, Promise.reject(new models_1$2.JSONRPCErrorException(response.error.message, response.error.code, response.error.data))];
+              } else {
+                return [2, Promise.reject(new Error("An unexpected error occurred"))];
+              }
+          }
+        });
+      });
+    };
+    JSONRPCClient2.prototype.requestAdvanced = function(requests, clientParams) {
+      var _this = this;
+      var areRequestsOriginallyArray = Array.isArray(requests);
+      if (!Array.isArray(requests)) {
+        requests = [requests];
+      }
+      var requestsWithID = requests.filter(function(request) {
+        return isDefinedAndNonNull(request.id);
+      });
+      var promises = requestsWithID.map(function(request) {
+        return new Promise(function(resolve) {
+          return _this.idToResolveMap.set(request.id, resolve);
+        });
+      });
+      var promise = Promise.all(promises).then(function(responses) {
+        if (areRequestsOriginallyArray || !responses.length) {
+          return responses;
+        } else {
+          return responses[0];
+        }
+      });
+      return this.send(areRequestsOriginallyArray ? requests : requests[0], clientParams).then(function() {
+        return promise;
+      }, function(error) {
+        requestsWithID.forEach(function(request) {
+          _this.receive((0, models_1$2.createJSONRPCErrorResponse)(request.id, internal_1$1.DefaultErrorCode, error && error.message || "Failed to send a request"));
+        });
+        return promise;
+      });
+    };
+    JSONRPCClient2.prototype.notify = function(method, params, clientParams) {
+      var request = (0, models_1$2.createJSONRPCNotification)(method, params);
+      this.send(request, clientParams).then(void 0, function() {
+        return void 0;
+      });
+    };
+    JSONRPCClient2.prototype.send = function(payload, clientParams) {
+      return __awaiter$2(this, void 0, void 0, function() {
+        return __generator$2(this, function(_a) {
+          return [2, this._send(payload, clientParams)];
+        });
+      });
+    };
+    JSONRPCClient2.prototype.rejectAllPendingRequests = function(message) {
+      this.idToResolveMap.forEach(function(resolve, id2) {
+        return resolve((0, models_1$2.createJSONRPCErrorResponse)(id2, internal_1$1.DefaultErrorCode, message));
+      });
+      this.idToResolveMap.clear();
+    };
+    JSONRPCClient2.prototype.receive = function(responses) {
+      var _this = this;
+      if (!Array.isArray(responses)) {
+        responses = [responses];
+      }
+      responses.forEach(function(response) {
+        var resolve = _this.idToResolveMap.get(response.id);
+        if (resolve) {
+          _this.idToResolveMap.delete(response.id);
+          resolve(response);
+        }
+      });
+    };
+    return JSONRPCClient2;
+  }()
+);
+client.JSONRPCClient = JSONRPCClient;
+var isDefinedAndNonNull = function(value) {
+  return value !== void 0 && value !== null;
+};
+var interfaces = {};
+Object.defineProperty(interfaces, "__esModule", { value: true });
+var server = {};
+var __assign$1 = commonjsGlobal && commonjsGlobal.__assign || function() {
+  __assign$1 = Object.assign || function(t2) {
+    for (var s, i = 1, n2 = arguments.length; i < n2; i++) {
+      s = arguments[i];
+      for (var p2 in s)
+        if (Object.prototype.hasOwnProperty.call(s, p2))
+          t2[p2] = s[p2];
+    }
+    return t2;
+  };
+  return __assign$1.apply(this, arguments);
+};
+var __awaiter$1 = commonjsGlobal && commonjsGlobal.__awaiter || function(thisArg, _arguments, P2, generator) {
+  function adopt(value) {
+    return value instanceof P2 ? value : new P2(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P2 || (P2 = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator$1 = commonjsGlobal && commonjsGlobal.__generator || function(thisArg, body) {
+  var _2 = { label: 0, sent: function() {
+    if (t2[0] & 1)
+      throw t2[1];
+    return t2[1];
+  }, trys: [], ops: [] }, f2, y2, t2, g2;
+  return g2 = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g2[Symbol.iterator] = function() {
+    return this;
+  }), g2;
+  function verb(n2) {
+    return function(v2) {
+      return step([n2, v2]);
+    };
+  }
+  function step(op) {
+    if (f2)
+      throw new TypeError("Generator is already executing.");
+    while (g2 && (g2 = 0, op[0] && (_2 = 0)), _2)
+      try {
+        if (f2 = 1, y2 && (t2 = op[0] & 2 ? y2["return"] : op[0] ? y2["throw"] || ((t2 = y2["return"]) && t2.call(y2), 0) : y2.next) && !(t2 = t2.call(y2, op[1])).done)
+          return t2;
+        if (y2 = 0, t2)
+          op = [op[0] & 2, t2.value];
+        switch (op[0]) {
+          case 0:
+          case 1:
+            t2 = op;
+            break;
+          case 4:
+            _2.label++;
+            return { value: op[1], done: false };
+          case 5:
+            _2.label++;
+            y2 = op[1];
+            op = [0];
+            continue;
+          case 7:
+            op = _2.ops.pop();
+            _2.trys.pop();
+            continue;
+          default:
+            if (!(t2 = _2.trys, t2 = t2.length > 0 && t2[t2.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+              _2 = 0;
+              continue;
+            }
+            if (op[0] === 3 && (!t2 || op[1] > t2[0] && op[1] < t2[3])) {
+              _2.label = op[1];
+              break;
+            }
+            if (op[0] === 6 && _2.label < t2[1]) {
+              _2.label = t2[1];
+              t2 = op;
+              break;
+            }
+            if (t2 && _2.label < t2[2]) {
+              _2.label = t2[2];
+              _2.ops.push(op);
+              break;
+            }
+            if (t2[2])
+              _2.ops.pop();
+            _2.trys.pop();
+            continue;
+        }
+        op = body.call(thisArg, _2);
+      } catch (e) {
+        op = [6, e];
+        y2 = 0;
+      } finally {
+        f2 = t2 = 0;
+      }
+    if (op[0] & 5)
+      throw op[1];
+    return { value: op[0] ? op[1] : void 0, done: true };
+  }
+};
+var __spreadArray$1 = commonjsGlobal && commonjsGlobal.__spreadArray || function(to, from2, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l2 = from2.length, ar; i < l2; i++) {
+      if (ar || !(i in from2)) {
+        if (!ar)
+          ar = Array.prototype.slice.call(from2, 0, i);
+        ar[i] = from2[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from2));
+};
+Object.defineProperty(server, "__esModule", { value: true });
+server.JSONRPCServer = void 0;
+var models_1$1 = models;
+var internal_1 = internal;
+var createParseErrorResponse = function() {
+  return (0, models_1$1.createJSONRPCErrorResponse)(null, models_1$1.JSONRPCErrorCode.ParseError, "Parse error");
+};
+var createInvalidRequestResponse = function(request) {
+  return (0, models_1$1.createJSONRPCErrorResponse)((0, models_1$1.isJSONRPCID)(request.id) ? request.id : null, models_1$1.JSONRPCErrorCode.InvalidRequest, "Invalid Request");
+};
+var createMethodNotFoundResponse = function(id2) {
+  return (0, models_1$1.createJSONRPCErrorResponse)(id2, models_1$1.JSONRPCErrorCode.MethodNotFound, "Method not found");
+};
+var JSONRPCServer = (
+  /** @class */
+  function() {
+    function JSONRPCServer2(options) {
+      if (options === void 0) {
+        options = {};
+      }
+      var _a;
+      this.mapErrorToJSONRPCErrorResponse = defaultMapErrorToJSONRPCErrorResponse;
+      this.nameToMethodDictionary = {};
+      this.middleware = null;
+      this.errorListener = (_a = options.errorListener) !== null && _a !== void 0 ? _a : console.warn;
+    }
+    JSONRPCServer2.prototype.hasMethod = function(name) {
+      return !!this.nameToMethodDictionary[name];
+    };
+    JSONRPCServer2.prototype.addMethod = function(name, method) {
+      this.addMethodAdvanced(name, this.toJSONRPCMethod(method));
+    };
+    JSONRPCServer2.prototype.removeMethod = function(name) {
+      delete this.nameToMethodDictionary[name];
+    };
+    JSONRPCServer2.prototype.toJSONRPCMethod = function(method) {
+      return function(request, serverParams) {
+        var response = method(request.params, serverParams);
+        return Promise.resolve(response).then(function(result) {
+          return mapResultToJSONRPCResponse(request.id, result);
+        });
+      };
+    };
+    JSONRPCServer2.prototype.addMethodAdvanced = function(name, method) {
+      var _a;
+      this.nameToMethodDictionary = __assign$1(__assign$1({}, this.nameToMethodDictionary), (_a = {}, _a[name] = method, _a));
+    };
+    JSONRPCServer2.prototype.receiveJSON = function(json, serverParams) {
+      var request = this.tryParseRequestJSON(json);
+      if (request) {
+        return this.receive(request, serverParams);
+      } else {
+        return Promise.resolve(createParseErrorResponse());
+      }
+    };
+    JSONRPCServer2.prototype.tryParseRequestJSON = function(json) {
+      try {
+        return JSON.parse(json);
+      } catch (_a) {
+        return null;
+      }
+    };
+    JSONRPCServer2.prototype.receive = function(request, serverParams) {
+      if (Array.isArray(request)) {
+        return this.receiveMultiple(request, serverParams);
+      } else {
+        return this.receiveSingle(request, serverParams);
+      }
+    };
+    JSONRPCServer2.prototype.receiveMultiple = function(requests, serverParams) {
+      return __awaiter$1(this, void 0, void 0, function() {
+        var responses;
+        var _this = this;
+        return __generator$1(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              return [4, Promise.all(requests.map(function(request) {
+                return _this.receiveSingle(request, serverParams);
+              }))];
+            case 1:
+              responses = _a.sent().filter(isNonNull);
+              if (responses.length === 1) {
+                return [2, responses[0]];
+              } else if (responses.length) {
+                return [2, responses];
+              } else {
+                return [2, null];
+              }
+          }
+        });
+      });
+    };
+    JSONRPCServer2.prototype.receiveSingle = function(request, serverParams) {
+      return __awaiter$1(this, void 0, void 0, function() {
+        var method, response;
+        return __generator$1(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              method = this.nameToMethodDictionary[request.method];
+              if (!!(0, models_1$1.isJSONRPCRequest)(request))
+                return [3, 1];
+              return [2, createInvalidRequestResponse(request)];
+            case 1:
+              return [4, this.callMethod(method, request, serverParams)];
+            case 2:
+              response = _a.sent();
+              return [2, mapResponse(request, response)];
+          }
+        });
+      });
+    };
+    JSONRPCServer2.prototype.applyMiddleware = function() {
+      var middlewares = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        middlewares[_i] = arguments[_i];
+      }
+      if (this.middleware) {
+        this.middleware = this.combineMiddlewares(__spreadArray$1([
+          this.middleware
+        ], middlewares, true));
+      } else {
+        this.middleware = this.combineMiddlewares(middlewares);
+      }
+    };
+    JSONRPCServer2.prototype.combineMiddlewares = function(middlewares) {
+      if (!middlewares.length) {
+        return null;
+      } else {
+        return middlewares.reduce(this.middlewareReducer);
+      }
+    };
+    JSONRPCServer2.prototype.middlewareReducer = function(prevMiddleware, nextMiddleware) {
+      return function(next2, request, serverParams) {
+        return prevMiddleware(function(request2, serverParams2) {
+          return nextMiddleware(next2, request2, serverParams2);
+        }, request, serverParams);
+      };
+    };
+    JSONRPCServer2.prototype.callMethod = function(method, request, serverParams) {
+      var _this = this;
+      var callMethod = function(request2, serverParams2) {
+        if (method) {
+          return method(request2, serverParams2);
+        } else if (request2.id !== void 0) {
+          return Promise.resolve(createMethodNotFoundResponse(request2.id));
+        } else {
+          return Promise.resolve(null);
+        }
+      };
+      var onError = function(error) {
+        _this.errorListener('An unexpected error occurred while executing "'.concat(request.method, '" JSON-RPC method:'), error);
+        return Promise.resolve(_this.mapErrorToJSONRPCErrorResponseIfNecessary(request.id, error));
+      };
+      try {
+        return (this.middleware || noopMiddleware)(callMethod, request, serverParams).then(void 0, onError);
+      } catch (error) {
+        return onError(error);
+      }
+    };
+    JSONRPCServer2.prototype.mapErrorToJSONRPCErrorResponseIfNecessary = function(id2, error) {
+      if (id2 !== void 0) {
+        return this.mapErrorToJSONRPCErrorResponse(id2, error);
+      } else {
+        return null;
+      }
+    };
+    return JSONRPCServer2;
+  }()
+);
+server.JSONRPCServer = JSONRPCServer;
+var isNonNull = function(value) {
+  return value !== null;
+};
+var noopMiddleware = function(next2, request, serverParams) {
+  return next2(request, serverParams);
+};
+var mapResultToJSONRPCResponse = function(id2, result) {
+  if (id2 !== void 0) {
+    return (0, models_1$1.createJSONRPCSuccessResponse)(id2, result);
+  } else {
+    return null;
+  }
+};
+var defaultMapErrorToJSONRPCErrorResponse = function(id2, error) {
+  var _a;
+  var message = (_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : "An unexpected error occurred";
+  var code = internal_1.DefaultErrorCode;
+  var data;
+  if (error instanceof models_1$1.JSONRPCErrorException) {
+    code = error.code;
+    data = error.data;
+  }
+  return (0, models_1$1.createJSONRPCErrorResponse)(id2, code, message, data);
+};
+var mapResponse = function(request, response) {
+  if (response) {
+    return response;
+  } else if (request.id !== void 0) {
+    return (0, models_1$1.createJSONRPCErrorResponse)(request.id, models_1$1.JSONRPCErrorCode.InternalError, "Internal error");
+  } else {
+    return null;
+  }
+};
+var serverAndClient = {};
+var __awaiter = commonjsGlobal && commonjsGlobal.__awaiter || function(thisArg, _arguments, P2, generator) {
+  function adopt(value) {
+    return value instanceof P2 ? value : new P2(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P2 || (P2 = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator = commonjsGlobal && commonjsGlobal.__generator || function(thisArg, body) {
+  var _2 = { label: 0, sent: function() {
+    if (t2[0] & 1)
+      throw t2[1];
+    return t2[1];
+  }, trys: [], ops: [] }, f2, y2, t2, g2;
+  return g2 = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g2[Symbol.iterator] = function() {
+    return this;
+  }), g2;
+  function verb(n2) {
+    return function(v2) {
+      return step([n2, v2]);
+    };
+  }
+  function step(op) {
+    if (f2)
+      throw new TypeError("Generator is already executing.");
+    while (g2 && (g2 = 0, op[0] && (_2 = 0)), _2)
+      try {
+        if (f2 = 1, y2 && (t2 = op[0] & 2 ? y2["return"] : op[0] ? y2["throw"] || ((t2 = y2["return"]) && t2.call(y2), 0) : y2.next) && !(t2 = t2.call(y2, op[1])).done)
+          return t2;
+        if (y2 = 0, t2)
+          op = [op[0] & 2, t2.value];
+        switch (op[0]) {
+          case 0:
+          case 1:
+            t2 = op;
+            break;
+          case 4:
+            _2.label++;
+            return { value: op[1], done: false };
+          case 5:
+            _2.label++;
+            y2 = op[1];
+            op = [0];
+            continue;
+          case 7:
+            op = _2.ops.pop();
+            _2.trys.pop();
+            continue;
+          default:
+            if (!(t2 = _2.trys, t2 = t2.length > 0 && t2[t2.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+              _2 = 0;
+              continue;
+            }
+            if (op[0] === 3 && (!t2 || op[1] > t2[0] && op[1] < t2[3])) {
+              _2.label = op[1];
+              break;
+            }
+            if (op[0] === 6 && _2.label < t2[1]) {
+              _2.label = t2[1];
+              t2 = op;
+              break;
+            }
+            if (t2 && _2.label < t2[2]) {
+              _2.label = t2[2];
+              _2.ops.push(op);
+              break;
+            }
+            if (t2[2])
+              _2.ops.pop();
+            _2.trys.pop();
+            continue;
+        }
+        op = body.call(thisArg, _2);
+      } catch (e) {
+        op = [6, e];
+        y2 = 0;
+      } finally {
+        f2 = t2 = 0;
+      }
+    if (op[0] & 5)
+      throw op[1];
+    return { value: op[0] ? op[1] : void 0, done: true };
+  }
+};
+Object.defineProperty(serverAndClient, "__esModule", { value: true });
+serverAndClient.JSONRPCServerAndClient = void 0;
+var models_1 = models;
+var JSONRPCServerAndClient = (
+  /** @class */
+  function() {
+    function JSONRPCServerAndClient2(server2, client2, options) {
+      if (options === void 0) {
+        options = {};
+      }
+      var _a;
+      this.server = server2;
+      this.client = client2;
+      this.errorListener = (_a = options.errorListener) !== null && _a !== void 0 ? _a : console.warn;
+    }
+    JSONRPCServerAndClient2.prototype.applyServerMiddleware = function() {
+      var _a;
+      var middlewares = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        middlewares[_i] = arguments[_i];
+      }
+      (_a = this.server).applyMiddleware.apply(_a, middlewares);
+    };
+    JSONRPCServerAndClient2.prototype.hasMethod = function(name) {
+      return this.server.hasMethod(name);
+    };
+    JSONRPCServerAndClient2.prototype.addMethod = function(name, method) {
+      this.server.addMethod(name, method);
+    };
+    JSONRPCServerAndClient2.prototype.addMethodAdvanced = function(name, method) {
+      this.server.addMethodAdvanced(name, method);
+    };
+    JSONRPCServerAndClient2.prototype.removeMethod = function(name) {
+      this.server.removeMethod(name);
+    };
+    JSONRPCServerAndClient2.prototype.timeout = function(delay) {
+      return this.client.timeout(delay);
+    };
+    JSONRPCServerAndClient2.prototype.request = function(method, params, clientParams) {
+      return this.client.request(method, params, clientParams);
+    };
+    JSONRPCServerAndClient2.prototype.requestAdvanced = function(jsonRPCRequest, clientParams) {
+      return this.client.requestAdvanced(jsonRPCRequest, clientParams);
+    };
+    JSONRPCServerAndClient2.prototype.notify = function(method, params, clientParams) {
+      this.client.notify(method, params, clientParams);
+    };
+    JSONRPCServerAndClient2.prototype.rejectAllPendingRequests = function(message) {
+      this.client.rejectAllPendingRequests(message);
+    };
+    JSONRPCServerAndClient2.prototype.receiveAndSend = function(payload, serverParams, clientParams) {
+      return __awaiter(this, void 0, void 0, function() {
+        var response, message;
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              if (!((0, models_1.isJSONRPCResponse)(payload) || (0, models_1.isJSONRPCResponses)(payload)))
+                return [3, 1];
+              this.client.receive(payload);
+              return [3, 4];
+            case 1:
+              if (!((0, models_1.isJSONRPCRequest)(payload) || (0, models_1.isJSONRPCRequests)(payload)))
+                return [3, 3];
+              return [4, this.server.receive(payload, serverParams)];
+            case 2:
+              response = _a.sent();
+              if (response) {
+                return [2, this.client.send(response, clientParams)];
+              }
+              return [3, 4];
+            case 3:
+              message = "Received an invalid JSON-RPC message";
+              this.errorListener(message, payload);
+              return [2, Promise.reject(new Error(message))];
+            case 4:
+              return [
+                2
+                /*return*/
+              ];
+          }
+        });
+      });
+    };
+    return JSONRPCServerAndClient2;
+  }()
+);
+serverAndClient.JSONRPCServerAndClient = JSONRPCServerAndClient;
+(function(exports) {
+  var __createBinding = commonjsGlobal && commonjsGlobal.__createBinding || (Object.create ? function(o, m2, k2, k22) {
+    if (k22 === void 0)
+      k22 = k2;
+    var desc = Object.getOwnPropertyDescriptor(m2, k2);
+    if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() {
+        return m2[k2];
+      } };
+    }
+    Object.defineProperty(o, k22, desc);
+  } : function(o, m2, k2, k22) {
+    if (k22 === void 0)
+      k22 = k2;
+    o[k22] = m2[k2];
+  });
+  var __exportStar = commonjsGlobal && commonjsGlobal.__exportStar || function(m2, exports2) {
+    for (var p2 in m2)
+      if (p2 !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p2))
+        __createBinding(exports2, m2, p2);
+  };
+  Object.defineProperty(exports, "__esModule", { value: true });
+  __exportStar(client, exports);
+  __exportStar(interfaces, exports);
+  __exportStar(models, exports);
+  __exportStar(server, exports);
+  __exportStar(serverAndClient, exports);
+})(dist$1);
 var __assign = function() {
   __assign = Object.assign || function __assign2(t2) {
     for (var s, i = 1, n2 = arguments.length; i < n2; i++) {
@@ -12159,10 +13089,55 @@ distExports.init({
   debug: false,
   visualDebug: false
 });
-const sendMessage = (msg) => {
-  const str = JSON.stringify(msg);
-  {
-    window.ReactNativeWebView.postMessage(str);
+const reactNativeClient = new dist$1.JSONRPCClient(
+  (request) => {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify(request));
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+);
+reactNativeClient.request("echo", { message: "sticky" });
+const createWebSocketJsonRpc = (host, port) => {
+  const socket = new WebSocket(`ws://${host}:${port}/socket`);
+  const client2 = new dist$1.JSONRPCClient(
+    (request) => {
+      try {
+        socket.send(JSON.stringify(request));
+        return Promise.resolve();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    }
+  );
+  socket.onmessage = (event) => {
+    client2.receive(JSON.parse(event.data.toString()));
+  };
+  socket.onclose = (event) => {
+    client2.rejectAllPendingRequests(`Connection is closed (${event.reason}).`);
+  };
+  return client2;
+};
+const hosts = {
+  fiji: {
+    rpcClient: createWebSocketJsonRpc("fiji", 3e3),
+    hasStreaming: true,
+    isHeadless: false,
+    os: "linux"
+  },
+  zao: {
+    rpcClient: createWebSocketJsonRpc("zao", 3e3),
+    hasStreaming: true,
+    isHeadless: true,
+    os: "linux"
+  },
+  yari: {
+    rpcClient: null,
+    hasStreaming: false,
+    isHeadless: false,
+    os: "android"
   }
 };
 const rows = shuffle$1([
@@ -12172,14 +13147,17 @@ const rows = shuffle$1([
 ]);
 const assets = [
   {
-    title: "moonlight",
+    id: "fsd8j",
+    title: "Rouge Legacy 2",
+    hosts: ["zao"],
     media: {
-      wide: "https://cdn2.steamgriddb.com/thumb/8a8f67cacf3e3d2d63614f515a2079b8.jpg"
+      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1253920/header.jpg?t=1698842858"
     }
   },
   {
     title: "tetris",
     id: "😊🎉🍎🚀🌈",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn2.steamgriddb.com/thumb/27c9b75bf3a30d742ab67f61da2c5706.jpg",
       tall: "https://cdn2.steamgriddb.com/thumb/da2f5c70767a018829cb65f26d72fb8b.jpg",
@@ -12188,6 +13166,7 @@ const assets = [
   },
   {
     title: "warioLand4",
+    hosts: ["yari"],
     id: "🐶🌻🍕🎈🌙",
     media: {
       wide: "https://cdn2.steamgriddb.com/thumb/7921d5adb66fcddedfb157f74030bb24.jpg"
@@ -12195,12 +13174,14 @@ const assets = [
   },
   {
     title: "deadCells",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/588650/header.jpg?t=1678188017"
     }
   },
   {
     title: "dungreed",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/753420/header.jpg?t=1653456557",
       tall: "https://cdn2.steamgriddb.com/thumb/89aa482117c71b16333fa548ee5f0b86.jpg",
@@ -12209,6 +13190,7 @@ const assets = [
   },
   {
     title: "scourgeBringer",
+    hosts: ["yari"],
     media: {
       wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1037020/header.jpg?t=1687186493",
       wallpaper: "https://xxboxnews.blob.core.windows.net/prod/sites/2/2020/02/scourgebringer_keyart.jpg"
@@ -12298,7 +13280,7 @@ const ContentRowScrollingContent = st.div`
 `;
 function ContentRow({
   title: rowTitle,
-  onAssetPress,
+  // onAssetPress,
   onFocus
 }) {
   const { ref, focusKey } = distExports.useFocusable({
@@ -12314,27 +13296,35 @@ function ContentRow({
     },
     [scrollingRef]
   );
+  const onSelect = async (asset) => {
+    const hostName = asset.hosts[0];
+    return Promise.resolve().then(() => {
+      if (hostName === "zao") {
+        return hosts[hostName].request("resolution/set", {
+          x: 1024,
+          y: 768
+        });
+      }
+      return Promise.resolve("next");
+    }).then(() => {
+      return hosts["zao"].request("launch", {
+        id: asset.id
+      });
+    }).then(console.log);
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(distExports.FocusContext.Provider, { value: focusKey, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ContentRowWrapper, { ref, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(ContentRowTitle, { children: rowTitle }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ContentRowScrollingWrapper, { ref: scrollingRef, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContentRowScrollingContent, { children: assets.map(({ media, title, id: id2, color }) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ContentRowScrollingWrapper, { ref: scrollingRef, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContentRowScrollingContent, { children: assets.map((asset) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { onClick: () => onSelect(asset), children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       Asset,
       {
-        media,
-        title,
-        color,
-        onEnterPress: () => (
-          // onAssetPress()
-          sendMessage({
-            type: "launch",
-            payload: {
-              id: id2
-            }
-          })
-        ),
+        media: asset.media,
+        title: asset.title,
+        color: asset.color,
+        onEnterPress: () => onSelect(asset),
         onFocus: onAssetFocus
       },
-      title
-    )) }) })
+      asset.title
+    ) })) }) })
   ] }) });
 }
 const ContentWrapper = st.div`
@@ -12433,7 +13423,7 @@ function App() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(Content, {})
   ] }) });
 }
-client.createRoot(document.getElementById("root")).render(
+client$1.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
 
