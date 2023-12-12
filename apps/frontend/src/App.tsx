@@ -1,8 +1,10 @@
 import {
-  JSONRPCClient,
-  JSONRPCResponse,
-  TypedJSONRPCClient,
+  JSONRPCServer,
+  TypedJSONRPCServer,
+  isJSONRPCRequest,
+  isJSONRPCResponse,
 } from "json-rpc-2.0";
+import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import shuffle from "lodash/shuffle";
@@ -14,7 +16,7 @@ import {
   FocusableComponentLayout,
   KeyPressDetails,
 } from "@noriginmedia/norigin-spatial-navigation";
-import type { JsonRPCMethods } from "../../service/src/index";
+import type { LinuxHostMethods, NodeMethods } from "../../service/src/index";
 
 init({
   debug: false,
@@ -25,25 +27,34 @@ init({
 //   alert(data);
 //   console.log(data);
 // };
+//
 
-const reactNativeClient: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
-  (request) => {
-    try {
-      window.ReactNativeWebView.postMessage(JSON.stringify(request));
-      return Promise.resolve();
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  },
-);
+export type FrontendMethods = NodeMethods;
+export type AndroidHostMethods = NodeMethods;
+export type HostMethods = LinuxHostMethods | AndroidHostMethods;
 
-reactNativeClient.request("echo", { message: "sticky" });
+// const reactNativeClient: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
+//   (request) => {
+//     try {
+//       window.ReactNativeWebView.postMessage(JSON.stringify(request));
+//       return Promise.resolve();
+//     } catch (error) {
+//       return Promise.reject(error);
+//     }
+//   },
+// );
 
-const createWebSocketJsonRpc = (host: string, port: number) => {
+// reactNativeClient.request("echo", { message: "sticky" });
+const jsonRpcServer: TypedJSONRPCServer<FrontendMethods> = new JSONRPCServer();
+
+jsonRpcServer.addMethod("echo", ({ message }) => message + "123");
+
+const createWebSocketJsonRpcNode = (host: string, port: number) => {
   const socket = new WebSocket(`ws://${host}:${port}/socket`);
-  const client: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
+  const client: TypedJSONRPCClient<LinuxHostMethods> = new JSONRPCClient(
     (request) => {
       try {
+        console.log(request);
         socket.send(JSON.stringify(request));
         return Promise.resolve();
       } catch (error) {
@@ -53,7 +64,19 @@ const createWebSocketJsonRpc = (host: string, port: number) => {
   );
 
   socket.onmessage = (event) => {
-    client.receive(JSON.parse(event.data.toString()));
+    const obj = JSON.parse(event.data.toString());
+
+    // The message is a request from the service, we need to process it
+    if (isJSONRPCRequest(obj)) {
+      jsonRpcServer.receive(obj).then((response) => {
+        socket.send(JSON.stringify(response));
+      });
+    }
+
+    // This is a direct response to a query made to the service
+    else if (isJSONRPCResponse(obj)) {
+      client.receive(obj);
+    }
   };
 
   socket.onclose = (event) => {
@@ -64,7 +87,7 @@ const createWebSocketJsonRpc = (host: string, port: number) => {
 };
 
 type Host = {
-  rpcClient: TypedJSONRPCClient<JsonRPCMethods, void>;
+  rpcClient: TypedJSONRPCClient<HostMethods, void>;
   hasStreaming: boolean;
   isHeadless: boolean;
   os: "linux" | "android";
@@ -75,13 +98,13 @@ const device = "yari";
 
 const hosts: Record<string, Host> = {
   fiji: {
-    rpcClient: createWebSocketJsonRpc("fiji", 3000),
+    rpcClient: createWebSocketJsonRpcNode("fiji", 3000),
     hasStreaming: true,
     isHeadless: false,
     os: "linux",
   },
   zao: {
-    rpcClient: createWebSocketJsonRpc("zao", 3000),
+    rpcClient: createWebSocketJsonRpcNode("zao", 3000),
     hasStreaming: true,
     isHeadless: true,
     os: "linux",
@@ -93,6 +116,14 @@ const hosts: Record<string, Host> = {
     os: "android",
   },
 };
+
+setTimeout(
+  () =>
+    hosts.fiji.rpcClient
+      .request("echo", { message: "from frontend to host" })
+      .then(console.log),
+  5000,
+);
 
 // const sendMessage = (msg: any) => {
 //   const str = JSON.stringify(msg);
@@ -409,10 +440,9 @@ function ContentRow({
         <ContentRowScrollingWrapper ref={scrollingRef}>
           <ContentRowScrollingContent>
             {assets.map((asset) => (
-              <div onClick={() => onSelect(asset)}>
+              <div key={asset.title} onClick={() => onSelect(asset)}>
                 <Asset
                   media={asset.media}
-                  key={asset.title}
                   title={asset.title}
                   color={asset.color}
                   onEnterPress={

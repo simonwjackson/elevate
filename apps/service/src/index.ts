@@ -1,83 +1,37 @@
-import { promisify } from "util";
-const exec = promisify(require("child_process").exec);
-
 import {
-  JSONRPCResponse,
+  JSONRPCClient,
   JSONRPCServer,
+  JSONRPCServerMiddleware,
+  TypedJSONRPCClient,
   TypedJSONRPCServer,
   isJSONRPCRequest,
+  isJSONRPCResponse,
 } from "json-rpc-2.0";
+import { JsonRPCServerMethods } from "../../../libs/json-rpc/index.ts";
+import { ServerWebSocket } from "bun";
+import { gameDb } from "./fakeDb";
+import { runSteamApp, setResolution } from "./utils/linux.ts";
+import { Node } from "typescript";
 
-type BasicEcho = { message: string };
+export type BasicEcho = { message: string };
 
-export type JsonRPCMethods = {
+export type NodeMethods = {
   echo(params: BasicEcho): string;
-  "resolution/set"(params: { monitor?: string; x: number; y: number }): string;
-  launch(params: LaunchMessage): string;
 };
 
-type LaunchMessage = {
-  id: number;
-};
+export type LaunchParams = { id: number };
+export type ResolutionSetParams = { monitor?: string; x: number; y: number };
 
-type ResolutionMessage = {
-  topic: "resolution";
-  payload: {
-    resolution: string;
-  };
-};
-
-type Message = LaunchMessage | ResolutionMessage;
-
-type _Game = {
-  title: string;
-};
-
-type SteamGame = {
-  platform: "steam";
-  meta?: {
-    steamAppId?: number;
-  };
-} & _Game;
-
-type RetrorchGame = {
-  platform:
-    | "nintendo-entertainment-system"
-    | "nintendo-super-entertainment-system";
-} & _Game;
-
-type Game = SteamGame | RetrorchGame;
-
-const gameDb: Record<string, Game> = {
-  fsd8j: {
-    platform: "steam",
-    title: "Rouge Legacy 2",
-    meta: {
-      steamAppId: 1253920,
-    },
-  },
-};
+export type LinuxHostMethods = {
+  "resolution/set"(params: ResolutionSetParams): string;
+  launch(params: LaunchParams): string;
+} & NodeMethods;
 
 const state = {
   monitor: "DP-2-3",
 };
 
-const setResolution = async (monitor: string, x: number, y: number) => {
-  // TODO: validate resolution
-  // TODO: validate monitor
-
-  const command = `xrandr -display :0 --output ${monitor} --mode ${x}x${y}`;
-
-  return exec(command);
-};
-
-function runSteamApp(appId: number) {
-  const command = `flatpak run com.valvesoftware.Steam "steam://rungameid/${appId}"`;
-
-  return exec(command);
-}
-
-const parseLaunch = (payload: LaunchMessage) => {
+export const parseLaunch = (payload: LaunchParams) => {
   const game = gameDb[payload.id];
 
   switch (game.platform) {
@@ -91,67 +45,152 @@ const parseLaunch = (payload: LaunchMessage) => {
   }
 };
 
-const rpcServer: TypedJSONRPCServer<JsonRPCMethods> = new JSONRPCServer();
+const createJsonRpcWebSocketServer = () => {
+  const logMiddleware: JSONRPCServerMiddleware<void> = async (
+    next,
+    request,
+    serverParams,
+  ) => {
+    console.log(`Received ${JSON.stringify(request)}`);
 
-const server = Bun.serve({
-  port: 3000,
-  fetch(req, server) {
-    const url = new URL(req.url);
-    if (url.pathname === "/socket") {
-      console.log(`upgrade!`);
+    return next(request, serverParams).then((response) => {
+      console.log(`Responding ${JSON.stringify(response)}`);
+      return response;
+    });
+  };
 
-      const success = server.upgrade(req);
-      return success
-        ? undefined
-        : new Response("WebSocket upgrade error", { status: 400 });
+  const peers = new Map<
+    string,
+    { client: JSONRPCClient; webSocket: ServerWebSocket }
+  >();
+
+  function getClientIdFromWebSocket(ws: ServerWebSocket) {
+    for (const [clientId, client] of peers.entries()) {
+      if (client.webSocket === ws) {
+        return clientId;
+      }
     }
 
-    return new Response("Hello world");
-  },
-  websocket: {
-    // open(ws) {
-    //   console.log("open");
-    //   const msg = `has entered the chat`;
-    //
-    //   ws.subscribe("game");
-    //   ws.publish("game", msg);
-    // },
-    message(ws, payload) {
+    return null; // Or handle the case where the client ID is not found
+  }
+
+  function getClientFromWebSocket(ws: ServerWebSocket) {
+    for (const [, peer] of peers.entries()) {
+      if (peer.webSocket === ws) {
+        return peer.client;
+      }
+    }
+
+    return null; // Or handle the case where the client ID is not found
+  }
+
+  const jsonRpc: TypedJSONRPCServer<LinuxHostMethods> = new JSONRPCServer();
+
+  jsonRpc.applyMiddleware(logMiddleware);
+
+  jsonRpc.addMethod("echo", ({ message }) => message);
+  jsonRpc.addMethod("launch", parseLaunch);
+  jsonRpc.addMethod("resolution/set", ({ x, y }) =>
+    setResolution(state.monitor, x, y),
+  );
+
+  const webSocketEvents = {
+    open: (webSocket: ServerWebSocket) => {
+      console.log("open");
+      const clientId = `${Math.random()}`;
+      // TODO: These types should only represent frontend "server" methods
+      const client: TypedJSONRPCClient<NodeMethods> = new JSONRPCClient(
+        (request) => {
+          try {
+            console.log(request);
+            webSocket.send(JSON.stringify(request));
+            return Promise.resolve();
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        },
+      );
+
+      peers.set(clientId, {
+        client,
+        webSocket,
+      });
+    },
+    message: (ws: ServerWebSocket, payload: string | Buffer) => {
       if (typeof payload === "string") {
         const obj = JSON.parse(payload);
 
+        // The message is a request from the peer, we need to process it
         if (isJSONRPCRequest(obj)) {
-          rpcServer.receive(obj).then((x) => {
-            ws.sendText(JSON.stringify(x));
+          jsonRpc.receive(obj).then((response) => {
+            ws.sendText(JSON.stringify(response));
           });
         }
+
+        // This is a direct response to a query made from the service
+        else if (isJSONRPCResponse(obj)) {
+          const client = getClientFromWebSocket(ws);
+          if (client) client.receive(obj);
+        }
+
+        // WARNING: Batch messages will not be processed
+        // WARNING: What other messages need to be handled here.
       }
     },
-    // close(ws) {
-    //   console.log("close");
-    //   const msg = `has left the chat`;
-    //
-    //   ws.unsubscribe("game");
-    //   server.publish("game", msg);
-    // },
-  },
-});
+    close: (webSocket: ServerWebSocket) => {
+      const clientId = getClientIdFromWebSocket(webSocket);
+      if (clientId) peers.delete(clientId);
+    },
+  };
 
-rpcServer.addMethod("echo", ({ message }) => message);
-rpcServer.addMethod("launch", parseLaunch);
-rpcServer.addMethod("resolution/set", ({ x, y }) =>
-  setResolution(state.monitor, x, y),
-);
-
-const logMiddleware = (next, request, serverParams) => {
-  console.log(`Received ${JSON.stringify(request)}`);
-
-  return next(request, serverParams).then((response) => {
-    console.log(`Responding ${JSON.stringify(response)}`);
-    return response;
-  });
+  return {
+    peers,
+    jsonRpc,
+    webSocketEvents,
+  };
 };
 
-rpcServer.applyMiddleware(logMiddleware);
+const createBunServer = () => {
+  const { webSocketEvents, ...jsonRpcWebSocketServer } =
+    createJsonRpcWebSocketServer();
 
-console.log(`Listening on http://localhost:${server.port} ...`);
+  const httpWebSocket = Bun.serve({
+    port: 3000,
+    fetch(req, server) {
+      const url = new URL(req.url);
+      if (url.pathname === "/socket") {
+        console.log(`upgrade!`);
+
+        const success = server.upgrade(req);
+        return success
+          ? undefined
+          : new Response("WebSocket upgrade error", { status: 400 });
+      }
+
+      return new Response("Hello world");
+    },
+    websocket: webSocketEvents,
+  });
+
+  return {
+    ...jsonRpcWebSocketServer,
+    httpWebSocket,
+  };
+};
+
+const host = createBunServer();
+console.log(`Listening on http://localhost:${host.httpWebSocket.port} ...`);
+
+setTimeout(() => {
+  console.log("ready");
+  if (host.peers?.entries()?.next()?.value[0]) {
+    console.log("found first client");
+
+    host.peers
+      .entries()
+      .next()
+      .value[1].client.timeout(10 * 1000, () => {})
+      .request("echo", { message: "from host to frontend" })
+      .then(console.log);
+  }
+}, 10000);
