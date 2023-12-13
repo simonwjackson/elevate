@@ -1,4 +1,5 @@
 import {
+  JSONRPCRequest,
   JSONRPCServer,
   TypedJSONRPCServer,
   isJSONRPCRequest,
@@ -23,26 +24,39 @@ init({
   visualDebug: false,
 });
 
-// window.receiveMessageFromReactNative = (data: JSONRPCResponse) => {
-//   alert(data);
-//   console.log(data);
-// };
-//
-
 export type FrontendMethods = NodeMethods;
 export type AndroidHostMethods = NodeMethods;
 export type HostMethods = LinuxHostMethods | AndroidHostMethods;
 
-// const reactNativeClient: TypedJSONRPCClient<JsonRPCMethods> = new JSONRPCClient(
-//   (request) => {
-//     try {
-//       window.ReactNativeWebView.postMessage(JSON.stringify(request));
-//       return Promise.resolve();
-//     } catch (error) {
-//       return Promise.reject(error);
-//     }
-//   },
-// );
+const createReactNativeJsonRpcNode = () => {
+  const jsonRpcClient: TypedJSONRPCClient<AndroidHostMethods> =
+    new JSONRPCClient((request) => {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify(request));
+        return Promise.resolve();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    });
+
+  if (!window.receiveMessageFromReactNative) {
+    window.receiveMessageFromReactNative = (data: JSONRPCRequest) => {
+      // The message is a request from the service, we need to process it
+      if (isJSONRPCRequest(data)) {
+        jsonRpcServer.receive(data).then((response) => {
+          window.ReactNativeWebView.postMessage(JSON.stringify(response));
+        });
+      }
+
+      // This is a direct response to a query made to the service
+      else if (isJSONRPCResponse(data)) {
+        jsonRpcClient.receive(data);
+      }
+    };
+  }
+
+  return jsonRpcClient;
+};
 
 // reactNativeClient.request("echo", { message: "sticky" });
 const jsonRpcServer: TypedJSONRPCServer<FrontendMethods> = new JSONRPCServer();
@@ -93,9 +107,6 @@ type Host = {
   os: "linux" | "android";
 };
 
-// HACK:
-const device = "yari";
-
 const hosts: Record<string, Host> = {
   fiji: {
     rpcClient: createWebSocketJsonRpcNode("fiji", 3000),
@@ -110,30 +121,25 @@ const hosts: Record<string, Host> = {
     os: "linux",
   },
   yari: {
-    rpcClient: null,
+    rpcClient: createReactNativeJsonRpcNode(),
     hasStreaming: false,
     isHeadless: false,
     os: "android",
   },
 };
 
-setTimeout(
-  () =>
-    hosts.fiji.rpcClient
-      .request("echo", { message: "from frontend to host" })
-      .then(console.log),
-  5000,
-);
+// HACK:
+const device = "yari";
 
-// const sendMessage = (msg: any) => {
-//   const str = JSON.stringify(msg);
+// setInterval(
+//   () =>
+//     hosts.yari.rpcClient
+//       .request("echo", { message: "from frontend to host" })
+//       .then(JSON.stringify)
+//       .then(alert),
+//   5000,
+// );
 //
-//   if (host === "reactNative") {
-//     // @ts-ignore
-//     window.ReactNativeWebView.postMessage(str);
-//   }
-// };
-
 const rows = shuffle([
   {
     title: "Recent",
@@ -417,7 +423,7 @@ function ContentRow({
     return Promise.resolve()
       .then(() => {
         if (device === "yari" && hostName === "zao") {
-          return hosts[hostName].request("resolution/set", {
+          return hosts[hostName].rpcClient.request("resolution/set", {
             x: 1024,
             y: 768,
           });
@@ -426,7 +432,7 @@ function ContentRow({
         return Promise.resolve("next");
       })
       .then(() => {
-        return hosts["zao"].request("launch", {
+        return hosts["zao"].rpcClient.request("launch", {
           id: asset.id,
         });
       })
@@ -585,13 +591,13 @@ const GlobalStyle = createGlobalStyle`
 
 export default function App() {
   return (
-    <React.StrictMode>
-      <AppContainer>
-        <GlobalStyle />
-        {/* <Menu focusKey="MENU" /> */}
-        <Content />
-      </AppContainer>
-    </React.StrictMode>
+    // <React.StrictMode>
+    <AppContainer>
+      <GlobalStyle />
+      {/* <Menu focusKey="MENU" /> */}
+      <Content />
+    </AppContainer>
+    // </React.StrictMode>
   );
 }
 
