@@ -2,4 +2,4 @@ default:
   @just --choose
 
 dev:
-  find src | entr -r bun run ./src/index.ts
+  { find ./src; find ../../libs/json-rpc; } | entr -r bun run ./src/index.ts
