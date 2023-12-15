@@ -1,3 +1,4 @@
+import { readdirSync, statSync } from "fs";
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -10,18 +11,22 @@ import {
 import { ServerWebSocket } from "bun";
 import { gameDb } from "../fakeDb.ts";
 import { runSteamApp, setResolution } from "./linux.ts";
+import { NodeMethods } from "../../../../types.js";
 
-export type BasicEcho = { message: string };
+import { Sequelize, DataTypes } from "sequelize";
 
-export type NodeMethods = {
-  echo(params: BasicEcho): string;
-};
+const sequelize = new Sequelize("sqlite::memory:");
+// const User = sequelize.define("User", {
+//   username: DataTypes.STRING,
+//   birthday: DataTypes.DATE,
+// });
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
 
 export type LinuxHostMethods = {
   "resolution/set"(params: ResolutionSetParams): string;
+  gameScan(): string;
   launch(params: LaunchParams): string;
 } & NodeMethods;
 
@@ -87,6 +92,7 @@ const createJsonRpcWebSocketServer = () => {
 
   jsonRpc.applyMiddleware(logMiddleware);
 
+  jsonRpc.addMethod("gameScan", () => strictGameScanner());
   jsonRpc.addMethod("echo", ({ message }) => message);
   jsonRpc.addMethod("launch", parseLaunch);
   jsonRpc.addMethod("resolution/set", ({ x, y }) =>
@@ -176,3 +182,98 @@ export const createBunServer = () => {
     httpWebSocket,
   };
 };
+
+export const scanFiles = (dirPath: string, ext: string[]): string[] => {
+  let filesFound: string[] = [];
+
+  try {
+    const files = readdirSync(dirPath);
+
+    for (const file of files) {
+      const fullPath = `${dirPath}/${file}`;
+      const fileStat = statSync(fullPath);
+
+      if (fileStat.isDirectory()) {
+        // If the file is a directory, recursively scan it
+        filesFound = [...filesFound, ...scanFiles(fullPath, ext)];
+      } else {
+        // If the file is not a directory, check if it matches the extensions
+        if (ext.some((extension) => file.endsWith(`.${extension}`))) {
+          filesFound.push(fullPath);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error scanning directory ${dirPath}:`, error);
+  }
+
+  return filesFound;
+};
+
+export const strictGameScanner = () => {
+  // HACK: Hardcoded
+  const root = "/glacier/snowscape/gaming/games";
+  const platformMap = {
+    "nintendo-gameboy": {
+      paths: [`${root}/nintendo-gameboy`],
+      ext: ["gb"],
+    },
+    "nintendo-gameboy-advance": {
+      paths: [`${root}/nintendo-gameboy-advance`],
+      ext: ["gba"],
+    },
+    "nintendo-gameboy-color": {
+      paths: [`${root}/nintendo-gameboy-color`],
+      ext: ["gbc"],
+    },
+    // "nintendo-gamecube": {
+    //   paths: [`${root}/nintendo-gamecube`],
+    //   ext: ["iso"],
+    // },
+    // "nintendo-wii": {
+    //   paths: [`${root}/nintendo-wii`],
+    //   ext: ["iso"],
+    // },
+    // "nintendo-wii-u": {
+    //   paths: [`${root}/nintendo-wii-u`],
+    //   ext: ["iso"],
+    // },
+  };
+
+  const result = {};
+
+  for (const platform in platformMap) {
+    const { paths, ext } = platformMap[platform];
+    result[platform] = paths.flatMap((path) => scanFiles(path, ext));
+  }
+
+  return result;
+};
+
+interface User {
+  id: number;
+  name: string;
+  age: number;
+}
+
+// try {
+//   const res = knexInstance<User>("users") // User is the type of row in database
+//     .where("id", 1) // Your IDE will be able to help with the completion of id
+//     .first(); // Resolves to User | undefined
+//
+//   console.log(res);
+// } catch (err) {
+//   console.error(err);
+// }
+
+// try {
+//   const jane = await User.create({
+//     username: "janedoe",
+//     birthday: new Date(1980, 6, 20),
+//   });
+//
+//   const users = await User.findAll();
+//   console.log(users);
+// } catch (e) {
+//   console.error(e);
+// }

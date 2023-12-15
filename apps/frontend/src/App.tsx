@@ -1,12 +1,4 @@
-import {
-  JSONRPCRequest,
-  JSONRPCServer,
-  TypedJSONRPCServer,
-  isJSONRPCRequest,
-  isJSONRPCResponse,
-} from "json-rpc-2.0";
-import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import shuffle from "lodash/shuffle";
 import {
@@ -17,116 +9,16 @@ import {
   FocusableComponentLayout,
   KeyPressDetails,
 } from "@noriginmedia/norigin-spatial-navigation";
-import type { LinuxHostMethods, NodeMethods } from "../../service/src/index";
+import { buildHosts, createFrontendJsonRpcServer } from "./rpc";
+import { assets } from "./fakeDb";
 
 init({
   debug: false,
   visualDebug: false,
 });
 
-export type FrontendMethods = NodeMethods;
-export type AndroidHostMethods = NodeMethods;
-export type HostMethods = LinuxHostMethods | AndroidHostMethods;
-
-const createReactNativeJsonRpcNode = () => {
-  const jsonRpcClient: TypedJSONRPCClient<AndroidHostMethods> =
-    new JSONRPCClient((request) => {
-      try {
-        window.ReactNativeWebView.postMessage(JSON.stringify(request));
-        return Promise.resolve();
-      } catch (error) {
-        return Promise.reject(error);
-      }
-    });
-
-  if (!window.receiveMessageFromReactNative) {
-    window.receiveMessageFromReactNative = (data: JSONRPCRequest) => {
-      // The message is a request from the service, we need to process it
-      if (isJSONRPCRequest(data)) {
-        jsonRpcServer.receive(data).then((response) => {
-          window.ReactNativeWebView.postMessage(JSON.stringify(response));
-        });
-      }
-
-      // This is a direct response to a query made to the service
-      else if (isJSONRPCResponse(data)) {
-        jsonRpcClient.receive(data);
-      }
-    };
-  }
-
-  return jsonRpcClient;
-};
-
-// reactNativeClient.request("echo", { message: "sticky" });
-const jsonRpcServer: TypedJSONRPCServer<FrontendMethods> = new JSONRPCServer();
-
-jsonRpcServer.addMethod("echo", ({ message }) => message + "123");
-
-const createWebSocketJsonRpcNode = (host: string, port: number) => {
-  const socket = new WebSocket(`ws://${host}:${port}/socket`);
-  const client: TypedJSONRPCClient<LinuxHostMethods> = new JSONRPCClient(
-    (request) => {
-      try {
-        console.log(request);
-        socket.send(JSON.stringify(request));
-        return Promise.resolve();
-      } catch (error) {
-        return Promise.reject(error);
-      }
-    },
-  );
-
-  socket.onmessage = (event) => {
-    const obj = JSON.parse(event.data.toString());
-
-    // The message is a request from the service, we need to process it
-    if (isJSONRPCRequest(obj)) {
-      jsonRpcServer.receive(obj).then((response) => {
-        socket.send(JSON.stringify(response));
-      });
-    }
-
-    // This is a direct response to a query made to the service
-    else if (isJSONRPCResponse(obj)) {
-      client.receive(obj);
-    }
-  };
-
-  socket.onclose = (event) => {
-    client.rejectAllPendingRequests(`Connection is closed (${event.reason}).`);
-  };
-
-  return client;
-};
-
-type Host = {
-  rpcClient: TypedJSONRPCClient<HostMethods, void>;
-  hasStreaming: boolean;
-  isHeadless: boolean;
-  os: "linux" | "android";
-};
-
-const hosts: Record<string, Host> = {
-  fiji: {
-    rpcClient: createWebSocketJsonRpcNode("fiji", 3000),
-    hasStreaming: true,
-    isHeadless: false,
-    os: "linux",
-  },
-  zao: {
-    rpcClient: createWebSocketJsonRpcNode("zao", 3000),
-    hasStreaming: true,
-    isHeadless: true,
-    os: "linux",
-  },
-  yari: {
-    rpcClient: createReactNativeJsonRpcNode(),
-    hasStreaming: false,
-    isHeadless: false,
-    os: "android",
-  },
-};
+const rpcServer = createFrontendJsonRpcServer();
+const hosts = buildHosts(rpcServer);
 
 // HACK:
 const device = "yari";
@@ -139,68 +31,12 @@ const device = "yari";
 //       .then(alert),
 //   5000,
 // );
-//
+
 const rows = shuffle([
   {
     title: "Recent",
   },
 ]);
-
-// TODO: Type
-const assets = [
-  {
-    id: "fsd8j",
-    title: "Rouge Legacy 2",
-    hosts: ["zao"],
-    media: {
-      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1253920/header.jpg?t=1698842858",
-    },
-  },
-  {
-    title: "tetris",
-    id: "😊🎉🍎🚀🌈",
-    hosts: ["yari"],
-    media: {
-      wide: "https://cdn2.steamgriddb.com/thumb/27c9b75bf3a30d742ab67f61da2c5706.jpg",
-      tall: "https://cdn2.steamgriddb.com/thumb/da2f5c70767a018829cb65f26d72fb8b.jpg",
-      square:
-        "https://cdn2.steamgriddb.com/thumb/036036d598e3d81b103ce8b3c6786dfb.jpg",
-    },
-  },
-  {
-    title: "warioLand4",
-    hosts: ["yari"],
-    id: "🐶🌻🍕🎈🌙",
-    media: {
-      wide: "https://cdn2.steamgriddb.com/thumb/7921d5adb66fcddedfb157f74030bb24.jpg",
-    },
-  },
-  {
-    title: "deadCells",
-    hosts: ["yari"],
-    media: {
-      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/588650/header.jpg?t=1678188017",
-    },
-  },
-  {
-    title: "dungreed",
-    hosts: ["yari"],
-    media: {
-      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/753420/header.jpg?t=1653456557",
-      tall: "https://cdn2.steamgriddb.com/thumb/89aa482117c71b16333fa548ee5f0b86.jpg",
-      square: null,
-    },
-  },
-  {
-    title: "scourgeBringer",
-    hosts: ["yari"],
-    media: {
-      wide: "https://cdn.cloudflare.steamstatic.com/steam/apps/1037020/header.jpg?t=1687186493",
-      wallpaper:
-        "https://xxboxnews.blob.core.windows.net/prod/sites/2/2020/02/scourgebringer_keyart.jpg",
-    },
-  },
-];
 
 interface MenuItemBoxProps {
   focused: boolean;

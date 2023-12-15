@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useAssets } from "expo-asset";
 import { WebViewSource } from "react-native-webview/lib/WebViewTypes";
 import { StatusBar } from "expo-status-bar";
+import { NodeMethods } from "../../types.d.ts";
 import {
   JSONRPCRequest,
   JSONRPCServer,
@@ -31,11 +32,7 @@ import {
 // am start -n org.ppsspp.ppsspp -a .PpssppActivity  -a android.intent.action.VIEW -e org.ppsspp.ppsspp.Shortcuts $FILE
 // am start -n org.ppsspp.ppsspp/.PpssppActivity -a android.intent.action.VIEW -c android.intent.category.DEFAULT -d $FILE -t application/octet-stream --activity-clear-task  --activity-clear-top  --activity-no-history
 
-type Methods = {
-  echo(params: { message: string }): string;
-};
-
-const rpcServer: TypedJSONRPCServer<Methods> = new JSONRPCServer();
+const rpcServer: TypedJSONRPCServer<NodeMethods> = new JSONRPCServer();
 
 rpcServer.addMethod("echo", ({ message }) => {
   return message + "RN";
