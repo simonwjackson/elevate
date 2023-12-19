@@ -17,6 +17,8 @@
           buildInputs = [
             pkgs.just
             pkgs.fzf
+            pkgs.nodejs_latest
+            pkgs.sqlite
           ];
         };
       }
