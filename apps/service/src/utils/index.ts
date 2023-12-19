@@ -1,7 +1,4 @@
-// "better-sqlite3": "^9.2.2",
-// "knex": "^3.1.0"
 import { readdirSync, statSync } from "fs";
-import { Knex, knex } from "knex";
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -15,16 +12,6 @@ import { ServerWebSocket } from "bun";
 import { gameDb } from "../fakeDb.ts";
 import { runSteamApp, setResolution } from "./linux.ts";
 import { NodeMethods } from "../../../../types.js";
-
-const config: Knex.Config = {
-  client: "better-sqlite3",
-  connection: {
-    // filename: process.env.SQLITE_FILENAME
-    filename: "/home/simonwjackson/game.db",
-  },
-};
-
-const knexInstance = knex(config);
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
@@ -254,55 +241,3 @@ export const strictGameScanner = () => {
 
   return result;
 };
-
-interface User {
-  id: number;
-  name: string;
-  age: number;
-}
-
-try {
-  const res = knexInstance<User>("users") // User is the type of row in database
-    .where("id", 1) // Your IDE will be able to help with the completion of id
-    .first(); // Resolves to User | undefined
-
-  console.log(res);
-} catch (err) {
-  console.error(err);
-}
-
-try {
-  // Create a table
-  await knexInstance.schema
-    .createTable("users", (table) => {
-      table.increments("id");
-      table.string("user_name");
-    })
-    // ...and another
-    .createTable("accounts", (table) => {
-      table.increments("id");
-      table.string("account_name");
-      table.integer("user_id").unsigned().references("users.id");
-    });
-
-  // Then query the table...
-  const insertedRows = await knex("users").insert({ user_name: "Tim" });
-
-  // ...and using the insert id, insert into the other table.
-  await knex("accounts").insert({
-    account_name: "knex",
-    user_id: insertedRows[0],
-  });
-
-  // Query both of the rows.
-  const selectedRows = await knex("users")
-    .join("accounts", "users.id", "accounts.user_id")
-    .select("users.user_name as user", "accounts.account_name as account");
-
-  // map over the results
-  const enrichedRows = selectedRows.map((row) => ({ ...row, active: true }));
-
-  // Finally, add a catch statement
-} catch (e) {
-  console.error(e);
-}

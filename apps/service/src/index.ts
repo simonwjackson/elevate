@@ -1,19 +1,23 @@
-import { createBunServer } from "./utils/index.js";
+import express from "express";
+import { createServer } from "node:http";
+import { Server as SocketIoServer } from "socket.io";
 
-const host = createBunServer();
+const app = express();
+const httpServer = createServer(app);
+const io = new SocketIoServer(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
 
-console.log(`Listening on http://localhost:${host.httpWebSocket.port} ...`);
+app.get("/", (_, res) => {
+  res.send("<h1>Hello world</h1>");
+});
 
-// setTimeout(() => {
-//   console.log("ready");
-//   if (host.peers?.entries()?.next()?.value[0]) {
-//     console.log("found first client");
-//
-//     host.peers
-//       .entries()
-//       .next()
-//       .value[1].client.timeout(10 * 1000, () => {})
-//       .request("echo", { message: "from host to frontend" })
-//       .then(console.log);
-//   }
-// }, 10000);
+io.on("connection", (socket) => {
+  console.log("a user connected");
+});
+
+httpServer.listen(3000, () => {
+  console.log("server running at http://localhost:3000");
+});
