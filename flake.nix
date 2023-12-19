@@ -14,11 +14,16 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = [
-            pkgs.just
-            pkgs.fzf
-            pkgs.nodejs_latest
-            pkgs.sqlite
+          buildInputs = with pkgs; [
+            just
+            entr
+            fzf
+            nodejs_latest
+            sqlite
+            nodePackages_latest.pnpm
+
+            # apps/service
+            nodejs_latest
           ];
         };
       }
