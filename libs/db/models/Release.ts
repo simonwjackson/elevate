@@ -1,5 +1,6 @@
 import { Model } from "objection";
 import Platform from "./Platform";
+import Resource from "./Resource";
 
 export default class Release extends Model {
   id!: number;
@@ -10,6 +11,7 @@ export default class Release extends Model {
   updated_at?: Date;
 
   platform!: Platform;
+  resources!: Resource[];
 
   static tableName = "releases";
 
@@ -23,18 +25,18 @@ export default class Release extends Model {
           to: "platforms.code",
         },
       },
-      // files: {
-      //   relation: Model.ManyToManyRelation,
-      //   modelClass: File,
-      //   join: {
-      //     from: "releases.id",
-      //     through: {
-      //       from: "file_release.release_id",
-      //       to: "file_release.file_uri",
-      //     },
-      //     to: "files.file_uri",
-      //   },
-      // },
+      resources: {
+        relation: Model.ManyToManyRelation,
+        modelClass: Resource,
+        join: {
+          from: "releases.id",
+          through: {
+            from: "release_resource.release_id",
+            to: "release_resource.resource_id",
+          },
+          to: "resources.id",
+        },
+      },
     };
   };
 }

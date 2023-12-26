@@ -11,6 +11,7 @@
     "@types/klaw": "^3.0.6",
     "@types/through2": "^2.0.41",
     "express": "4",
+    "fastq": "^1.16.0",
     "json-rpc-2.0": "^1.7.0",
     "klaw": "^4.1.0",
     "knex": "^3.1.0",

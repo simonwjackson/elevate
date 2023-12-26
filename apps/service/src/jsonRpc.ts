@@ -10,6 +10,8 @@ import {
 } from "json-rpc-2.0";
 import { NodeMethods } from "../../../types";
 import { LinuxHostMethods } from "./utils";
+import Release from "@elevate/db/models/Release";
+import { strictGameScanner } from "./utils/fileScanner";
 
 const logMiddleware: JSONRPCServerMiddleware<void> = async (
   next,
@@ -24,17 +26,34 @@ const logMiddleware: JSONRPCServerMiddleware<void> = async (
   });
 };
 
-export const createSocketIoJsonRpcServer = (io: Server) => {
+const buildJsonRpcServer = () => {
   const jsonRpcServer: TypedJSONRPCServer<LinuxHostMethods> =
     new JSONRPCServer();
   jsonRpcServer.applyMiddleware(logMiddleware);
   // jsonRpc.addMethod("gameScan", () => strictGameScanner());
-  jsonRpcServer.addMethod("echo", ({ message }) => message);
+  jsonRpcServer.addMethod("scanReleases", () => {
+    // HACK: Hardcoded
+    const root = "/glacier/snowscape/gaming/games";
+
+    strictGameScanner(root);
+    return "ok";
+  });
+
+  jsonRpcServer.addMethod("getAllReleases", () =>
+    Release.query()
+      .whereExists(Release.relatedQuery("resources"))
+      .withGraphFetched("resources"),
+  );
   // jsonRpc.addMethod("launch", parseLaunch);
   // jsonRpc.addMethod("resolution/set", ({ x, y }) =>
   //   setResolution(state.monitor, x, y),
   // );
 
+  return jsonRpcServer;
+};
+
+export const createSocketIoJsonRpcServer = (io: Server) => {
+  const jsonRpcServer = buildJsonRpcServer();
   const peers = new Map<string, { client: JSONRPCClient }>();
 
   const onDisconnect = (clientId: string) => async () => {

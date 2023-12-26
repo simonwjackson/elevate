@@ -2,14 +2,16 @@ import { readdirSync, statSync } from "fs";
 import { gameDb } from "../fakeDb.ts";
 import { runSteamApp, setResolution } from "./linux.ts";
 import { NodeMethods } from "../../../../types.js";
+import Release from "@elevate/db/models/Release.ts";
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
 
 export type LinuxHostMethods = {
   "resolution/set"(params: ResolutionSetParams): string;
-  gameScan(): string;
+  scanReleases(): "ok";
   launch(params: LaunchParams): string;
+  getAllReleases(): Release[];
 } & NodeMethods;
 
 // HACK:

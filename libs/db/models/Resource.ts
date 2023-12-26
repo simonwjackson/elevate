@@ -31,17 +31,17 @@ export default class Resource extends Model {
         to: "platforms.code",
       },
     },
-    // releases: {
-    //   relation: Model.ManyToManyRelation,
-    //   modelClass: Release,
-    //   join: {
-    //     from: "resources.uri",
-    //     through: {
-    //       from: "resource_release.resource_uri",
-    //       to: "resource_release.release_id",
-    //     },
-    //     to: "releases.id",
-    //   },
-    // },
+    releases: {
+      relation: Model.ManyToManyRelation,
+      modelClass: Release,
+      join: {
+        from: "resources.id",
+        through: {
+          from: "release_resource.resource_id",
+          to: "release_resource.release_id",
+        },
+        to: "releases.id",
+      },
+    },
   });
 }
