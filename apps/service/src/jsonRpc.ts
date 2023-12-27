@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+import type { WebSocket, Server } from "ws";
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -12,6 +12,7 @@ import { NodeMethods } from "../../../types";
 import { LinuxHostMethods } from "./utils";
 import Release from "@elevate/db/models/Release";
 import { strictGameScanner } from "./utils/fileScanner";
+import { buildFilter } from "objection-filter";
 
 const logMiddleware: JSONRPCServerMiddleware<void> = async (
   next,
@@ -39,10 +40,33 @@ const buildJsonRpcServer = () => {
     return "ok";
   });
 
-  jsonRpcServer.addMethod("getAllReleases", () =>
-    Release.query()
-      .whereExists(Release.relatedQuery("resources"))
-      .withGraphFetched("resources"),
+  jsonRpcServer.addMethod(
+    "getAllReleases",
+    // @ts-ignore
+    async () => {
+      const x = await buildFilter<Release, typeof Release>(Release)
+        .build({
+          eager: {
+            $where: {
+              name: {
+                $like: "%mario%",
+              },
+            },
+          },
+          // An objection.js order by expression
+          // An array of dot notation fields to select on the root model and eagerly loaded models
+          // fields: ["*"],
+        })
+        .whereExists(Release.relatedQuery("resources"))
+        .withGraphFetched("resources")
+        .debug();
+      console.log(x);
+      console.log(x.length);
+      return x;
+      // .catch(console.error);
+    },
+    // .then((customers) => res.send(customers)),
+    // Release.query()
   );
   // jsonRpc.addMethod("launch", parseLaunch);
   // jsonRpc.addMethod("resolution/set", ({ x, y }) =>
@@ -52,26 +76,24 @@ const buildJsonRpcServer = () => {
   return jsonRpcServer;
 };
 
-export const createSocketIoJsonRpcServer = (io: Server) => {
+export const createSocketIoJsonRpcServer = (wss: Server) => {
   const jsonRpcServer = buildJsonRpcServer();
   const peers = new Map<string, { client: JSONRPCClient }>();
 
   const onDisconnect = (clientId: string) => async () => {
-    const sockets = await io.in(clientId).fetchSockets();
-
-    if (sockets.length === 0 && clientId) {
-      peers.delete(clientId);
-    }
+    // const sockets = await io.in(clientId).fetchSockets();
+    // if (sockets.length === 0 && clientId) {
+    //   peers.delete(clientId);
+    // }
   };
 
-  const onConnect = (socket: Socket) => {
+  const onConnect = (socket: WebSocket) => {
     const clientId = `${Math.random()}`;
     console.log(`connection: ${clientId}`);
 
     const client: TypedJSONRPCClient<NodeMethods> = new JSONRPCClient(
       (request) => {
         try {
-          console.log(request);
           socket.send(request);
 
           return Promise.resolve();
@@ -83,23 +105,22 @@ export const createSocketIoJsonRpcServer = (io: Server) => {
 
     socket.on("disconnect", onDisconnect(clientId));
 
-    socket.on("message", (payload) => {
+    socket.on("message", (message) => {
+      const payload = message.toString();
+
       console.log(payload, typeof payload);
+      const obj = JSON.parse(payload);
 
-      if (typeof payload === "string") {
-        const obj = JSON.parse(payload);
+      // The message is a request from the peer, we need to process it
+      if (isJSONRPCRequest(obj)) {
+        jsonRpcServer.receive(obj).then((response) => {
+          socket.send(JSON.stringify(response));
+        });
+      }
 
-        // The message is a request from the peer, we need to process it
-        if (isJSONRPCRequest(obj)) {
-          jsonRpcServer.receive(obj).then((response) => {
-            socket.send(JSON.stringify(response));
-          });
-        }
-
-        // This is a direct response to a query made from the service
-        else if (isJSONRPCResponse(obj)) {
-          peers.get(clientId)?.client.receive(obj);
-        }
+      // This is a direct response to a query made from the service
+      else if (isJSONRPCResponse(obj)) {
+        peers.get(clientId)?.client.receive(obj);
       }
 
       // WARNING: Batch messages will not be processed

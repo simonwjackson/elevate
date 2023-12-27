@@ -1,23 +1,20 @@
 import express from "express";
 import { createServer } from "node:http";
-import { Server as SocketIoServer } from "socket.io";
 import { createSocketIoJsonRpcServer } from "./jsonRpc";
+import { WebSocketServer } from "ws";
 
 const app = express();
 const httpServer = createServer(app);
-const io = new SocketIoServer(httpServer, {
-  cors: {
-    origin: "*",
-  },
-});
+
+const wss = new WebSocketServer({ server: httpServer });
 
 app.get("/", (_, res) => {
   res.send("<h1>Hello world</h1>");
 });
 
-const { onConnect } = createSocketIoJsonRpcServer(io);
+const { onConnect } = createSocketIoJsonRpcServer(wss);
 
-io.on("connection", onConnect);
+wss.on("connection", onConnect);
 
 httpServer.listen(3000, () => {
   console.log("server running at http://localhost:3000");
