@@ -18,6 +18,7 @@
             # TODO: replace with bun
             nodejs_20
             just
+            nodePackages_latest.pnpm
           ];
         };
       }

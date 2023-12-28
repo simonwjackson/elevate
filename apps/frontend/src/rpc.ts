@@ -6,8 +6,10 @@ import {
   isJSONRPCResponse,
 } from "json-rpc-2.0";
 import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
-import type { LinuxHostMethods } from "../../service/src/index.ts";
-import { NodeMethods } from "../../service/src/utils/index.ts";
+import {
+  LinuxHostMethods,
+  NodeMethods,
+} from "../../service/src/utils/index.ts";
 
 export type FrontendMethods = NodeMethods;
 export type AndroidHostMethods = NodeMethods;
@@ -44,7 +46,7 @@ export const createReactNativeJsonRpcNode = () => {
 };
 
 export const createWebSocketJsonRpcNode = (
-  rpcServer: TypedJSONRPCServer<NodeMethods, void>,
+  rpcServer: TypedJSONRPCServer<NodeMethods>,
   host: string,
   port: number,
 ) => {
@@ -52,7 +54,6 @@ export const createWebSocketJsonRpcNode = (
   const client: TypedJSONRPCClient<LinuxHostMethods> = new JSONRPCClient(
     (request) => {
       try {
-        console.log(request);
         socket.send(JSON.stringify(request));
         return Promise.resolve();
       } catch (error) {
@@ -94,15 +95,13 @@ export const createFrontendJsonRpcServer = () => {
 };
 
 type Host = {
-  rpcClient: TypedJSONRPCClient<HostMethods, void>;
+  rpcClient: TypedJSONRPCClient<LinuxHostMethods>;
   hasStreaming: boolean;
   isHeadless: boolean;
   os: "linux" | "android";
 };
 
-export const buildHosts = (
-  rpcServer: TypedJSONRPCServer<NodeMethods, void>,
-) => {
+export const buildHosts = (rpcServer: TypedJSONRPCServer<NodeMethods>) => {
   const hosts: Record<string, Host> = {
     fiji: {
       rpcClient: createWebSocketJsonRpcNode(rpcServer, "fiji", 3000),

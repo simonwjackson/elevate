@@ -59,6 +59,7 @@ const buildJsonRpcServer = () => {
         })
         .whereExists(Release.relatedQuery("resources"))
         .withGraphFetched("resources")
+        .withGraphFetched("platform")
         .debug();
       console.log(x);
       console.log(x.length);
