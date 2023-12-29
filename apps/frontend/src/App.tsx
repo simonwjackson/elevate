@@ -1,5 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, useRef, useContext } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  useContext,
+  Children,
+} from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import {
   useFocusable,
@@ -16,20 +23,29 @@ init({
   shouldFocusDOMNode: true,
 });
 
-// setKeyMap({
-//   left: 37,
-//   up: 38,
-//   right: 39,
-//   down: [40],
-//   // left: [37, 205, 214, 9001], // or 'ArrowLeft'
-//   // up: 9002, // or 'ArrowUp'
-//   // right: 9003, // or 'ArrowRight'
-//   // down: [9004, 204, 212, 40],
-//   // // enter: 9005 // or 'Enter'
-//   // // up: [203, 211],
-//   // // right: [206, 213],
-//   enter: [15, 13, 49],
-// });
+interface Pipe {
+  <A>(value: A): A;
+  <A, B>(value: A, fn1: (input: A) => B): B;
+  <A, B, C>(value: A, fn1: (input: A) => B, fn2: (input: B) => C): C;
+  <A, B, C, D>(
+    value: A,
+    fn1: (input: A) => B,
+    fn2: (input: B) => C,
+    fn3: (input: C) => D,
+  ): D;
+  <A, B, C, D, E>(
+    value: A,
+    fn1: (input: A) => B,
+    fn2: (input: B) => C,
+    fn3: (input: C) => D,
+    fn4: (input: D) => E,
+  ): E;
+  // ... and so on
+}
+
+const pipe: Pipe = (value: any, ...fns: Function[]): unknown => {
+  return fns.reduce((acc, fn) => fn(acc), value);
+};
 
 const rpcServer = createFrontendJsonRpcServer();
 const hosts = buildHosts(rpcServer);
@@ -66,31 +82,8 @@ const ContentWrapper = styled.div`
   flex-direction: column;
 `;
 
-const useGamepadEvent = (isActive: boolean, handleGamepadEvent: Function) => {
+const useGamepad = (focused, handleGamepadEvent) => {
   const { subscribe, unsubscribe } = useGamepadStore();
-
-  useEffect(() => {
-    if (isActive) {
-      subscribe(handleGamepadEvent);
-    } else {
-      unsubscribe(handleGamepadEvent);
-    }
-
-    // Cleanup on unmount or when isActive changes
-    return () => unsubscribe(handleGamepadEvent);
-  }, [isActive, handleGamepadEvent, subscribe, unsubscribe]);
-};
-
-const ReleaseItem = ({ item }: { item: Release }) => {
-  const { ref, focused } = useFocusable();
-  const { subscribe, unsubscribe } = useGamepadStore();
-
-  const handleGamepadEvent = (event) => {
-    if (focused) {
-      if (event.detail.button === 0 && event.detail.pressed)
-        console.log({ item, event });
-    }
-  };
 
   useEffect(() => {
     if (focused) {
@@ -101,23 +94,135 @@ const ReleaseItem = ({ item }: { item: Release }) => {
 
     return () => unsubscribe(handleGamepadEvent);
   }, [focused, subscribe, unsubscribe]);
+};
 
-  const handleKeyPress = (event: any) => {
-    console.log(event);
+// const Actionable = ({ onInput, children }) => {
+//   const { ref, focused } = useFocusable();
+//
+//   useGamepad(focused, onInput);
+//
+//   const handleKeyPress = (event: any) => {
+//     console.log(event);
+//   };
+//
+//   return (
+//     <div
+//       style={{ display: "inherit" }}
+//       ref={ref}
+//       tabIndex={-1}
+//       onKeyDown={handleKeyPress}
+//       onKeyUp={handleKeyPress}
+//     >
+//       {children(focused)}
+//     </div>
+//   );
+// };
+//
+// const ReleaseItem = ({ item }: { item: Release }) => {
+//   const handleInput = (event) => {
+//     if (event.detail.button === 0 && event.detail.pressed) {
+//       console.log({ item, event });
+//     }
+//   };
+//
+//   return (
+//     <Actionable onInput={handleInput}>
+//       {(focused) => (
+//         <div
+//           style={{
+//             fontWeight: focused ? "bold" : "normal",
+//           }}
+//         >
+//           {item.name} [{item.platform.code}]
+//         </div>
+//       )}
+//     </Actionable>
+//   );
+// };
+
+// interface WithInputProps {
+//   onInput?: (event: React.KeyboardEvent | GamepadEvent) => void;
+//   focused?: boolean;
+// }
+//
+// type WrappedComponentType = React.ComponentType<WithInputProps>;
+
+enum ActionType {
+  ACCEPT = "accept",
+}
+const withActionable = (WrappedComponent) => {
+  return ({ onInput, ...props }) => {
+    const { ref, focused } = useFocusable();
+
+    const handleGamepadInput = (event) => {
+      const buttonToAction = ["accept"];
+
+      onInput({
+        type: buttonToAction[event.detail.button],
+        state: event.detail.pressed ? "pressed" : "released",
+      });
+    };
+
+    const handleKeyPress = (event) => {
+      onInput(event);
+    };
+
+    useGamepad(focused, handleGamepadInput);
+
+    return (
+      <div
+        style={{ display: "inherit" }}
+        ref={ref}
+        tabIndex={-1}
+        onKeyDown={handleKeyPress}
+        onKeyUp={handleKeyPress}
+      >
+        <WrappedComponent {...props} onInput={onInput} focused={focused} />
+      </div>
+    );
   };
+};
 
+const ReleaseItemBase = ({ item, focused, pressed }) => {
   return (
     <div
-      ref={ref}
-      tabIndex={-1}
-      onKeyDown={handleKeyPress}
-      onKeyUp={handleKeyPress}
       style={{
         fontWeight: focused ? "bold" : "normal",
+        fontStyle: pressed ? "oblique" : "normal",
       }}
     >
       {item.name} [{item.platform.code}]
     </div>
+  );
+};
+
+const ReleaseItemActionable = pipe(ReleaseItemBase, withActionable);
+
+const ReleaseItem = ({ item }) => {
+  const [pressed, setPressed] = useState(false);
+
+  const handleInput = useCallback(
+    (actionEvent) => {
+      switch (actionEvent.type) {
+        case ActionType.ACCEPT: {
+          if (actionEvent.state === "pressed") {
+            setPressed(true);
+          } else {
+            setPressed(false);
+            console.log({ item, actionEvent });
+          }
+        }
+      }
+    },
+    [item, setPressed],
+  );
+
+  return (
+    <ReleaseItemActionable
+      item={item}
+      onInput={handleInput}
+      pressed={pressed}
+    />
   );
 };
 
