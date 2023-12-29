@@ -6,3 +6,4 @@ apps/mobile/assets/index.html
 libs/db/node_modules
 libs/db/dev.sqlite3
 node_modules
+.yarn

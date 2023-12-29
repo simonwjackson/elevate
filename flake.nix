@@ -20,7 +20,8 @@
             fzf
             nodejs_latest
             sqlite
-            nodePackages_latest.pnpm
+            # nodePackages_latest.pnpm
+            yarn-berry
 
             # apps/service
             nodejs_latest
