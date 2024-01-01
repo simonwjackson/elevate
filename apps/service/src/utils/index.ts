@@ -1,6 +1,11 @@
 import { readdirSync, statSync } from "fs";
-import { gameDb } from "../fakeDb.ts";
-import { runSteamApp, setResolution } from "./linux.ts";
+// import { gameDb } from "../fakeDb.ts";
+import {
+  runSteamApp,
+  setResolution,
+  runRetroArch,
+  getLibretroCorePath,
+} from "./linux.ts";
 import { NodeMethods } from "../../../../types.js";
 import Release from "@elevate/db/models/Release.ts";
 
@@ -10,8 +15,8 @@ export type ResolutionSetParams = { monitor?: string; x: number; y: number };
 export type LinuxHostMethods = {
   "resolution/set"(params: ResolutionSetParams): string;
   scanReleases(): "ok";
-  launch(params: LaunchParams): string;
-  getAllReleases(): Release[];
+  launch(release: Release): string;
+  getAllReleases(filterObj: any): Release[];
 } & NodeMethods;
 
 // HACK:
@@ -19,18 +24,46 @@ const state = {
   monitor: "DP-2-3",
 };
 
-export const parseLaunch = (payload: LaunchParams) => {
-  const game = gameDb[payload.id];
-
-  switch (game.platform) {
-    case "steam": {
-      return runSteamApp(game.meta.steamAppId);
-    }
-    default:
+export const parseLaunch = async (release: Release) => {
+  switch (release.platform.code) {
+    //   case "steam": {
+    //     return runSteamApp(game.meta.steamAppId);
+    //   }
     case "nintendo-entertainment-system": {
-      return "";
+      const core = await getLibretroCorePath("nestopia_libretro.so");
+
+      runRetroArch(core, release.resources[0].uri)
+        .then(console.log)
+        .catch(console.error);
+      break;
+    }
+    case "nintendo-gameboy": {
+      const core = await getLibretroCorePath("mgba_libretro.so");
+
+      runRetroArch(core, release.resources[0].uri)
+        .then(console.log)
+        .catch(console.error);
+      break;
+    }
+    case "nintendo-gameboy-color": {
+      const core = await getLibretroCorePath("mgba_libretro.so");
+
+      runRetroArch(core, release.resources[0].uri)
+        .then(console.log)
+        .catch(console.error);
+      break;
+    }
+    case "nintendo-gameboy-advance": {
+      const core = await getLibretroCorePath("mgba_libretro.so");
+
+      runRetroArch(core, release.resources[0].uri)
+        .then(console.log)
+        .catch(console.error);
+      break;
     }
   }
+
+  return "ok";
 };
 
 export const scanFiles = (dirPath: string, ext: string[]): string[] => {
@@ -93,7 +126,9 @@ export const strictGameScanner = () => {
   const result = {};
 
   for (const platform in platformMap) {
+    // @ts-ignore
     const { paths, ext } = platformMap[platform];
+    // @ts-ignore
     result[platform] = paths.flatMap((path) => scanFiles(path, ext));
   }
 

@@ -1,21 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  useCallback,
-  useEffect,
-  useState,
-  useRef,
-  useContext,
-  Children,
-} from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import {
   useFocusable,
   init,
   FocusContext,
+  setKeyMap,
 } from "@noriginmedia/norigin-spatial-navigation";
 import { buildHosts, createFrontendJsonRpcServer } from "./rpc";
-import type Release from "../../../libs/db/models/Release";
-import { useGamepadStore } from "./useGamepadStore";
+import { useInputStore } from "./useGamepadStore";
+
+// @ts-ignore
+setKeyMap({ left: null, up: null, right: null, down: null, enter: null });
 
 init({
   debug: false,
@@ -23,49 +19,22 @@ init({
   shouldFocusDOMNode: true,
 });
 
-interface Pipe {
-  <A>(value: A): A;
-  <A, B>(value: A, fn1: (input: A) => B): B;
-  <A, B, C>(value: A, fn1: (input: A) => B, fn2: (input: B) => C): C;
-  <A, B, C, D>(
-    value: A,
-    fn1: (input: A) => B,
-    fn2: (input: B) => C,
-    fn3: (input: C) => D,
-  ): D;
-  <A, B, C, D, E>(
-    value: A,
-    fn1: (input: A) => B,
-    fn2: (input: B) => C,
-    fn3: (input: C) => D,
-    fn4: (input: D) => E,
-  ): E;
-  // ... and so on
-}
-
-const pipe: Pipe = (value: any, ...fns: Function[]): unknown => {
-  return fns.reduce((acc, fn) => fn(acc), value);
-};
-
 const rpcServer = createFrontendJsonRpcServer();
 const hosts = buildHosts(rpcServer);
 
-function DevButton({ method, children }) {
+function DevButton({ children }) {
   const { mutate, data } = useMutation({
     mutationFn: async () => {
-      return hosts.fiji.rpcClient.request("scanReleases");
+      return hosts.fiji.rpcClient.request("scanReleases").then(console.log);
     },
   });
 
-  const { ref, focused } = useFocusable({
-    onEnterRelease: mutate,
-  });
+  const { ref, focused } = useFocusable();
 
   return (
     <div
       ref={ref}
-      onClick={console.log}
-      tabIndex={-1}
+      onClick={() => mutate()}
       style={{
         border: focused ? "10px solid #333" : "10px solid #00000000",
       }}
@@ -83,7 +52,7 @@ const ContentWrapper = styled.div`
 `;
 
 const useGamepad = (focused, handleGamepadEvent) => {
-  const { subscribe, unsubscribe } = useGamepadStore();
+  const { subscribe, unsubscribe } = useInputStore();
 
   useEffect(() => {
     if (focused) {
@@ -96,87 +65,38 @@ const useGamepad = (focused, handleGamepadEvent) => {
   }, [focused, subscribe, unsubscribe]);
 };
 
-// const Actionable = ({ onInput, children }) => {
-//   const { ref, focused } = useFocusable();
-//
-//   useGamepad(focused, onInput);
-//
-//   const handleKeyPress = (event: any) => {
-//     console.log(event);
-//   };
-//
-//   return (
-//     <div
-//       style={{ display: "inherit" }}
-//       ref={ref}
-//       tabIndex={-1}
-//       onKeyDown={handleKeyPress}
-//       onKeyUp={handleKeyPress}
-//     >
-//       {children(focused)}
-//     </div>
-//   );
-// };
-//
-// const ReleaseItem = ({ item }: { item: Release }) => {
-//   const handleInput = (event) => {
-//     if (event.detail.button === 0 && event.detail.pressed) {
-//       console.log({ item, event });
-//     }
-//   };
-//
-//   return (
-//     <Actionable onInput={handleInput}>
-//       {(focused) => (
-//         <div
-//           style={{
-//             fontWeight: focused ? "bold" : "normal",
-//           }}
-//         >
-//           {item.name} [{item.platform.code}]
-//         </div>
-//       )}
-//     </Actionable>
-//   );
-// };
-
-// interface WithInputProps {
-//   onInput?: (event: React.KeyboardEvent | GamepadEvent) => void;
-//   focused?: boolean;
-// }
-//
-// type WrappedComponentType = React.ComponentType<WithInputProps>;
-
 enum ActionType {
   ACCEPT = "accept",
 }
+
 const withActionable = (WrappedComponent) => {
   return ({ onInput, ...props }) => {
     const { ref, focused } = useFocusable();
 
     const handleGamepadInput = (event) => {
-      const buttonToAction = ["accept"];
+      const buttonToActionIndex = ["accept"];
+      const keyToAction = {
+        Space: ActionType.ACCEPT,
+        Enter: ActionType.ACCEPT,
+      };
 
-      onInput({
-        type: buttonToAction[event.detail.button],
-        state: event.detail.pressed ? "pressed" : "released",
-      });
-    };
-
-    const handleKeyPress = (event) => {
-      onInput(event);
+      if (event.code) {
+        onInput({
+          type: keyToAction[event.code],
+          state: event.type === "keydown" ? "pressed" : "released",
+        });
+      } else {
+        onInput({
+          type: buttonToActionIndex[event.detail.button],
+          state: event.detail.pressed ? "pressed" : "released",
+        });
+      }
     };
 
     useGamepad(focused, handleGamepadInput);
 
     return (
-      <div
-        style={{ display: "inherit" }}
-        ref={ref}
-        tabIndex={-1}
-        onKeyDown={handleKeyPress}
-        onKeyUp={handleKeyPress}
-      >
+      <div ref={ref} style={{ display: "inherit" }}>
         <WrappedComponent {...props} onInput={onInput} focused={focused} />
       </div>
     );
@@ -196,7 +116,7 @@ const ReleaseItemBase = ({ item, focused, pressed }) => {
   );
 };
 
-const ReleaseItemActionable = pipe(ReleaseItemBase, withActionable);
+const ReleaseItemActionable = withActionable(ReleaseItemBase);
 
 const ReleaseItem = ({ item }) => {
   const [pressed, setPressed] = useState(false);
@@ -209,7 +129,7 @@ const ReleaseItem = ({ item }) => {
             setPressed(true);
           } else {
             setPressed(false);
-            console.log({ item, actionEvent });
+            hosts.fiji.rpcClient.request("launch", item).then(console.log);
           }
         }
       }
@@ -226,15 +146,22 @@ const ReleaseItem = ({ item }) => {
   );
 };
 
-function Content() {
+const Content = () => {
   const { ref, focusSelf, focusKey } = useFocusable();
-  const [selectedAsset, setSelectedAsset] = useState(null);
 
   const query = useQuery({
     queryKey: ["getAllReleases"],
     initialData: [],
     queryFn: async () => {
-      return hosts.fiji.rpcClient.request("getAllReleases");
+      return hosts.fiji.rpcClient.request("getAllReleases", {
+        eager: {
+          $where: {
+            name: {
+              $like: "%%",
+            },
+          },
+        },
+      });
     },
   });
 
@@ -246,7 +173,6 @@ function Content() {
     <FocusContext.Provider value={focusKey}>
       <ContentWrapper>
         <DevButton method="scan">Scan</DevButton>
-        <DevButton method="echo">Echo</DevButton>
         <ul>
           {query.data.map((item) => (
             <li key={item.id}>
@@ -257,7 +183,7 @@ function Content() {
       </ContentWrapper>
     </FocusContext.Provider>
   );
-}
+};
 
 const AppContainer = styled.div`
   background-color: #221c35;

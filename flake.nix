@@ -25,6 +25,7 @@
 
             # apps/service
             nodejs_latest
+            fd
           ];
         };
       }

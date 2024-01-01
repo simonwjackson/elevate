@@ -65,11 +65,21 @@ export const strictGameScanner = (rootPath: string) => {
   const buildGameObj = through2.obj(function (item, enc, next) {
     const { path }: { path: string } = item;
     const platformCode = path.split(rootPath + "/", 2)[1].split("/")[0];
+    console.log(platformCode);
 
-    this.push({
-      code: platformCode,
-      fullPath: path,
-    });
+    // HACK: artificial platform support limitation
+    if (
+      [
+        "nintendo-gameboy-advance",
+        "nintendo-gameboy",
+        "nintendo-gameboy-color",
+        "nintendo-entertainment-system",
+      ].includes(platformCode)
+    )
+      this.push({
+        code: platformCode,
+        fullPath: path,
+      });
 
     next();
   });

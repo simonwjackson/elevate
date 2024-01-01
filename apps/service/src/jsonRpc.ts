@@ -9,7 +9,7 @@ import {
   isJSONRPCResponse,
 } from "json-rpc-2.0";
 import { NodeMethods } from "../../../types";
-import { LinuxHostMethods } from "./utils";
+import { LinuxHostMethods, parseLaunch } from "./utils";
 import Release from "@elevate/db/models/Release";
 import { strictGameScanner } from "./utils/fileScanner";
 import { buildFilter } from "objection-filter";
@@ -43,33 +43,19 @@ const buildJsonRpcServer = () => {
   jsonRpcServer.addMethod(
     "getAllReleases",
     // @ts-ignore
-    async () => {
+    async (obj: any) => {
       const x = await buildFilter<Release, typeof Release>(Release)
-        .build({
-          eager: {
-            $where: {
-              name: {
-                $like: "%mario%",
-              },
-            },
-          },
-          // An objection.js order by expression
-          // An array of dot notation fields to select on the root model and eagerly loaded models
-          // fields: ["*"],
-        })
+        .build(obj)
         .whereExists(Release.relatedQuery("resources"))
         .withGraphFetched("resources")
         .withGraphFetched("platform")
-        .debug();
-      console.log(x);
-      console.log(x.length);
+        .debug()
+        .catch(console.error);
+
       return x;
-      // .catch(console.error);
     },
-    // .then((customers) => res.send(customers)),
-    // Release.query()
   );
-  // jsonRpc.addMethod("launch", parseLaunch);
+  jsonRpcServer.addMethod("launch", parseLaunch);
   // jsonRpc.addMethod("resolution/set", ({ x, y }) =>
   //   setResolution(state.monitor, x, y),
   // );
