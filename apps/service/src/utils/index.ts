@@ -1,13 +1,15 @@
 import { readdirSync, statSync } from "fs";
-// import { gameDb } from "../fakeDb.ts";
 import {
   runSteamApp,
   setResolution,
   runRetroArch,
   getLibretroCorePath,
+  startApplication,
+  buildRetroArachCommand,
 } from "./linux.ts";
 import { NodeMethods } from "../../../../types.js";
 import Release from "@elevate/db/models/Release.ts";
+import { JSONRPCClient, TypedJSONRPCServer } from "json-rpc-2.0";
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
@@ -15,7 +17,7 @@ export type ResolutionSetParams = { monitor?: string; x: number; y: number };
 export type LinuxHostMethods = {
   "resolution/set"(params: ResolutionSetParams): string;
   scanReleases(): "ok";
-  launch(release: Release): string;
+  launch(release: Release): Promise<number | null>;
   getAllReleases(filterObj: any): Release[];
 } & NodeMethods;
 
@@ -24,46 +26,43 @@ const state = {
   monitor: "DP-2-3",
 };
 
-export const parseLaunch = async (release: Release) => {
+export const launch = async (release: Release) => {
+  return startApplication(
+    await buildLaunchCmd(release),
+    (pid) => {
+      console.log(`Application started with PID: ${pid}`);
+      // TODO: I need to send a message back to the client with the PID. Not sure how to do that efficiently just yet.
+    },
+    () => console.log(`Application stopped`),
+  ).catch((err) => {
+    console.error(err);
+    return null;
+  });
+};
+
+export const buildLaunchCmd = async (release: Release) => {
   switch (release.platform.code) {
     //   case "steam": {
     //     return runSteamApp(game.meta.steamAppId);
     //   }
+
     case "nintendo-entertainment-system": {
-      const core = await getLibretroCorePath("nestopia_libretro.so");
-
-      runRetroArch(core, release.resources[0].uri)
-        .then(console.log)
-        .catch(console.error);
-      break;
+      return buildRetroArachCommand(
+        await getLibretroCorePath("nestopia_libretro.so"),
+        release.resources[0].uri,
+      );
     }
-    case "nintendo-gameboy": {
-      const core = await getLibretroCorePath("mgba_libretro.so");
 
-      runRetroArch(core, release.resources[0].uri)
-        .then(console.log)
-        .catch(console.error);
-      break;
-    }
-    case "nintendo-gameboy-color": {
-      const core = await getLibretroCorePath("mgba_libretro.so");
-
-      runRetroArch(core, release.resources[0].uri)
-        .then(console.log)
-        .catch(console.error);
-      break;
-    }
-    case "nintendo-gameboy-advance": {
-      const core = await getLibretroCorePath("mgba_libretro.so");
-
-      runRetroArch(core, release.resources[0].uri)
-        .then(console.log)
-        .catch(console.error);
-      break;
+    case "nintendo-gameboy":
+    case "nintendo-gameboy-color":
+    case "nintendo-gameboy-advance":
+    default: {
+      return buildRetroArachCommand(
+        await getLibretroCorePath("mgba_libretro.so"),
+        release.resources[0].uri,
+      );
     }
   }
-
-  return "ok";
 };
 
 export const scanFiles = (dirPath: string, ext: string[]): string[] => {
@@ -97,6 +96,10 @@ export const strictGameScanner = () => {
   // HACK: Hardcoded
   const root = "/glacier/snowscape/gaming/games";
   const platformMap = {
+    "nintendo-entertainment-system": {
+      paths: [`${root}/nintendo-entertainment-system`],
+      ext: ["nes"],
+    },
     "nintendo-gameboy": {
       paths: [`${root}/nintendo-gameboy`],
       ext: ["gb"],

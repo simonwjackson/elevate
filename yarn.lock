@@ -1703,15 +1703,18 @@ __metadata:
     "@types/express": "npm:^4.17.21"
     "@types/klaw": "npm:^3.0.6"
     "@types/node": "npm:^20.10.5"
+    "@types/shell-quote": "npm:^1.7.5"
     "@types/through2": "npm:^2.0.41"
     "@types/ws": "npm:^8.5.10"
     express: "npm:4"
     fastq: "npm:^1.16.0"
+    fp-ts: "npm:^2.16.1"
     json-rpc-2.0: "npm:^1.7.0"
     klaw: "npm:^4.1.0"
     knex: "npm:^3.1.0"
     objection: "npm:^3.1.3"
     objection-filter: "npm:^4.3.3"
+    shell-quote: "npm:^1.8.1"
     sqlite3: "npm:^5.1.6"
     through2: "npm:^4.0.2"
     ts-node: "npm:^10.9.2"
@@ -4012,6 +4015,13 @@ __metadata:
     "@types/mime": "npm:*"
     "@types/node": "npm:*"
   checksum: 811d1a2f7e74a872195e7a013bcd87a2fb1edf07eaedcb9dcfd20c1eb4bc56ad4ea0d52141c13192c91ccda7c8aeb8a530d8a7e60b9c27f5990d7e62e0fecb03
+  languageName: node
+  linkType: hard
+
+"@types/shell-quote@npm:^1.7.5":
+  version: 1.7.5
+  resolution: "@types/shell-quote@npm:1.7.5"
+  checksum: ddcf225e85e5520e3f44411d7d79eee0e56477fab705d0d93e293b61b9f8de2a57db6e859d492a24bc9e0d071c0490271efeae832756e2ac0d4d255922ac281d
   languageName: node
   linkType: hard
 
@@ -7963,6 +7973,13 @@ __metadata:
   version: 0.2.0
   resolution: "forwarded@npm:0.2.0"
   checksum: 9b67c3fac86acdbc9ae47ba1ddd5f2f81526fa4c8226863ede5600a3f7c7416ef451f6f1e240a3cc32d0fd79fcfe6beb08fd0da454f360032bde70bf80afbb33
+  languageName: node
+  linkType: hard
+
+"fp-ts@npm:^2.16.1":
+  version: 2.16.1
+  resolution: "fp-ts@npm:2.16.1"
+  checksum: 16fcc7dc8a612ed8a2a339153bcc8745095eebf34ce7980507a9e3690b2c2aa2023c0caede48fd3d79068e271a6203d64416fa9db05613327f7c1a7546ba196d
   languageName: node
   linkType: hard
 

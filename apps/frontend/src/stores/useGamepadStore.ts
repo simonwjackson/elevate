@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { GamepadListener } from "gamepad.js";
 import { navigateByDirection } from "@noriginmedia/norigin-spatial-navigation";
 
-export const useInputStore = create((set, get) => ({
+export const useInputStore = create()((set, get) => ({
   subscribers: new Set(),
 
   subscribe: (handler) => {

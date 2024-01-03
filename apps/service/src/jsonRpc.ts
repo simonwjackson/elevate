@@ -9,12 +9,12 @@ import {
   isJSONRPCResponse,
 } from "json-rpc-2.0";
 import { NodeMethods } from "../../../types";
-import { LinuxHostMethods, parseLaunch } from "./utils";
+import { LinuxHostMethods, launch } from "./utils";
 import Release from "@elevate/db/models/Release";
 import { strictGameScanner } from "./utils/fileScanner";
 import { buildFilter } from "objection-filter";
 
-const logMiddleware: JSONRPCServerMiddleware<void> = async (
+const logMiddleware: JSONRPCServerMiddleware<String> = async (
   next,
   request,
   serverParams,
@@ -28,10 +28,11 @@ const logMiddleware: JSONRPCServerMiddleware<void> = async (
 };
 
 const buildJsonRpcServer = () => {
-  const jsonRpcServer: TypedJSONRPCServer<LinuxHostMethods> =
+  const jsonRpcServer: TypedJSONRPCServer<LinuxHostMethods, String> =
     new JSONRPCServer();
+
   jsonRpcServer.applyMiddleware(logMiddleware);
-  // jsonRpc.addMethod("gameScan", () => strictGameScanner());
+
   jsonRpcServer.addMethod("scanReleases", () => {
     // HACK: Hardcoded
     const root = "/glacier/snowscape/gaming/games";
@@ -43,7 +44,8 @@ const buildJsonRpcServer = () => {
   jsonRpcServer.addMethod(
     "getAllReleases",
     // @ts-ignore
-    async (obj: any) => {
+    async (obj: any, y: string) => {
+      console.log(y);
       const x = await buildFilter<Release, typeof Release>(Release)
         .build(obj)
         .whereExists(Release.relatedQuery("resources"))
@@ -55,17 +57,22 @@ const buildJsonRpcServer = () => {
       return x;
     },
   );
-  jsonRpcServer.addMethod("launch", parseLaunch);
+
+  jsonRpcServer.addMethod("launch", launch);
+
   // jsonRpc.addMethod("resolution/set", ({ x, y }) =>
   //   setResolution(state.monitor, x, y),
   // );
-
+  //
   return jsonRpcServer;
 };
-
 export const createSocketIoJsonRpcServer = (wss: Server) => {
-  const jsonRpcServer = buildJsonRpcServer();
   const peers = new Map<string, { client: JSONRPCClient }>();
+  const jsonRpcServer = buildJsonRpcServer();
+
+  jsonRpcServer.applyMiddleware(async (next, request, serverParams) =>
+    next(request, "boo"),
+  );
 
   const onDisconnect = (clientId: string) => async () => {
     // const sockets = await io.in(clientId).fetchSockets();
@@ -81,21 +88,22 @@ export const createSocketIoJsonRpcServer = (wss: Server) => {
     const client: TypedJSONRPCClient<NodeMethods> = new JSONRPCClient(
       (request) => {
         try {
-          socket.send(request);
+          socket.send(JSON.stringify(request));
 
           return Promise.resolve();
         } catch (error) {
+          console.error(error);
           return Promise.reject(error);
         }
       },
     );
 
+    client.notify("auth", { clientId });
+
     socket.on("disconnect", onDisconnect(clientId));
 
     socket.on("message", (message) => {
       const payload = message.toString();
-
-      console.log(payload, typeof payload);
       const obj = JSON.parse(payload);
 
       // The message is a request from the peer, we need to process it

@@ -7,8 +7,9 @@ import {
   FocusContext,
   setKeyMap,
 } from "@noriginmedia/norigin-spatial-navigation";
-import { buildHosts, createFrontendJsonRpcServer } from "./rpc";
-import { useInputStore } from "./useGamepadStore";
+import { buildHosts } from "./rpc";
+import { createServer } from "./utils/rpc/servers/webSocket";
+import { useInputStore } from "./stores/useGamepadStore";
 
 // @ts-ignore
 setKeyMap({ left: null, up: null, right: null, down: null, enter: null });
@@ -19,7 +20,7 @@ init({
   shouldFocusDOMNode: true,
 });
 
-const rpcServer = createFrontendJsonRpcServer();
+const rpcServer = createServer();
 const hosts = buildHosts(rpcServer);
 
 function DevButton({ children }) {
@@ -51,7 +52,7 @@ const ContentWrapper = styled.div`
   flex-direction: column;
 `;
 
-const useGamepad = (focused, handleGamepadEvent) => {
+const useUserInput = (focused, handleGamepadEvent) => {
   const { subscribe, unsubscribe } = useInputStore();
 
   useEffect(() => {
@@ -93,7 +94,7 @@ const withActionable = (WrappedComponent) => {
       }
     };
 
-    useGamepad(focused, handleGamepadInput);
+    useUserInput(focused, handleGamepadInput);
 
     return (
       <div ref={ref} style={{ display: "inherit" }}>
