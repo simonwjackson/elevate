@@ -55,7 +55,7 @@ function parseCommand(commandString: string): [string, string[]] {
 export async function startApplication(
   commandString: string,
   onStart: (pid: number) => void,
-  onStop: () => void,
+  onStop: (pid: number) => void,
 ): Promise<number | null> {
   try {
     await fs.access(PIDFILE, constants.F_OK);
@@ -72,8 +72,6 @@ export async function startApplication(
     stdio: "ignore",
   });
 
-  console.log(child);
-
   child.unref();
 
   if (child.pid) {
@@ -88,7 +86,7 @@ export async function startApplication(
 
   child.on("close", () => {
     fs.unlink(PIDFILE).catch(console.error);
-    onStop();
+    onStop(child.pid ?? -1);
   });
 
   process.on("SIGINT", () => {

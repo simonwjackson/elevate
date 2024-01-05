@@ -11,7 +11,6 @@ import {
   KeyPressDetails,
 } from "@noriginmedia/norigin-spatial-navigation";
 import { buildHosts, createFrontendJsonRpcServer } from "./rpc";
-import { assets } from "./fakeDb";
 
 init({
   debug: false,

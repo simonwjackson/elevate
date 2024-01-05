@@ -9,7 +9,6 @@ import {
 } from "./linux.ts";
 import { NodeMethods } from "../../../../types.js";
 import Release from "@elevate/db/models/Release.ts";
-import { JSONRPCClient, TypedJSONRPCServer } from "json-rpc-2.0";
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
@@ -26,19 +25,24 @@ const state = {
   monitor: "DP-2-3",
 };
 
-export const launch = async (release: Release) => {
-  return startApplication(
-    await buildLaunchCmd(release),
-    (pid) => {
-      console.log(`Application started with PID: ${pid}`);
-      // TODO: I need to send a message back to the client with the PID. Not sure how to do that efficiently just yet.
-    },
-    () => console.log(`Application stopped`),
-  ).catch((err) => {
-    console.error(err);
-    return null;
-  });
-};
+export const launch =
+  (events: { onStart: (id: number) => void; onStop: (id: number) => void }) =>
+  async (release: Release) => {
+    return startApplication(
+      await buildLaunchCmd(release),
+      (pid) => {
+        console.log(`Application started with PID: ${pid}`);
+        events.onStart(pid);
+      },
+      (pid) => {
+        console.log(`Application stopped`);
+        events.onStop(pid);
+      },
+    ).catch((err) => {
+      console.error(err);
+      return null;
+    });
+  };
 
 export const buildLaunchCmd = async (release: Release) => {
   switch (release.platform.code) {

@@ -7,9 +7,10 @@ import {
   FocusContext,
   setKeyMap,
 } from "@noriginmedia/norigin-spatial-navigation";
-import { buildHosts } from "./rpc";
-import { createServer } from "./utils/rpc/servers/webSocket";
+import { connectToNodes } from "./rpc";
 import { useInputStore } from "./stores/useGamepadStore";
+import { createServer } from "./utils/rpc/servers/webSocket";
+import { pipe } from "fp-ts/lib/function";
 
 // @ts-ignore
 setKeyMap({ left: null, up: null, right: null, down: null, enter: null });
@@ -20,13 +21,12 @@ init({
   shouldFocusDOMNode: true,
 });
 
-const rpcServer = createServer();
-const hosts = buildHosts(rpcServer);
+const nodes = pipe(createServer(), connectToNodes);
 
 function DevButton({ children }) {
   const { mutate, data } = useMutation({
     mutationFn: async () => {
-      return hosts.fiji.rpcClient.request("scanReleases").then(console.log);
+      return nodes.fiji.rpcClient.request("scanReleases").then(console.log);
     },
   });
 
@@ -130,7 +130,7 @@ const ReleaseItem = ({ item }) => {
             setPressed(true);
           } else {
             setPressed(false);
-            hosts.fiji.rpcClient.request("launch", item).then(console.log);
+            nodes.fiji.rpcClient.request("launch", item).then(console.log);
           }
         }
       }
@@ -154,7 +154,7 @@ const Content = () => {
     queryKey: ["getAllReleases"],
     initialData: [],
     queryFn: async () => {
-      return hosts.fiji.rpcClient.request("getAllReleases", {
+      return nodes.fiji.rpcClient.request("getAllReleases", {
         eager: {
           $where: {
             name: {

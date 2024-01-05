@@ -7,7 +7,7 @@ import {
 import { JSONRPCClient, TypedJSONRPCClient } from "json-rpc-2.0";
 import { LinuxHostMethods } from "../../../../../service/src/utils/index.ts";
 import { NodeMethods } from "../../../../../../types";
-import { createJSONRPCClient } from "./utils.ts";
+import { createJSONRPCClient } from "./createJSONRPCClient.ts";
 
 export type FrontendMethods = NodeMethods;
 export type AndroidHostMethods = NodeMethods;
