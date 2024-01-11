@@ -37,6 +37,7 @@ export const create = <T extends MethodsType>({
   events?: {
     disconnect?: (clientId: String) => void;
     connect?: (clientId: String) => void;
+    // message?: (data: String) => void;
   };
   webSocketServer: WebSocketServer;
   jsonRpcServer: TypedJSONRPCServer<T, ServerParams>;
@@ -54,6 +55,7 @@ export const create = <T extends MethodsType>({
         send: (request) => trySendMessage(socket, request),
         receive: (process) => {
           socket.on("message", (message) => {
+            // events?.message(data);
             pipe(message.toString(), JSON.parse, process);
           });
         },

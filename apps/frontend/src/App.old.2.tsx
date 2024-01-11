@@ -10,7 +10,6 @@ import {
   FocusableComponentLayout,
   KeyPressDetails,
 } from "@noriginmedia/norigin-spatial-navigation";
-import { buildHosts, createFrontendJsonRpcServer } from "./rpc";
 
 init({
   debug: false,
@@ -85,7 +84,7 @@ const MenuWrapper = styled.div<MenuWrapperProps>`
 function DevButton({ method, children }) {
   const { mutate, data } = useMutation({
     mutationFn: async () => {
-      return hosts.fiji.rpcClient.request("scanReleases");
+      return hosts.fiji.rpcClient.request("@elevate/core/release/scan");
     },
   });
 

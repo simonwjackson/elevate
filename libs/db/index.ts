@@ -14,6 +14,11 @@ import config from "./knexfile";
 import Resource from "./models/Resource";
 const knexInstance = knex(config.development);
 
+import { log } from "@elevate/utils/logger";
+
+knexInstance.on("query", (msg) => log.info("Knex Query: ", msg));
+knexInstance.on("error", (msg) => log.info("Knex Error: ", msg));
+
 Model.knex(knexInstance);
 
 export default Model;

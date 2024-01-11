@@ -45,7 +45,6 @@ export const create = <T extends MethodsType, U>(
   messages.receive(async (data) => {
     if (isRequest(data)) {
       const result = await server.receive(data, serverParams);
-      console.log({ result });
 
       if (expectingReply(data)) {
         pipe(result, JSON.stringify, messages.send);

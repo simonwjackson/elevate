@@ -1,69 +1,46 @@
-import type { ServerParams } from "../../../../../libs/utils/jsonRPC/webSockets/serverNode";
-import {
-  JSONRPCServer,
-  JSONRPCServerMiddleware,
-  TypedJSONRPCServer,
-} from "json-rpc-2.0";
-import { LinuxHostMethods, launch } from "../misc";
+import type { ServerParams } from "@elevate/utils/jsonRPC/webSockets/serverNode";
+import { JSONRPCServer, TypedJSONRPCServer } from "json-rpc-2.0";
+import { LinuxHostMethods } from "../../plugins/core";
+import { pipe } from "fp-ts/lib/function";
+import log from "@elevate/utils/logger";
 import { buildFilter } from "objection-filter";
 import Release from "@elevate/db/models/Release";
-import { strictGameScanner } from "../fileScanner";
-import { getClient } from "./misc";
+import Resource from "@elevate/db/models/Resource";
+import db from "@elevate/db";
 
-export const buildJsonRpcServer = () => {
-  const jsonRpcServer: TypedJSONRPCServer<LinuxHostMethods, ServerParams> =
-    new JSONRPCServer();
+import { reduce } from "fp-ts/lib/Array";
 
-  const logMiddleware: JSONRPCServerMiddleware<ServerParams> = async (
-    next,
-    request,
-    serverParams,
-  ) => {
-    console.log(`Received ${JSON.stringify(request)}`);
+export type MutateJsonRpcServer = (
+  server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>,
+  context: PluginContext,
+) => TypedJSONRPCServer<LinuxHostMethods, ServerParams>;
 
-    return next(request, serverParams).then((response) => {
-      console.log(`Responding ${JSON.stringify(response)}`);
-      return response;
-    });
-  };
+export type PluginContext = ReturnType<typeof buildContext>
 
-  jsonRpcServer.applyMiddleware(logMiddleware);
+const buildContext = () => ({
+  log,
+  buildFilter,
+  data: {
+    db,
+    models: {
+      Release,
+      Resource,
+    },
+  },
+});
 
-  jsonRpcServer.addMethod("scanReleases", () => {
-    // HACK: Hardcoded
-    const root = "/glacier/snowscape/gaming/games";
+const withContext =
+  (fn: MutateJsonRpcServer) =>
+  (server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>) =>
+    fn(server, buildContext());
 
-    strictGameScanner(root);
-    return "ok";
-  });
+const addPlugins =
+  (plugins: MutateJsonRpcServer[]) =>
+  (server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>) =>
+    pipe(
+      plugins,
+      reduce(server, (server, fn) => withContext(fn)(server)),
+    );
 
-  jsonRpcServer.addMethod(
-    "getAllReleases",
-    // @ts-ignore
-    async (obj: any) =>
-      buildFilter<Release, typeof Release>(Release)
-        .build(obj)
-        .whereExists(Release.relatedQuery("resources"))
-        .withGraphFetched("resources")
-        .withGraphFetched("platform")
-        .debug()
-        .catch(console.error),
-  );
-
-  jsonRpcServer.addMethod("launch", (clientParams, serverParams) =>
-    launch({
-      onStart: console.log,
-      onStop: (pid) => {
-        getClient(serverParams)?.notify("echo", {
-          message: `App closed: ${pid}`,
-        });
-      },
-    })(clientParams),
-  );
-
-  // jsonRpc.addMethod("resolution/set", ({ x, y }) =>
-  //   setResolution(state.monitor, x, y),
-  // );
-
-  return jsonRpcServer;
-};
+export const buildJsonRpcServer = (plugins: MutateJsonRpcServer[]) =>
+  pipe(new JSONRPCServer<ServerParams>(), addPlugins(plugins));

@@ -1,5 +1,5 @@
 import { JSONRPCServer, TypedJSONRPCServer } from "json-rpc-2.0";
-import { NodeMethods } from "../../../../../../types";
+import { NodeMethods } from "@elevate/utils/types";
 import { LinuxHostMethods } from "../../../../../service/src/utils/misc";
 
 export type FrontendMethods = NodeMethods;

@@ -1,8 +1,10 @@
 import express from "express";
 import { createServer } from "node:http";
-import { create as createWebSocketServerNode } from "../../../libs/utils/jsonRPC/webSockets/serverNode";
+import { create as createWebSocketServerNode } from "@elevate/utils/jsonRPC/webSockets/serverNode";
 import { WebSocketServer } from "ws";
 import { buildJsonRpcServer } from "./utils/jsonRPC/buildServer";
+
+import core from "./plugins/core/index"
 
 const app = express();
 const httpServer = createServer(app);
@@ -17,7 +19,7 @@ createWebSocketServerNode({
     connect: console.log,
   },
   webSocketServer: new WebSocketServer({ server: httpServer }),
-  jsonRpcServer: buildJsonRpcServer(),
+  jsonRpcServer: buildJsonRpcServer([core]),
 });
 
 httpServer.listen(3000, () => {

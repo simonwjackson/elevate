@@ -3,10 +3,11 @@ import {
   JSONRPCResponse,
   TypedJSONRPCServer,
 } from "json-rpc-2.0";
-import { NodeMethods } from "../../../../types";
-import { LinuxHostMethods } from "../../../../apps/service/src/utils/misc";
 import { flow, pipe } from "fp-ts/function";
 import { create as createJsonRpc } from "../node";
+import { NodeMethods } from "../../types";
+import { MethodsType } from "./serverNode";
+import { LinuxHostMethods } from '@elevate/service/src/plugins/core'
 
 export type FrontendMethods = NodeMethods;
 export type AndroidHostMethods = NodeMethods;
@@ -27,8 +28,8 @@ const trySendMessage = (socket: WebSocket, message: string) => {
   // }
 };
 
-export const create = (
-  rpcServer: TypedJSONRPCServer<NodeMethods, undefined>,
+export const create = <T extends MethodsType>(
+  rpcServer: TypedJSONRPCServer<NodeMethods, T>,
   host: string,
   port: number,
 ) => {

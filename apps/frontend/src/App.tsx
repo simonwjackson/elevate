@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState} from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import {
   useFocusable,
@@ -25,9 +25,8 @@ const nodes = pipe(createServer(), connectToNodes);
 
 function DevButton({ children }) {
   const { mutate, data } = useMutation({
-    mutationFn: async () => {
-      return nodes.fiji.rpcClient.request("scanReleases").then(console.log);
-    },
+    mutationFn: async () => 
+      nodes.fiji.rpcClient.request("@elevate/core/releases/scan").then(console.log),
   });
 
   const { ref, focused } = useFocusable();
@@ -130,7 +129,7 @@ const ReleaseItem = ({ item }) => {
             setPressed(true);
           } else {
             setPressed(false);
-            nodes.fiji.rpcClient.request("launch", item).then(console.log);
+            nodes.fiji.rpcClient.request("@elevate/core/releases/launch", item).then(console.log);
           }
         }
       }
@@ -151,10 +150,10 @@ const Content = () => {
   const { ref, focusSelf, focusKey } = useFocusable();
 
   const query = useQuery({
-    queryKey: ["getAllReleases"],
+    queryKey: ["@elevate/core/releases/fetch"],
     initialData: [],
     queryFn: async () => {
-      return nodes.fiji.rpcClient.request("getAllReleases", {
+      return nodes.fiji.rpcClient.request("@elevate/core/releases/fetch", {
         eager: {
           $where: {
             name: {

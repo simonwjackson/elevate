@@ -52,11 +52,17 @@ function parseCommand(commandString: string): [string, string[]] {
   return [command?.toString() ?? "", args];
 }
 
-export async function startApplication(
+type StartApplicationOptions = {
+  events?: {
+    onStart?: (pid: number) => void;
+    onStop?: (pid: number) => void;
+  };
+};
+
+export const startApplication = async (
   commandString: string,
-  onStart: (pid: number) => void,
-  onStop: (pid: number) => void,
-): Promise<number | null> {
+  options?: StartApplicationOptions,
+) => {
   try {
     await fs.access(PIDFILE, constants.F_OK);
     console.log(`PID file ${PIDFILE} exists. Process might be running.`);
@@ -78,7 +84,7 @@ export async function startApplication(
     try {
       await fs.writeFile(PIDFILE, child.pid.toString());
       console.log(`PID written to ${PIDFILE}`);
-      onStart(child.pid);
+      options?.events?.onStart?.(child.pid);
     } catch (err) {
       console.error(`Failed to write PID file: ${(err as Error).message}`);
     }
@@ -86,7 +92,7 @@ export async function startApplication(
 
   child.on("close", () => {
     fs.unlink(PIDFILE).catch(console.error);
-    onStop(child.pid ?? -1);
+    options?.events?.onStop?.(child.pid ?? -1);
   });
 
   process.on("SIGINT", () => {
@@ -102,4 +108,4 @@ export async function startApplication(
   });
 
   return child.pid ?? null;
-}
+};

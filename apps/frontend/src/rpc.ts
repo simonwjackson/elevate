@@ -1,8 +1,9 @@
 import { TypedJSONRPCServer } from "json-rpc-2.0";
 import { TypedJSONRPCClient } from "json-rpc-2.0";
-import { LinuxHostMethods } from "../../service/src/utils/index.ts";
-import { NodeMethods } from "../../../types";
 import { create as createWebSocketClientNode } from "../../../libs/utils/jsonRPC/webSockets/clientNode.ts";
+import type { ServerParams } from "@elevate/utils/jsonRPC/webSockets/serverNode";
+import { NodeMethods } from "@elevate/utils/types";
+import { LinuxHostMethods } from "../../service/src/utils/misc.ts";
 
 export type FrontendMethods = NodeMethods;
 export type AndroidHostMethods = NodeMethods;
@@ -15,7 +16,7 @@ type Node = {
   os: "linux" | "android";
 };
 
-export const connectToNodes = (rpcNode: TypedJSONRPCServer<NodeMethods>) =>
+export const connectToNodes = (rpcNode: TypedJSONRPCServer<NodeMethods, ServerParams>) =>
   ({
     fiji: {
       rpcClient: createWebSocketClientNode(rpcNode, "fiji", 3000),
