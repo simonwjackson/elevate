@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import {
   useFocusable,
@@ -11,6 +11,7 @@ import { connectToNodes } from "./rpc";
 import { useInputStore } from "./stores/useGamepadStore";
 import { createServer } from "./utils/rpc/servers/webSocket";
 import { pipe } from "fp-ts/lib/function";
+import releases from "./games.json";
 
 // @ts-ignore
 setKeyMap({ left: null, up: null, right: null, down: null, enter: null });
@@ -25,8 +26,10 @@ const nodes = pipe(createServer(), connectToNodes);
 
 function DevButton({ children }) {
   const { mutate, data } = useMutation({
-    mutationFn: async () => 
-      nodes.fiji.rpcClient.request("@elevate/core/releases/scan").then(console.log),
+    mutationFn: async () =>
+      nodes.fiji.rpcClient
+        .request("@elevate/core/releases/scan")
+        .then(console.log),
   });
 
   const { ref, focused } = useFocusable();
@@ -111,7 +114,7 @@ const ReleaseItemBase = ({ item, focused, pressed }) => {
         fontStyle: pressed ? "oblique" : "normal",
       }}
     >
-      {item.name} [{item.platform.code}]
+      {item.name} [{item.platform_code}]
     </div>
   );
 };
@@ -129,7 +132,9 @@ const ReleaseItem = ({ item }) => {
             setPressed(true);
           } else {
             setPressed(false);
-            nodes.fiji.rpcClient.request("@elevate/core/releases/launch", item).then(console.log);
+            nodes.fiji.rpcClient
+              .request("@elevate/core/releases/launch", item.id)
+              .then(console.log);
           }
         }
       }
@@ -153,15 +158,24 @@ const Content = () => {
     queryKey: ["@elevate/core/releases/fetch"],
     initialData: [],
     queryFn: async () => {
-      return nodes.fiji.rpcClient.request("@elevate/core/releases/fetch", {
-        eager: {
-          $where: {
-            name: {
-              $like: "%%",
+      return releases;
+
+      const host = "fiji";
+      return nodes[host].rpcClient
+        .request("@elevate/core/releases/fetch", {
+          eager: {
+            $where: {
+              name: {
+                $like: "%%",
+              },
             },
           },
-        },
-      });
+        })
+        .then((response) => {
+          return response.map((release) => {
+            return { meta: { host }, release };
+          });
+        });
     },
   });
 
@@ -169,14 +183,22 @@ const Content = () => {
     focusSelf();
   }, [focusSelf]);
 
+  if (!query?.data) return null;
+
   return (
     <FocusContext.Provider value={focusKey}>
       <ContentWrapper>
         <DevButton method="scan">Scan</DevButton>
         <ul>
           {query.data.map((item) => (
-            <li key={item.id}>
-              <ReleaseItem item={item} />
+            <li key={item.release.id}>
+              <span
+                style={{
+                  display: "ruby",
+                }}
+              >
+                {item.meta.host}: <ReleaseItem item={item.release} />
+              </span>
             </li>
           ))}
         </ul>

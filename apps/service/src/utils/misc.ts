@@ -2,11 +2,11 @@ import {
   runSteamApp,
   setResolution,
   runRetroArch,
-  getLibretroCorePath,
-  startApplication,
-  buildRetroArachCommand,
 } from "./linux.ts";
+import { buildRetroArachCommand } from "../plugins/retroarch/index.ts";
+import { getLibretroCorePath } from "../plugins/retroarch/index.ts";
 import Release from "@elevate/db/models/Release";
+import {startApplication} from "@elevate/utils/processes"
 
 export type LaunchParams = { id: number };
 export type ResolutionSetParams = { monitor?: string; x: number; y: number };
@@ -16,15 +16,15 @@ const state = {
   monitor: "DP-2-3",
 };
 
-type LaunchOptions = {
-  events?: {
+export type LaunchOptions = {
+  events: {
     onStart: (id: number) => void;
     onStop: (id: number) => void;
   };
 };
 
 export const launch = async (release: Release, options?: LaunchOptions) =>
-  startApplication(await buildLaunchCmd(release), options);
+  startApplication (await buildLaunchCmd(release), options);
 
 export const buildLaunchCmd = async (release: Release) => {
   switch (release.platform.code) {

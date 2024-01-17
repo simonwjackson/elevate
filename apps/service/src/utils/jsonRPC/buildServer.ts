@@ -7,8 +7,10 @@ import { buildFilter } from "objection-filter";
 import Release from "@elevate/db/models/Release";
 import Resource from "@elevate/db/models/Resource";
 import db from "@elevate/db";
+import { LauncherAddon } from "../plugins/addLauncher";
 
 import { reduce } from "fp-ts/lib/Array";
+import { ElevateContext } from "../..";
 
 export type MutateJsonRpcServer = (
   server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>,
@@ -27,20 +29,21 @@ const buildContext = () => ({
       Resource,
     },
   },
+  launchers: {} as Record<string, LauncherAddon>
 });
 
-const withContext =
-  (fn: MutateJsonRpcServer) =>
-  (server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>) =>
-    fn(server, buildContext());
+// const withContext =
+//   (fn: MutateJsonRpcServer) =>
+//   (server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>) =>
+//     fn(server, buildContext());
 
 const addPlugins =
-  (plugins: MutateJsonRpcServer[]) =>
+  (context: ElevateContext, plugins: MutateJsonRpcServer[]) =>
   (server: TypedJSONRPCServer<LinuxHostMethods, ServerParams>) =>
     pipe(
       plugins,
-      reduce(server, (server, fn) => withContext(fn)(server)),
+      reduce(server, (server, fn) => fn(server, context)),
     );
 
-export const buildJsonRpcServer = (plugins: MutateJsonRpcServer[]) =>
-  pipe(new JSONRPCServer<ServerParams>(), addPlugins(plugins));
+export const buildJsonRpcServer = (context: ElevateContext, plugins: MutateJsonRpcServer[]) =>
+  pipe(new JSONRPCServer<ServerParams>(), addPlugins(context, plugins));

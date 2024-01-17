@@ -21,13 +21,18 @@ import {
 // INFO: setup NX with export
 // https://blog.nrwl.io/step-by-step-guide-to-creating-an-expo-monorepo-with-nx-30c976fdc2c1
 
-// Eula breaks gmae launch (first launch)
+// Eula breaks game launch (first launch)
 // You can grep steamapps/shadercaxhe for game status
+// cloud_log.txt: Online mode: enabled... but no internet when starting up. This waits for user input indefinitly  
+//   [2024-01-17 21:26:26] [AppID 329440] Failed sync for 'AC Launch,down,' [login=false][offlineMode=false]
+//   To replicate this, might need to toggle internet access to the device 
+//  Its possible to laucnch multiple steam games at a time. need to find a way to prevent this. maybe the pgrep is good enough
+
+// I dont think the following works if game is launched while the steam.exe process is already running
 // pgrep -f '115164.*Steam|Steam.*115164'
 //    all PIDs returned are indicators that the game is running (or possibly frozen)
 // reaper SteamLaunch AppId=1151640
 //    this indicates the main process, but im not sure how reliable it is. Not sure if all compatibility layers show this.
-//  Its possible to laucnch multiple steam games at a time. need to find a way to prevent this. maybe the pgrep is good enough
 
 // am start -n org.ppsspp.ppsspp -a .PpssppActivity  -a android.intent.action.VIEW -e org.ppsspp.ppsspp.Shortcuts $FILE
 // am start -n org.ppsspp.ppsspp/.PpssppActivity -a android.intent.action.VIEW -c android.intent.category.DEFAULT -d $FILE -t application/octet-stream --activity-clear-task  --activity-clear-top  --activity-no-history
