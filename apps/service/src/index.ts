@@ -14,7 +14,7 @@ import path from 'path'
 const app = express();
 const httpServer = createServer(app);
 
-app.use('/', express.static(path.join(__dirname, '../../../libs/frontend/dist')))
+
 
 export type ElevateContext = ReturnType<typeof buildContext>;
 
@@ -45,6 +45,10 @@ createWebSocketServerNode({
   jsonRpcServer: buildJsonRpcServer(context, [core]),
 });
 
-httpServer.listen(3000, () => {
-   log.info('conntect @ 300') 
-});
+if (process.env.NODE_ENV === "production") {
+  app.use('/', express.static(path.join(__dirname, '../../../libs/frontend/dist')))
+
+  httpServer.listen(31348, () => {
+    log.info('Elevate is running @ http://localhost:31348') 
+  });
+}

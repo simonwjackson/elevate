@@ -46,16 +46,33 @@
         installPhase = ''
           mkdir -p $out/bin
           echo "#!${pkgs.stdenv.shell}" > $out/bin/run-wui
-          echo "${pkgs.bun}/bin/bun --bun --prefer-offline --no-install run ${service}/apps/service/src/index.ts" >> $out/bin/run-wui
+          echo "NODE_ENV=production ${pkgs.bun}/bin/bun --bun --prefer-offline --no-install run ${service}/apps/service/src/index.ts" >> $out/bin/run-wui
           chmod +x $out/bin/run-wui
         '';
       };
+
+      devService = pkgs.writeShellScriptBin "start-servers" ''
+        #!/usr/bin/env sh
+        echo "Starting service and frontend..."
+
+        # Start the service
+        (${pkgs.bun}/bin/bun --bun --prefer-offline --no-install --hot run ./apps/service/src/index.ts) &
+
+        # Start the frontend
+        (cd ./libs/frontend && ${pkgs.bun}/bin/bunx vite) &
+
+        wait
+      '';
+
     in {
       devShells.default = pkgs.mkShell {
         packages = [pkgs.bashInteractive pkgs.yarn pkgs.bun pkgs.just];
       };
 
       packages.app = app;
+      packages.devService = devService;
+
       defaultPackage = app;
+      
     });
 }
