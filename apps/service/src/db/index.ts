@@ -16,7 +16,7 @@ export async function createDb() {
   }
 
  const db = await createRxDatabase({
-    name: "2024-01-27_01",
+    name: "elevate_2024-01-27_01",
     storage: getRxStorageLoki({
       adapter: new adapter(),
       /*
