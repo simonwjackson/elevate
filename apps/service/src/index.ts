@@ -1,54 +1,50 @@
 import express from "express";
 import { createServer } from "node:http";
-import { create as createWebSocketServerNode } from "@elevate/utils/jsonRPC/webSockets/serverNode";
+import { create as createWebSocketServerNode } from "../../../libs/utils/jsonRPC/webSockets/serverNode";
 import { WebSocketServer } from "ws";
 import { buildJsonRpcServer } from "./utils/jsonRPC/buildServer";
 import core from "./plugins/core/index";
-import { LauncherAddon, addLauncher, addPlugin } from "./utils/plugins/addLauncher";
-import log from "@elevate/utils/logger";
-import { buildFilter } from "objection-filter";
-import db from "@elevate/db";
-import Release from "@elevate/db/models/Release";
-import Resource from "@elevate/db/models/Resource";
+import { LauncherAddon, addPlugin } from "./utils/plugins/addLauncher";
+import log from "../../../libs/utils/logger";
 import retroarchPlugin from "./plugins/retroarch";
 import steamPlugin from "./plugins/steam";
+import {createDb} from "./db";
+import path from 'path'
 
 const app = express();
 const httpServer = createServer(app);
 
-app.get("/", (_, res) => {
-  res.send("<h1>Hello world</h1>");
-});
+app.use('/', express.static(path.join(__dirname, '../../../libs/frontend/dist')))
 
-export type ElevateContext = ReturnType<typeof buildContext>
+export type ElevateContext = ReturnType<typeof buildContext>;
 
-const buildContext = ()  => ({
+const buildContext = async () => ({
   log,
-  buildFilter,
+  // buildFilter,
   data: {
-    db,
-    models: {
-      Release,
-      Resource,
-    },
+    db: await createDb(),
+    // models: {
+    //   Release,
+    //   Resource,
+    // },
   },
-  launchers: {} as Record<string, LauncherAddon>
+  launchers: {} as Record<string, LauncherAddon>,
 });
 
-const context = buildContext()
+const context = await buildContext();
 
-addPlugin(retroarchPlugin, context)
-addPlugin(steamPlugin, context)
+addPlugin(retroarchPlugin, context);
+addPlugin(steamPlugin, context);
 
 createWebSocketServerNode({
   events: {
-    disconnect: console.log,
-    connect: console.log,
+    disconnect: log.info,
+    connect: log.info,
   },
-  webSocketServer: new WebSocketServer({ server: httpServer }),
+  webSocketServer: new WebSocketServer({ port: 5000 }),
   jsonRpcServer: buildJsonRpcServer(context, [core]),
 });
 
 httpServer.listen(3000, () => {
-  console.log("server running at http://localhost:3000");
+   log.info('conntect @ 300') 
 });

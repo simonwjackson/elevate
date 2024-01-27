@@ -1,5 +1,5 @@
-import Release from "@elevate/db/models/Release";
-import {
+// import Release from "@elevate/db/models/Release";
+import type {
   PluginInstaller,
 } from "../../utils/plugins/addLauncher";
 import { exec } from "../../utils/linux";
@@ -31,7 +31,7 @@ export const install: PluginInstaller = (context) => {
           "nintendo-gameboy-advance",
           "nintendo-gameboy-color",
         ],
-        buildLaunchCmd: async (release: Release) =>
+        buildLaunchCmd: async (release: any) =>
           buildRetroArachCommand(
             await getLibretroCorePath("mgba_libretro.so"),
             release.resources[0].uri,
@@ -42,7 +42,7 @@ export const install: PluginInstaller = (context) => {
         id: "nestopia",
         host: "linux",
         platforms: ["nintendo-entertainment-system"],
-        buildLaunchCmd: async (release: Release) =>
+        buildLaunchCmd: async (release: any) =>
           buildRetroArachCommand(
             await getLibretroCorePath("nestopia_libretro.so"),
             release.resources[0].uri,

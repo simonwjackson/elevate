@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "paths": {
+      // "@elevate/service": ["./apps/service"],
+      // "@elevate/utils": ["./libs/utils"],
+      // "@elevate/db": ["./libs/db/src"],
+      // "@elevate/frontend": ["./libs/frontend"]
+    }
+  },
+}

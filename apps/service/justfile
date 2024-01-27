@@ -2,4 +2,4 @@ default:
   @just --choose
 
 dev:
-  { find ./src; } | entr -r ../../node_modules/.bin/ts-node ./src/index.ts
+  bun --hot ./src/index.ts

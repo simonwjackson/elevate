@@ -28,6 +28,8 @@ const simpleCoreMap = {
     "/data/data/com.retroarch.aarch64/cores/nestopia_libretro_android.so",
   "nintendo-gameboy-advance":
     "/data/data/com.retroarch.aarch64/cores/mgba_libretro_android.so",
+  "nec-turbografx-16":
+    '/data/data/com.retroarch.aarch64/cores/mednafen_pce_libretro_android.so'
 };
 
 const launcherDb = {
@@ -51,83 +53,71 @@ const launcherDb = {
   },
 };
 
-const buildRetroArchCommand = (game: any, theLauncher: any) => {
-  theLauncher.command[1].extra.ROM = game.file;
-  theLauncher.command[1].extra.LIBRETRO = simpleCoreMap[game.platform];
+const buildRetroArchCommand = (release: any, theLauncher: any) => {
+  theLauncher.command[1].extra.ROM = release.resources[0].location;
+  theLauncher.command[1].extra.LIBRETRO = simpleCoreMap[release.platform];
 
   return theLauncher.command;
 };
 
-const gameDb = {
-  "😊🎉🍎🚀🌈": {
-    platform: "nintendo-entertainment-system",
-    title: "Tetris",
-    file: "/storage/emulated/0/tetris.nes",
-  },
-  ahep7fshsfh: {
-    platform: "nintendo-gameboy-advance",
-    title: "Wario Land 4",
-    file: "/storage/emulated/0/snowscape/gaming/games/nintendo-gameboy-advance/Wario Land 4 (UE) [!].gba",
-  },
-};
+export const launchGame = (release: any) => {
+  // const games = {
+  //   moonlight: [
+  //     "android.intent.action.MAIN",
+  //     {
+  //       category: "android.intent.category.LAUNCHER",
+  //       packageName: "com.limelight",
+  //       className: "com.limelight.ShortcutTrampoline",
+  //       extra: {
+  //         UUID: "F6D480FD-C024-2820-7F02-980A469B3BF3",
+  //         Name: "Desktop",
+  //         AppId: "1577243657",
+  //       },
+  //     },
+  //   ],
 
-const launchGame = (obj: any) => {
-  const games = {
-    moonlight: [
-      "android.intent.action.MAIN",
-      {
-        category: "android.intent.category.LAUNCHER",
-        packageName: "com.limelight",
-        className: "com.limelight.ShortcutTrampoline",
-        extra: {
-          UUID: "F6D480FD-C024-2820-7F02-980A469B3BF3",
-          Name: "Desktop",
-          AppId: "1577243657",
-        },
-      },
-    ],
+  //   dungreed: [
+  //     "android.intent.action.MAIN",
+  //     {
+  //       packageName: "com.teamhoray.dungreed",
+  //       className: "com.unity3d.player.UnityPlayerActivity",
+  //     },
+  //   ],
+  //   scourgeBringer: [
+  //     "android.intent.action.MAIN",
+  //     {
+  //       packageName: "com.pid.scourgebringer",
+  //       className: "crc645d6a1e7bece73b70.Program",
+  //     },
+  //   ],
 
-    dungreed: [
-      "android.intent.action.MAIN",
-      {
-        packageName: "com.teamhoray.dungreed",
-        className: "com.unity3d.player.UnityPlayerActivity",
-      },
-    ],
-    scourgeBringer: [
-      "android.intent.action.MAIN",
-      {
-        packageName: "com.pid.scourgebringer",
-        className: "crc645d6a1e7bece73b70.Program",
-      },
-    ],
-
-    deadCells: [
-      "android.intent.action.MAIN",
-      {
-        packageName: "com.playdigious.deadcells.mobile",
-        className: "com.playdigious.deadcells.mobile.DeadCellsLoading",
-      },
-    ],
-    locoRoco: [
-      "android.intent.action.VIEW",
-      {
-        category: "android.intent.category.DEFAULT",
-        type: "application/octet-stream",
-        packageName: "org.ppsspp.ppssppgold",
-        className: "org.ppsspp.ppsspp.PpssppActivity",
-        data: "/storage/emulated/0/psp/Loco_Roco.iso",
-      },
-    ],
-  };
+  //   deadCells: [
+  //     "android.intent.action.MAIN",
+  //     {
+  //       packageName: "com.playdigious.deadcells.mobile",
+  //       className: "com.playdigious.deadcells.mobile.DeadCellsLoading",
+  //     },
+  //   ],
+  //   locoRoco: [
+  //     "android.intent.action.VIEW",
+  //     {
+  //       category: "android.intent.category.DEFAULT",
+  //       type: "application/octet-stream",
+  //       packageName: "org.ppsspp.ppssppgold",
+  //       className: "org.ppsspp.ppsspp.PpssppActivity",
+  //       data: "/storage/emulated/0/psp/Loco_Roco.iso",
+  //     },
+  //   ],
+  // };
 
   // if (name === "moonlight") {
   //   fetch("http://zao:3000/").catch(console.log);
   // }
 
-  const theLauncher = launcherDb[gameDb[obj.id].platform];
+  const theLauncher = launcherDb[release.platform];
 
-  if (theLauncher.type === "retroarch") {
-    launch(buildRetroArchCommand(gameDb[obj.id], theLauncher));
-  }
+  // if (theLauncher.type === "retroarch") {
+    launch(
+      buildRetroArchCommand(release, theLauncher));
+  // }
 };

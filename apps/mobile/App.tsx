@@ -13,6 +13,7 @@ import {
   isJSONRPCRequest,
   isJSONRPCResponse,
 } from "json-rpc-2.0";
+import { launchGame } from "./utils";
 
 // INFO: How to "write" to the download directory
 // https://www.farhansayshi.com/post/how-to-save-files-to-a-device-folder-using-expo-and-react-native/
@@ -41,6 +42,11 @@ const rpcServer: TypedJSONRPCServer<NodeMethods> = new JSONRPCServer();
 
 rpcServer.addMethod("echo", ({ message }) => {
   return message + "RN";
+});
+
+rpcServer.addMethod("@elevate/core/releases/launch", (result) => {
+  launchGame(result)
+  return result.name
 });
 
 const CustomWebView = () => {
@@ -84,7 +90,7 @@ const CustomWebView = () => {
 
   return source ? (
     <WebView
-      // injectedJavaScript="window.receiveMessageFromReactNative('hi')"
+      injectedJavaScript="window.isMobileHost = true"
       ref={webViewRef}
       originWhitelist={["*"]}
       javaScriptEnabled={true}

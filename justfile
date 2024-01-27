@@ -12,7 +12,7 @@ dev-service:
       nix develop .# --command just $cmd
     }
 
-    { run dev ./apps/service & run dev ./apps/frontend; } | ./node_modules/.bin/bunyan --time local --no-pager --output short &
+    { run dev ./apps/service & run dev ./libs/frontend; } | bunx bunyan --time local --no-pager --output short &
     wait
 
 dev-mobile:

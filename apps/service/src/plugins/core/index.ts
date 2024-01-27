@@ -3,7 +3,7 @@ import { ResourceFound, strictResourceScanner } from "@elevate/utils/files";
 import { generateRandomString } from "@elevate/utils/misc";
 import { getClient } from "../../utils/jsonRPC/misc";
 import { ResolutionSetParams } from "../../utils/misc";
-import Release from "@elevate/db/models/Release";
+// import Release from "@elevate/db/models/Release";
 import { NodeMethods } from "@elevate/utils/types";
 import * as fs from "fs";
 import * as path from "path";
@@ -147,12 +147,17 @@ export type LinuxHostMethods = {
   "@elevate/linux/resolution/set"(params: ResolutionSetParams): string;
   "@elevate/core/releases/scan"(): void;
   "@elevate/core/releases/launch"(id: string): Promise<number | null>;
-  "@elevate/core/releases/fetch"(filterObj: any): Release[];
+  // "@elevate/core/releases/fetch"(filterObj: any): Release[];
 } & NodeMethods;
 
 export const install: MutateJsonRpcServer = (
   server,
-  { log, buildFilter, data, ...elevateContext },
+  {
+    log,
+    // buildFilter,
+    // data,
+    ...elevateContext
+  },
 ) => {
   server.applyMiddleware(async (next, request, serverParams) => {
     log.info("JSON RPC: Request", request);
@@ -168,131 +173,131 @@ export const install: MutateJsonRpcServer = (
     // HACK: Hardcoded
     const root = "/glacier/snowscape/gaming/games";
 
-    const upsertResourceFound = async (found: ResourceFound): Promise<void> => {
-      data.db.transaction(async (trx) => {
-        const resource = await data.models.Resource.query(trx)
-          .upsertGraphAndFetch(
-            {
-              // explicit id required
-              id: generateRandomString(8),
-              uri: found.path,
-              platform: {
-                code: found.platform,
-              },
-            },
-            {
-              update: false,
-              noUpdate: true,
-              insertMissing: true,
-              relate: true,
-            },
-          )
-          .withGraphFetched("releases");
+    // const upsertResourceFound = async (found: ResourceFound): Promise<void> => {
+    //   data.db.transaction(async (trx) => {
+    //     const resource = await data.models.Resource.query(trx)
+    //       .upsertGraphAndFetch(
+    //         {
+    //           // explicit id required
+    //           id: generateRandomString(8),
+    //           uri: found.path,
+    //           platform: {
+    //             code: found.platform,
+    //           },
+    //         },
+    //         {
+    //           update: false,
+    //           noUpdate: true,
+    //           insertMissing: true,
+    //           relate: true,
+    //         },
+    //       )
+    //       .withGraphFetched("releases");
 
-        if (resource.releases.length > 0) return;
+    //     if (resource.releases.length > 0) return;
 
-        await Release.query(trx).upsertGraphAndFetch(
-          {
-            name: path.parse(resource.uri).name,
-            platform: resource.platform,
-            resources: [{ id: resource.id }],
-          },
-          {
-            update: false,
-            noUpdate: true,
-            insertMissing: true,
-            relate: true,
-          },
-        );
-      });
-    };
+    //     await Release.query(trx).upsertGraphAndFetch(
+    //       {
+    //         name: path.parse(resource.uri).name,
+    //         platform: resource.platform,
+    //         resources: [{ id: resource.id }],
+    //       },
+    //       {
+    //         update: false,
+    //         noUpdate: true,
+    //         insertMissing: true,
+    //         relate: true,
+    //       },
+    //     );
+    //   });
+    // };
 
-    const q: queueAsPromised = fastq(upsertResourceFound, 1);
-    const events = pipe(root, gameDirectoryToScannerObj, strictResourceScanner);
+    // const q: queueAsPromised = fastq(upsertResourceFound, 1);
+    // const events = pipe(root, gameDirectoryToScannerObj, strictResourceScanner);
 
-    events.on("resource", (game) =>
-      q.push(game).catch((err) => log.error(err)),
-    );
+    // events.on("resource", (game) =>
+    //   q.push(game).catch((err) => log.error(err)),
+    // );
 
-    events.on(
-      "end",
-      () =>
-        getClient(context)?.notify(
-          "@elevate/core/releases/scan/complete",
-          undefined,
-        ),
-    );
+    // events.on(
+    //   "end",
+    //   () =>
+    //     getClient(context)?.notify(
+    //       "@elevate/core/releases/scan/complete",
+    //       undefined,
+    //     ),
+    // );
   });
 
-  server.addMethod(
-    "@elevate/core/releases/fetch",
-    // @ts-ignore
-    async (obj: any) =>
-      buildFilter<Release, typeof Release>(Release)
-        .build(obj)
-        .whereExists(Release.relatedQuery("resources"))
-        .withGraphFetched("resources")
-        .withGraphFetched("platform"),
-  );
+  // server.addMethod(
+  //   "@elevate/core/releases/fetch",
+  //   // @ts-ignore
+  //   async (obj: any) =>
+  //     buildFilter<Release, typeof Release>(Release)
+  //       .build(obj)
+  //       .whereExists(Release.relatedQuery("resources"))
+  //       .withGraphFetched("resources")
+  //       .withGraphFetched("platform"),
+  // );
 
   server.addMethod("@elevate/core/releases/launch", async (id, params) => {
-    const release = await Release.query()
-      .findById(id)
-      .withGraphFetched("resources")
-      .withGraphFetched("platform");
+    // const release = await Release.query()
+    //   .findById(id)
+    //   .withGraphFetched("resources")
+    //   .withGraphFetched("platform");
 
-    if (!release) {
-      const command = await elevateContext.launchers.steam.buildLaunchCmd(
-        {
-          id,
-        } as unknown as Release,
-        {},
-      );
+    // if (!release) {
+    //   const command = await elevateContext.launchers.steam.buildLaunchCmd(
+    //     {
+    //       id,
+    //     } as unknown as Release,
+    //     {},
+    //   );
 
-      command &&
-        startApplication(command, {
-          events: {
-            onStart: (pid) => {
-              const message = `App opened [${pid}]: Steam - ${id}`;
+    //   command &&
+    //     startApplication(command, {
+    //       events: {
+    //         onStart: (pid) => {
+    //           const message = `App opened [${pid}]: Steam - ${id}`;
 
-              log.info(message);
-              getClient(params)?.notify("echo", { message });
-            },
-            onStop: (pid) => {
-              const message = `App closed [${pid}]: Steam - ${id}`;
+    //           log.info(message);
+    //           getClient(params)?.notify("echo", { message });
+    //         },
+    //         onStop: (pid) => {
+    //           const message = `App closed [${pid}]: Steam - ${id}`;
 
-              log.info(message);
-              getClient(params)?.notify("echo", { message });
-            },
-          },
-        });
+    //           log.info(message);
+    //           getClient(params)?.notify("echo", { message });
+    //         },
+    //       },
+    //     });
 
-      return null;
-    }
+    //   return null;
+    // }
 
-    const launchers = Object.entries(elevateContext.launchers).find(
-      ([, addon]) => addon.platforms.includes(release.platform.code),
-    );
+    // const launchers = Object.entries(elevateContext.launchers).find(
+    //   ([, addon]) => addon.platforms.includes(release.platform.code),
+    // );
 
-    const command = await launchers?.[1]?.buildLaunchCmd(release, {});
+    // const command = await launchers?.[1]?.buildLaunchCmd(release, {});
 
-    command &&
-      startApplication(command, {
-        events: {
-          onStart: (pid) => {
-            const message = `App opened [${pid}]: ${release.name}`;
+    // command &&
+    //   startApplication(command, {
+    //     events: {
+    //       onStart: (pid) => {
+    //         const message = `App opened [${pid}]: ${release.name}`;
 
-            log.info(message);
-            getClient(params)?.notify("echo", { message });
-          },
-          onStop: (pid) => {
-            const message = `App closed [${pid}]: ${release.name}`;
+    //         log.info(message);
+    //         getClient(params)?.notify("echo", { message });
+    //       },
+    //       onStop: (pid) => {
+    //         const message = `App closed [${pid}]: ${release.name}`;
 
-            log.info(message);
-            getClient(params)?.notify("echo", { message });
-          },
-        },
-      });
+    //         log.info(message);
+    //         getClient(params)?.notify("echo", { message });
+    //       },
+    //     },
+    //   });
 
     return null;
   });

@@ -1,8 +1,8 @@
-import { JSONSchemaType } from "ajv";
+import type { JSONSchemaType } from "ajv";
 import ajv from "../ajv";
 import Release from "@elevate/db/models/Release";
 import { PluginContext } from "../jsonRPC/buildServer";
-import { ElevateContext } from "../..";
+import type { ElevateContext } from "../..";
 
 export type LauncherAddon = {
   name: string;

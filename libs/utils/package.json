@@ -1,4 +1,10 @@
 {
   "name": "@elevate/utils",
-  "packageManager": "yarn@4.0.1"
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "yarn@4.0.1",
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "bunyan": "^1.8.15"
+  }
 }

@@ -1,8 +1,0 @@
-default:
-  @just --choose
-
-dev:
-  npx vite
-
-build:
-  npx vite build
