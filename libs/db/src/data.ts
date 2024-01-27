@@ -10,6 +10,59 @@ export const users = [
 
 export const releases = [
   {
+    id: "102",
+    name: "Rouge Legacy 2",
+    platform: "steam",
+    resources: [
+      {
+        host: "kita",
+        location:
+          "steam://run/1029210",
+      },
+    ],
+    media: {
+      grids: [
+        "https://cdn2.steamgriddb.com/grid/f1b3d814cb0e55fe3f5363acef63db5f.jpg",
+      ],
+    },
+  },
+
+  {
+    id: "101",
+    name: "Rouge Legacy 2",
+    platform: "steam",
+    resources: [
+      {
+        host: "kita",
+        location:
+          "steam://run/1253920",
+      },
+    ],
+    media: {
+      grids: [
+        "https://cdn2.steamgriddb.com/grid/0d3583da613a220fbd94421b827cba33.png",
+      ],
+    },
+  },
+  {
+    id: "100",
+    name: "Toybox Turbo",
+    platform: "steam",
+    resources: [
+      {
+        host: "kita",
+        location:
+          "steam://run/287260",
+      },
+    ],
+    media: {
+      grids: [
+        "https://cdn2.steamgriddb.com/grid/6590530011cde4a4fa4022eeb3e73fe9.png",
+      ],
+    },
+  },
+
+  {
     id: "2",
     name: "Akumajou Dracula X Chi no Rondo",
     platform: "nec-turbografx-16",

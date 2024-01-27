@@ -14,8 +14,6 @@ import path from 'path'
 const app = express();
 const httpServer = createServer(app);
 
-
-
 export type ElevateContext = ReturnType<typeof buildContext>;
 
 const buildContext = async () => ({
