@@ -8,7 +8,7 @@ measure_network_speed_to_host() {
   while [ "$retry_count" -lt "$max_retries" ]; do
     local result
 
-    result=$(gum spin --spinner meter --title "Running speed test..." -- iperf3 -c "$host" -p "$port" -t 10 -J)
+    result=$(gum spin --spinner meter --title "Running speed test..." -- iperf3 -c "$host" -p "$port" -t 2 -i 0.5 -P 4 -J)
 
     if echo "$result" | jq -e '.error' >/dev/null 2>&1; then
       local error_message
