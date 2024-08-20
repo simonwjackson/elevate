@@ -141,6 +141,13 @@ This script checks if you're on a specific Wi-Fi network (like at home). If you 
 - Use `--priority fps` if you prefer smooth motion over sharp images, or `--priority resolution` if you prefer sharper images over smoother motion.
 - When you set a range (like min and max resolution or FPS), Moonbeam doesn't just choose between the two extremes. It tries many options in between to find the best balance for your current network conditions.
 
+## Prerequisites
+
+Moonbeam (and Moonlight) assume you have [Sunshine](https://app.lizardbyte.dev/Sunshine/) preinstalled, preconfigured, and paired.
+
+> [!NOTE]
+> For more information, visit [Sunshine's official website](https://app.lizardbyte.dev/Sunshine/).
+
 ## Installation
 
 To use Moonbeam, you'll need the Nix package manager. Nix ensures you have all the necessary software components, regardless of your system configuration.
@@ -171,6 +178,37 @@ With Nix and Flakes set up, you're ready to use `moonbeam`.
 
 ```sh
 > nixpkgs#iperf3 -- -s -p 31347
+```
+
+#### Systemd Service (for auto-start)
+
+To automatically start the iperf3 server on system boot, you can use this minimal systemd unit:
+
+```ini
+[Unit]
+Description=iperf3 server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/iperf3 -s -p 31347
+Restart=always
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> **Note**
+> The exact location and method for setting up systemd services may vary across Linux distributions. Some systems might require the unit file to be placed in `/usr/lib/systemd/system/` instead, or may have different conventions for service names or user permissions. Please consult your distribution's documentation if you encounter any issues.
+
+To set up and start the service:
+
+1. Save the above unit as `/etc/systemd/system/iperf3-server.service`
+2. Run these commands to enable and start the service:
+
+```sh
+sudo systemctl enable iperf3-server.service
+sudo systemctl start iperf3-server.service
 ```
 
 > [!NOTE]
@@ -219,6 +257,15 @@ To work on Moonbeam locally:
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Acknowledgements
+
+Moonbeam wouldn't be possible without the following projects:
+
+- **LizardByte** for Sunshine: https://github.com/LizardByte/Sunshine
+- **cgutman** for Moonlight: https://github.com/moonlight-stream/moonlight-qt
+
+We're grateful for their contributions to the game streaming ecosystem.
 
 ## License
 
