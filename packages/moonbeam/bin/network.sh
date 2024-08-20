@@ -31,7 +31,7 @@ measure_network_speed_to_host() {
 
 measure_latency() {
   local ping_result
-  ping_result=$(gum spin --spinner pulse --title "Measuring ping..." -- ping -c 5 "$host" | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
+  ping_result=$(gum spin --spinner pulse --title "Measuring ping..." -- ping -c 3 -i 0.2 -W 1 "$host" | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
 
   if [ -z "$ping_result" ]; then
     latency=1
