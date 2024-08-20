@@ -1,0 +1,744 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source ./log.sh
+source ./calculate.sh
+source ./display.sh
+source ./network.sh
+
+usage_doc="Game Streaming Settings Calculator
+
+Usage:
+  $(basename "$0") [options] stream <host> <app>
+
+Moonbeam Options:
+  --bitrate <bitrate>                          Available bitrate in Kbps (default: calculated from max resolution and FPS)
+  --resolution <WxH>                           Set both min and max resolution (e.g., 1920x1080)
+  --max-resolution <WxH>                       Maximum resolution (e.g., 1920x1080)
+  --min-resolution <WxH>                       Minimum resolution (e.g., 640x360)
+  --360                                        Force a 640x360 resolution
+  --480                                        Force a 854x480 resolution
+  --540                                        Force a 960x540 resolution
+  --720                                        Force a 1280x720 resolution
+  --900                                        Force a 1600x900 resolution
+  --1080                                       Force a 1920x1080 resolution
+  --1440                                       Force a 2560x1440 resolution
+  --2K                                         Force a 2048x1080 resolution
+  --4K                                         Force a 3840x2160 resolution
+  --fps <fps>                                  Set both min and max FPS (e.g., 60)
+  --max-fps <fps>                              Maximum FPS (e.g., 120)
+  --min-fps <fps>                              Minimum FPS (e.g., 30)
+  --max-latency <ms>                           Maximum allowed latency in milliseconds
+  -p, --priority <resolution|fps>              Prioritize resolution or FPS in optimization (default: fps)
+  --log-level <level>                          Set log level (QUIET, INFO, WARN, DEBUG, TRACE, VERBOSE)
+  --interactive                                Enable interactive mode
+  --dry-run                                    Show the Moonlight command without executing it
+  --detach                                     Detach the stream and run in the background
+  -h, --help                                   Show this help message
+
+Moonlight Options:
+  --vsync                                      Use V-Sync.
+  --no-vsync                                   Do not use V-Sync.
+  --packet-size <packet-size>                  Specify video packet size to
+                                               use.
+  --display-mode <display-mode>                Select display mode:
+                                               borderless/fullscreen/windowed.
+  --audio-config <audio-config>                Select audio config:
+                                               5.1-surround/7.1-surround/stereo.
+  --multi-controller                           Use multiple controller support.
+  --no-multi-controller                        Do not use multiple controller
+                                               support.
+  --quit-after                                 Use quit app after session.
+  --no-quit-after                              Do not use quit app after
+                                               session.
+  --absolute-mouse                             Use remote desktop optimized
+                                               mouse control.
+  --no-absolute-mouse                          Do not use remote desktop
+                                               optimized mouse control.
+  --mouse-buttons-swap                         Use left and right mouse buttons
+                                               swap.
+  --no-mouse-buttons-swap                      Do not use left and right mouse
+                                               buttons swap.
+  --touchscreen-trackpad                       Use touchscreen in trackpad
+                                               mode.
+  --no-touchscreen-trackpad                    Do not use touchscreen in
+                                               trackpad mode.
+  --game-optimization                          Use game optimizations.
+  --no-game-optimization                       Do not use game optimizations.
+  --audio-on-host                              Use audio on host PC.
+  --no-audio-on-host                           Do not use audio on host PC.
+  --frame-pacing                               Use frame pacing.
+  --no-frame-pacing                            Do not use frame pacing.
+  --mute-on-focus-loss                         Use mute audio when Moonlight
+                                               window loses focus.
+  --no-mute-on-focus-loss                      Do not use mute audio when
+                                               Moonlight window loses focus.
+  --background-gamepad                         Use background gamepad input.
+  --no-background-gamepad                      Do not use background gamepad
+                                               input.
+  --reverse-scroll-direction                   Use inverted scroll direction.
+  --no-reverse-scroll-direction                Do not use inverted scroll
+                                               direction.
+  --swap-gamepad-buttons                       Use swap A/B and X/Y gamepad
+                                               buttons (Nintendo-style).
+  --no-swap-gamepad-buttons                    Do not use swap A/B and X/Y
+                                               gamepad buttons (Nintendo-style).
+  --keep-awake                                 Use prevent display sleep while
+                                               streaming.
+  --no-keep-awake                              Do not use prevent display sleep
+                                               while streaming.
+  --performance-overlay                        Use show performance overlay.
+  --no-performance-overlay                     Do not use show performance
+                                               overlay.
+  --hdr                                        Use HDR streaming.
+  --no-hdr                                     Do not use HDR streaming.
+  --capture-system-keys <capture-system-keys>  Select capture system key
+                                               combos: always/fullscreen/never.
+  --video-codec <video-codec>                  Select video codec:
+                                               AV1/H.264/HEVC/auto.
+  --video-decoder <video-decoder>              Select video decoder:
+
+Arguments:
+  stream                     Start stream
+  <host>                     The host to stream to
+  <app>                      The application to stream
+
+Note: 
+  - Use either --resolution, --max-resolution, --min-resolution, or one of the preset resolutions (--360, --480, --720, --1080, --1440, --4K)
+  - If --max-fps is not provided, it will be determined based on the current display's refresh rate
+  - If --bitrate is not provided, it will be calculated based on max resolution and FPS
+  - Latency will be automatically detected
+"
+
+# Default values
+max_resolution="1920x1080"
+min_resolution="256x256"
+max_fps=0
+min_fps=24
+available_bitrate=0
+prioritize="fps"
+latency=0
+max_latency=0
+scaling_steps=128
+host=""
+app=""
+log_file="/tmp/moonbeam.log"
+extra_moonlight_options=""
+interactive=false
+dry_run=false
+detach=false
+max_resolution_set=false
+min_resolution_set=false
+resolution_set=false
+shorthand_res_set=false
+max_fps_set=false
+min_fps_set=false
+
+export LOG_LEVEL=2
+
+parse_args() {
+  handle_non_stream_command() {
+    local moonlight_cmd="moonlight $*"
+    eval "$moonlight_cmd"
+  }
+
+  convert_shorthand_resolution() {
+    local shorthand=$1
+    shorthand=${shorthand%p}
+
+    case $shorthand in
+    360) echo "640x360" ;;
+    480) echo "854x480" ;;
+    540) echo "960x540" ;;
+    900) echo "1600x900" ;;
+    720) echo "1280x720" ;;
+    1080) echo "1920x1080" ;;
+    1440) echo "2560x1440" ;;
+    2K) echo "2048x1080" ;;
+    4K | 2160) echo "3840x2160" ;;
+    *) echo "$shorthand" ;; # Return as-is if not a shorthand
+    esac
+  }
+
+  if [[ ! " $* " =~ " stream " ]]; then
+    local moonlight_cmd="moonlight $*"
+    handle_non_stream_command "$@" |
+      sed \
+        -e 's/Moonlight/Moonbeam/g' \
+        -e "s/moonlight/$(basename "$0")/g"
+    exit $?
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --help | -h)
+      echo "$usage_doc"
+      exit 0
+      ;;
+    --interactive)
+      interactive=true
+      shift
+      ;;
+    --max-latency)
+      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        error "Max latency must be a positive integer"
+        exit 1
+      fi
+      max_latency="$2"
+      shift 2
+      ;;
+
+    --bitrate)
+      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        error "Bitrate must be a positive integer"
+        exit 1
+      fi
+      available_bitrate="$2"
+      shift 2
+      ;;
+    --max-resolution)
+      if [[ "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
+        error "Cannot use --max-resolution with --resolution or shorthand resolution options."
+        exit 1
+      fi
+      max_resolution=$(convert_shorthand_resolution "$2")
+      if ! is_valid_resolution "$max_resolution"; then
+        error "Invalid resolution format for --max-resolution"
+        exit 1
+      fi
+      max_resolution_set=true
+      shift 2
+      ;;
+    --resolution)
+      if [[ "$max_resolution_set" == "true" || "$min_resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
+        error "Cannot use --resolution with other resolution options."
+        exit 1
+      fi
+      resolution=$(convert_shorthand_resolution "$2")
+      if ! is_valid_resolution "$resolution"; then
+        error "Invalid resolution format for --resolution"
+        exit 1
+      fi
+      max_resolution="$resolution"
+      min_resolution="$resolution"
+      resolution_set=true
+      shift 2
+      ;;
+    --min-resolution)
+      if [[ "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
+        error "Cannot use --min-resolution with --resolution or shorthand resolution options."
+        exit 1
+      fi
+      min_resolution=$(convert_shorthand_resolution "$2")
+      if ! is_valid_resolution "$min_resolution"; then
+        error "Invalid resolution format for --min-resolution"
+        exit 1
+      fi
+      min_resolution_set=true
+      shift 2
+      ;;
+    --360* | --480* | --540* | --720* | --900* | --1080* | --1440* | --2K | --4K)
+      if [[ "$max_resolution_set" == "true" || "$min_resolution_set" == "true" || "$resolution_set" == "true" ]]; then
+        error "Cannot use shorthand resolution with other resolution options."
+        exit 1
+      fi
+      if [[ "$shorthand_res_set" == "true" ]]; then
+        error "Multiple shorthand resolution options provided. Please use only one."
+        exit 1
+      fi
+      res=$(convert_shorthand_resolution "${1#--}")
+      max_resolution="$res"
+      min_resolution="$res"
+      shorthand_res_set=true
+      shift
+      ;;
+    --max-fps)
+      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        error "FPS must be a positive integer"
+        exit 1
+      fi
+      max_fps="$2"
+      max_fps_set=true
+      shift 2
+      ;;
+    --fps)
+      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        error "FPS must be a positive integer"
+        exit 1
+      fi
+      max_fps="$2"
+      min_fps="$2"
+      max_fps_set=true
+      min_fps_set=true
+      shift 2
+      ;;
+    --min-fps)
+      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+        error "FPS must be a positive integer"
+        exit 1
+      fi
+      min_fps="$2"
+      min_fps_set=true
+      shift 2
+      ;;
+    -p | --priority)
+      if [[ "$2" != "resolution" && "$2" != "fps" ]]; then
+        error "priority must be either 'resolution' or 'fps'"
+        exit 1
+      fi
+      prioritize="$2"
+      shift 2
+      ;;
+    --log-level)
+      validate_and_set_log_level "$2"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run=true
+      shift
+      ;;
+    --detach)
+      detach=true
+      shift
+      ;;
+
+    stream)
+      if [[ $# -lt 3 ]]; then
+        error "Missing required arguments: stream <host> <app>"
+        exit 1
+      fi
+      host="$2"
+      app="$3"
+      shift 3
+      ;;
+    *)
+      # If it's not a recognized option, assume it's a Moonlight option and pass it through
+      extra_moonlight_options+=" $1"
+      shift
+      ;;
+    esac
+  done
+
+  if [[ -z "$host" || -z "$app" ]]; then
+    error "Missing required arguments: stream <host> <app>"
+    exit 1
+  fi
+}
+
+start_moonlight_stream() {
+  local host=$1
+  local app=$2
+  local resolution=$3
+  local fps=$4
+  local bitrate=$5
+  local dry_run=$6
+
+  local moonlight_cmd="moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra_moonlight_options stream \"$host\" \"$app\""
+
+  if [ "$dry_run" = true ] || [ "$DRY_RUN" = true ]; then
+    debug "Dry run mode. The following command would be executed:"
+    debug "Command: $moonlight_cmd"
+    exit 0
+  fi
+
+  # Create a temporary file to store the output
+  local temp_file
+  temp_file=$(mktemp)
+
+  # Function to check for the first video packet
+  check_for_video_packet() {
+    if grep -q "Received first video packet" "$temp_file"; then
+      return 0
+    fi
+    return 1
+  }
+
+  # Start Moonlight in the background
+  if [ "$LOG_LEVEL" == 5 ]; then
+    eval "$moonlight_cmd 2>&1 | tee $temp_file | tee -a $log_file &"
+  else
+    eval "$moonlight_cmd > $temp_file 2>&1 &"
+  fi
+  local pid=$!
+
+  log info "Waiting for first video packet..." pid $pid
+
+  gum spin --spinner points --title "Connecting to ($host)..." -- bash -c "while true; do if check_for_video_packet; then exit 0; fi; if ! kill -0 $pid 2>/dev/null; then exit 1; fi; sleep 0.1; done" &
+  local spin_pid=$!
+
+  # Wait for either the first video packet or the Moonlight process to exit
+  while true; do
+    if check_for_video_packet; then
+      kill $spin_pid 2>/dev/null
+      wait $spin_pid 2>/dev/null
+      break
+    fi
+    if ! kill -0 $pid 2>/dev/null; then
+      kill $spin_pid 2>/dev/null
+      wait $spin_pid 2>/dev/null
+      log error "Moonlight process exited before receiving first video packet"
+      if [ "$LOG_LEVEL" = 5 ]; then
+        tee -a $log_file <"$temp_file"
+      else
+        cat "$temp_file" >>$log_file
+      fi
+      rm "$temp_file"
+      return 1
+    fi
+    sleep 0.1
+  done
+
+  log info "First video packet received."
+  if [ "$LOG_LEVEL" = 5 ]; then
+    echo "First video packet received." | tee -a $log_file
+  fi
+
+  if [ "$detach" = true ]; then
+    log info "Detaching..."
+
+    if [ "$LOG_LEVEL" = 5 ]; then
+      echo "Detaching..." | tee -a $log_file
+    fi
+
+    rm "$temp_file"
+    disown $pid
+    return 0
+  else
+    # For non-detached mode, continue to show output
+    log info "Continuing in attached mode. Press Ctrl+C to exit."
+
+    if [ "$LOG_LEVEL" = 5 ]; then
+      # Show remaining output in real-time
+      tail -f -n +1 "$temp_file" | tee -a $log_file &
+    else
+      # Show remaining output only in log file
+      tail -f -n +1 "$temp_file" >>$log_file &
+    fi
+    wait $pid
+    local exit_status=$?
+    rm "$temp_file"
+    return $exit_status
+  fi
+}
+
+display_streaming_settings() {
+  local resolution="$1"
+  local fps="$2"
+  local bitrate_kbps="$3"
+  local latency="$4"
+  local host="$5"
+  local app="$6"
+
+  # Convert Kbps to rounded Mbps
+  local bitrate_mbps=$(((bitrate_kbps + 500) / 1000))
+
+  # Round latency to the nearest integer
+  local rounded_latency
+  rounded_latency=$(printf "%.0f" "$latency")
+
+  gum style \
+    --border normal \
+    --border-foreground 212 \
+    --padding "0 2 1 0" \
+    --margin 1 \
+    -- \
+    "$(gum format -- "
+# Streaming Settings
+- Host: $host
+- App: $app
+- Resolution: $resolution
+- FPS: $fps
+- Bitrate: ${bitrate_mbps} Mbps 
+- Latency: ${rounded_latency}ms
+    ")"
+}
+
+compare_resolutions() {
+  local res1="$1"
+  local res2="$2"
+
+  local width1 height1 width2 height2
+  width1=$(echo "$res1" | cut -d'x' -f1)
+  height1=$(echo "$res1" | cut -d'x' -f2)
+  width2=$(echo "$res2" | cut -d'x' -f1)
+  height2=$(echo "$res2" | cut -d'x' -f2)
+
+  if ((width1 * height1 <= width2 * height2)); then
+    echo "$res1"
+  else
+    echo "$res2"
+  fi
+}
+
+set_max_resolution() {
+  local max_resolution_set=$1
+  local resolution_set=$2
+  local shorthand_res_set=$3
+  local current_max_resolution=$4
+  local system_resolution
+
+  system_resolution=$(get_display_resolution)
+  debug "System resolution: $system_resolution"
+
+  if [[ "$max_resolution_set" != "true" && "$resolution_set" != "true" && "$shorthand_res_set" != "true" ]]; then
+    debug "No resolution specified. Using system resolution: $system_resolution"
+    echo "$system_resolution"
+  else
+    local lower_resolution
+    lower_resolution=$(compare_resolutions "$current_max_resolution" "$system_resolution")
+
+    if [[ "$lower_resolution" != "$current_max_resolution" ]]; then
+      warn "Requested resolution ($current_max_resolution) is higher than system resolution ($system_resolution). Using system resolution."
+    fi
+
+    debug "Using resolution: $lower_resolution"
+    echo "$lower_resolution"
+  fi
+}
+
+compare_fps() {
+  local fps1="$1"
+  local fps2="$2"
+
+  if ((fps1 <= fps2)); then
+    echo "$fps1"
+  else
+    echo "$fps2"
+  fi
+}
+
+set_max_fps() {
+  local max_fps_set=$1
+  local current_max_fps=$2
+  local display_fps
+
+  display_fps="$(get_display_refresh_rate)"
+  debug "System refresh rate: $display_fps"
+
+  if [[ "$max_fps_set" != "true" ]]; then
+    debug "No max FPS specified. Using display refresh rate: $display_fps"
+    echo "$display_fps"
+  else
+    local lower_fps
+    lower_fps=$(compare_fps "$current_max_fps" "$display_fps")
+
+    if [[ "$lower_fps" != "$current_max_fps" ]]; then
+      warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
+    fi
+
+    debug "Using FPS: $lower_fps"
+    echo "$lower_fps"
+  fi
+}
+
+compare_bitrate() {
+  local bitrate1="$1"
+  local bitrate2="$2"
+
+  if ((bitrate1 <= bitrate2)); then
+    echo "$bitrate1"
+  else
+    echo "$bitrate2"
+  fi
+}
+
+calculate_bitrate() {
+  local available_bitrate=$1
+  local max_resolution=$2
+  local max_fps=$3
+
+  local measured_bitrate
+  local estimated_bitrate
+  local calculated_bitrate
+
+  if ! measured_bitrate=$(measure_network_speed_to_host "$host" 31347); then
+    warn "Failed to measure network speed. Using estimated bitrate."
+    measured_bitrate=0
+  else
+    debug "Measured network speed: $measured_bitrate Kbps"
+  fi
+
+  estimated_bitrate=$(estimate_required_bitrate "$max_resolution" "$max_fps")
+  debug "Estimated required bitrate: $estimated_bitrate Kbps"
+
+  if [[ "$measured_bitrate" -eq 0 || "$estimated_bitrate" -lt "$measured_bitrate" ]]; then
+    calculated_bitrate=$estimated_bitrate
+  else
+    calculated_bitrate=$measured_bitrate
+  fi
+
+  debug "Calculated bitrate: $calculated_bitrate Kbps"
+
+  if [[ "$available_bitrate" -eq 0 ]]; then
+    echo "$calculated_bitrate"
+  else
+    local lower_bitrate
+    lower_bitrate=$(compare_bitrate "$available_bitrate" "$calculated_bitrate")
+
+    if [[ "$lower_bitrate" != "$available_bitrate" ]]; then
+      warn "Requested bitrate ($available_bitrate Kbps) is higher than calculated/measured bitrate ($calculated_bitrate Kbps). Using the lower value."
+    fi
+
+    debug "Using bitrate: $lower_bitrate Kbps"
+    echo "$lower_bitrate"
+  fi
+}
+
+determine_latency() {
+  local current_latency=$1
+  local max_latency=$2
+  local interactive=$3
+
+  if (($(echo "$current_latency == 0" | bc -l))); then
+    if measured_latency=$(measure_latency); then
+      debug "Measured latency: $measured_latency ms"
+      current_latency=$measured_latency
+    else
+      local default_latency=1
+      warn "Failed to measure latency. Using default value: $default_latency ms"
+      current_latency=$default_latency
+    fi
+  else
+    info "Using provided latency: $current_latency ms"
+  fi
+
+  if (($(echo "$max_latency > 0" | bc -l))) && (($(echo "$current_latency > $max_latency" | bc -l))); then
+    if [ "$interactive" = true ]; then
+      warn "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms)."
+      if ! gum confirm "Do you want to continue with the higher latency?"; then
+        return 1
+      fi
+    else
+      error "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms). Aborting."
+      return 1
+    fi
+  fi
+
+  echo "$current_latency"
+  return 0
+}
+
+set_streaming_parameters() {
+  local max_resolution_set=$1
+  local resolution_set=$2
+  local shorthand_res_set=$3
+  local max_resolution=$4
+  local max_fps_set=$5
+  local max_fps=$6
+  local available_bitrate=$7
+  local latency=$8
+  local max_latency=$9
+  local interactive=${10}
+
+  # Input validation
+  if ! [[ "$max_resolution" =~ ^[0-9]+x[0-9]+$ ]] && [[ "$max_resolution_set" == "true" || "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
+    echo "ERROR: Invalid resolution format. Expected WxH (e.g., 1920x1080)." >&2
+    return 1
+  fi
+
+  if ! [[ "$max_fps" =~ ^[0-9]+$ ]] && [[ "$max_fps_set" == "true" ]]; then
+    echo "ERROR: Invalid FPS. Expected a positive integer." >&2
+    return 1
+  fi
+
+  if ! [[ "$available_bitrate" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: Invalid bitrate. Expected a positive integer." >&2
+    return 1
+  fi
+
+  if ! [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    echo "ERROR: Invalid latency. Expected a positive number." >&2
+    return 1
+  fi
+
+  if ! [[ "$max_latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    echo "ERROR: Invalid max latency. Expected a positive number." >&2
+    return 1
+  fi
+
+  local new_max_resolution
+  local new_max_fps
+  local new_available_bitrate
+  local new_latency
+
+  new_max_resolution=$(
+    set_max_resolution \
+      "$max_resolution_set" \
+      "$resolution_set" \
+      "$shorthand_res_set" \
+      "$max_resolution"
+  )
+  new_max_fps=$(set_max_fps "$max_fps_set" "$max_fps")
+  new_available_bitrate=$(
+    calculate_bitrate \
+      "$available_bitrate" \
+      "$new_max_resolution" \
+      "$new_max_fps"
+  )
+
+  if ! new_latency=$(determine_latency "$latency" "$max_latency" "$interactive"); then
+    if [ "$interactive" = true ]; then
+      echo "ERROR: Stream cancelled due to high latency." >&2
+    fi
+    return 1
+  fi
+
+  echo "$new_max_resolution" "$new_max_fps" "$new_available_bitrate" "$new_latency"
+  return 0
+}
+
+main() {
+  parse_args "$@"
+
+  local streaming_params
+  if ! streaming_params=$(
+    set_streaming_parameters \
+      "$max_resolution_set" \
+      "$resolution_set" \
+      "$shorthand_res_set" \
+      "$max_resolution" \
+      "$max_fps_set" \
+      "$max_fps" \
+      "$available_bitrate" \
+      "$latency" \
+      "$max_latency" \
+      "$interactive"
+  ); then
+    exit 1
+  fi
+  read -r max_resolution max_fps available_bitrate latency <<<"$streaming_params"
+
+  debug "Calculating best settings..."
+  if ! result=$(
+    optimize_streaming_settings \
+      "$min_fps" \
+      "$max_fps" \
+      "$min_resolution" \
+      "$max_resolution" \
+      "$available_bitrate" \
+      "$latency" \
+      "$prioritize" \
+      "$scaling_steps"
+  ); then
+    error "$result"
+    exit 1
+  fi
+  read -r best_resolution best_fps best_bitrate <<<"$result"
+
+  display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$latency" "$host" "$app"
+
+  if [ "$interactive" = true ] && [ "$dry_run" = false ]; then
+    if ! gum confirm "Do you want to start the stream with these settings?"; then
+      debug "Stream cancelled by user."
+      exit 0
+    fi
+  fi
+
+  start_moonlight_stream "$host" "$app" "$best_resolution" "$best_fps" "$best_bitrate" "$dry_run"
+}
+
+# Only run the main function if the script is being executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
