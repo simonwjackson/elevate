@@ -110,8 +110,6 @@ This script checks if you're on a specific Wi-Fi network (like at home). If you 
 
 2. Optimize for travel or home use automatically: 
 
-This works surprisingly well on the GPD Win Mini
-
 ```bash
 > nix shell \
   nixpkgs#wirelesstools \
