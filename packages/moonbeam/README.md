@@ -2,7 +2,7 @@
 
 Moonlight optimization for Linux nomads.
 
-Moonbeam auto configures Moonlight for any portable Linux device. It optimizes your stream whether you're gaming on a handheld PC, working from a café, or relaxing in a hotel room.
+Moonbeam auto configures [Moonlight](https://moonlight-stream.org) for any portable Linux device. It optimizes your stream whether you're gaming on a handheld PC, working from a café, or relaxing in a hotel room.
 
 ## Features
 
@@ -136,14 +136,14 @@ This script checks if you're on a specific Wi-Fi network (like at home). If you 
 
 ## Tips
 
-- Moonlight remembers your last settings. You can just use `moonbeam stream MyHost "My Game"` to use the same settings as before.
+- [Moonlight](https://moonlight-stream.org) remembers your last settings. You can just use `moonbeam stream MyHost "My Game"` to use the same settings as before.
 - If you're not sure what settings to use, just run the basic command. Moonbeam will try to choose the best settings for you.
 - Use `--priority fps` if you prefer smooth motion over sharp images, or `--priority resolution` if you prefer sharper images over smoother motion.
 - When you set a range (like min and max resolution or FPS), Moonbeam doesn't just choose between the two extremes. It tries many options in between to find the best balance for your current network conditions.
 
 ## Prerequisites
 
-Moonbeam (and Moonlight) assume you have [Sunshine](https://app.lizardbyte.dev/Sunshine/) preinstalled, preconfigured, and paired.
+Moonbeam assumes that you have [Sunshine](https://app.lizardbyte.dev/Sunshine/) preinstalled & preconfigured on your gaming host and paired with [Moonlight](https://moonlight-stream.org).
 
 > [!NOTE]
 > For more information, visit [Sunshine's official website](https://app.lizardbyte.dev/Sunshine/).
@@ -243,7 +243,7 @@ To run Moonbeam, use the following command structure:
 - `--detach`: Detach the stream and run in the background
 - `-h, --help`: Show the help message
 
-All other options provided will be passed through to `Moonlight`.
+All other options provided will be passed through to [Moonlight](https://moonlight-stream.org).
 
 ## Development
 
@@ -263,7 +263,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 Moonbeam wouldn't be possible without the following projects:
 
 - **LizardByte** for Sunshine: https://github.com/LizardByte/Sunshine
-- **cgutman** for Moonlight: https://github.com/moonlight-stream/moonlight-qt
+- **cgutman** for Moonlight-qt: https://github.com/moonlight-stream/moonlight-qt
 
 We're grateful for their contributions to the game streaming ecosystem.
 
