@@ -203,14 +203,14 @@ failed_measure_latency() {
 
 # === Latency Handling ===
 
-@test "get_host_latency: no current latency" {
-  run get_host_latency 0 0 false
+@test "check_host_latency: no current latency" {
+  run check_host_latency 0 0 false
   assert_success
   assert_output 1
 }
 
-@test "get_host_latency: measured latency higher than max" {
-  run get_host_latency 20 10 false
+@test "check_host_latency: measured latency higher than max" {
+  run check_host_latency 20 10 false
   assert_failure
 
   assert_output --partial "Measured latency"
@@ -220,7 +220,7 @@ failed_measure_latency() {
 
 # === Streaming Parameter Setting ===
 
-@test "determine_effective_stream_parameters: default parameters" {
+@test "limit_max_display_values: default parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -229,12 +229,12 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run determine_effective_stream_parameters false false false "1920x1080" false 60 0 0 0 false
+  run limit_max_display_values false false false "1920x1080" false 60 0 0 0 false
   assert_success
   assert_output --partial "1920x1080 60"
 }
 
-@test "determine_effective_stream_parameters: custom parameters" {
+@test "limit_max_display_values: custom parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -243,12 +243,12 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run determine_effective_stream_parameters true true false "1280x720" true 30 5000 20 30 true
+  run limit_max_display_values true true false "1280x720" true 30 5000 20 30 true
   assert_success
   assert_output --partial "1280x720 30"
 }
 
-@test "determine_effective_stream_parameters: invalid parameters" {
+@test "limit_max_display_values: invalid parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -257,7 +257,7 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run determine_effective_stream_parameters true true false "invalid" true "invalid" "invalid" "invalid" "invalid" true
+  run limit_max_display_values true true false "invalid" true "invalid" "invalid" "invalid" "invalid" true
   skip
   assert_failure
   assert_output --partial "ERROR: Invalid resolution format. Expected WxH (e.g., 1920x1080)."

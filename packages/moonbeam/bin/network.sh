@@ -1,3 +1,71 @@
+check_host_latency() {
+  local current_latency=$1
+  local max_latency=$2
+
+  if (($(echo "$current_latency == 0" | bc -l))); then
+    if measured_latency=$(measure_latency); then
+      debug "Measured latency: $measured_latency ms"
+      current_latency=$measured_latency
+    else
+      local default_latency=1
+      warn "Failed to measure latency. Using default value: $default_latency ms"
+      current_latency=$default_latency
+    fi
+  else
+    info "Using provided latency: $current_latency ms"
+  fi
+
+  if (($(echo "$max_latency > 0" | bc -l))) && (($(echo "$current_latency > $max_latency" | bc -l))); then
+    error "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms). Aborting."
+    return 1
+  fi
+
+  echo "$current_latency"
+  return 0
+}
+
+get_optimal_bitrate() {
+  local available_bitrate=$1
+  local max_resolution=$2
+  local max_fps=$3
+
+  local measured_bitrate
+  local estimated_bitrate
+  local calculated_bitrate
+
+  if ! measured_bitrate=$(measure_network_speed_to_host "$host" 31347); then
+    warn "Failed to measure network speed. Using estimated bitrate."
+    measured_bitrate=0
+  else
+    debug "Measured network speed: $measured_bitrate Kbps"
+  fi
+
+  estimated_bitrate=$(estimate_required_bitrate "$max_resolution" "$max_fps")
+  debug "Estimated required bitrate: $estimated_bitrate Kbps"
+
+  if [[ "$measured_bitrate" -eq 0 || "$estimated_bitrate" -lt "$measured_bitrate" ]]; then
+    calculated_bitrate=$estimated_bitrate
+  else
+    calculated_bitrate=$measured_bitrate
+  fi
+
+  debug "Calculated bitrate: $calculated_bitrate Kbps"
+
+  if [[ "$available_bitrate" -eq 0 ]]; then
+    echo "$calculated_bitrate"
+  else
+    local lower_bitrate
+    lower_bitrate=$(get_lowest_value "$available_bitrate" "$calculated_bitrate")
+
+    if [[ "$lower_bitrate" != "$available_bitrate" ]]; then
+      warn "Requested bitrate ($available_bitrate Kbps) is higher than calculated/measured bitrate ($calculated_bitrate Kbps). Using the lower value."
+    fi
+
+    debug "Using bitrate: $lower_bitrate Kbps"
+    echo "$lower_bitrate"
+  fi
+}
+
 measure_network_speed_to_host() {
   local host=$1
   local port=$2

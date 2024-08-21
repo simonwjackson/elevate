@@ -1,5 +1,133 @@
 #!/usr/bin/env bash
 
+limit_max_display_values() {
+  local max_resolution_set=$1
+  local resolution_set=$2
+  local shorthand_res_set=$3
+  local max_resolution=$4
+  local max_fps_set=$5
+  local max_fps=$6
+
+  local new_max_resolution
+  local new_max_fps
+
+  new_max_resolution=$(
+    get_effective_max_resolution \
+      "$max_resolution_set" \
+      "$resolution_set" \
+      "$shorthand_res_set" \
+      "$max_resolution"
+  )
+  new_max_fps=$(get_effective_max_fps "$max_fps_set" "$max_fps")
+
+  echo "$new_max_resolution" "$new_max_fps"
+}
+
+get_lowest_resolution() {
+  local res1="$1"
+  local res2="$2"
+
+  local area1 area2
+  area1=$(calculate_resolution_area_calculate_resolution_area "$res1")
+  area2=$(calculate_resolution_area_calculate_resolution_area "$res2")
+
+  local min_area
+  min_area=$(get_lowest_value "$area1" "$area2")
+
+  if ((min_area == area1)); then
+    echo "$res1"
+  else
+    echo "$res2"
+  fi
+}
+
+get_effective_max_fps() {
+  local max_fps_set=$1
+  local current_max_fps=$2
+  local display_fps
+
+  display_fps="$(get_display_refresh_rate)"
+  debug "System refresh rate: $display_fps"
+
+  if [[ "$max_fps_set" != "true" ]]; then
+    debug "No max FPS specified. Using display refresh rate: $display_fps"
+    echo "$display_fps"
+  else
+    local lower_fps
+    lower_fps=$(get_lowest_value "$current_max_fps" "$display_fps")
+
+    if [[ "$lower_fps" != "$current_max_fps" ]]; then
+      warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
+    fi
+
+    debug "Using FPS: $lower_fps"
+    echo "$lower_fps"
+  fi
+}
+
+get_lowest_value() {
+  local x="$1"
+  local y="$2"
+
+  if ((x <= y)); then
+    echo "$x"
+  else
+    echo "$y"
+  fi
+}
+
+convert_shorthand_resolution() {
+  local shorthand=$1
+  shorthand=${shorthand%p}
+
+  case $shorthand in
+  360) echo "640x360" ;;
+  480) echo "854x480" ;;
+  540) echo "960x540" ;;
+  900) echo "1600x900" ;;
+  720) echo "1280x720" ;;
+  1080) echo "1920x1080" ;;
+  1440) echo "2560x1440" ;;
+  2K) echo "2048x1080" ;;
+  4K | 2160) echo "3840x2160" ;;
+  *) echo "$shorthand" ;; # Return as-is if not a shorthand
+  esac
+}
+
+get_effective_max_resolution() {
+  local max_resolution_set=$1
+  local resolution_set=$2
+  local shorthand_res_set=$3
+  local current_max_resolution=$4
+  local system_resolution
+
+  system_resolution=$(get_display_resolution)
+  debug "System resolution: $system_resolution"
+
+  if [[ "$max_resolution_set" != "true" && "$resolution_set" != "true" && "$shorthand_res_set" != "true" ]]; then
+    debug "No resolution specified. Using system resolution: $system_resolution"
+    echo "$system_resolution"
+  else
+    local lower_resolution
+    lower_resolution=$(get_lowest_resolution "$current_max_resolution" "$system_resolution")
+
+    if [[ "$lower_resolution" != "$current_max_resolution" ]]; then
+      warn "Requested resolution ($current_max_resolution) is higher than system resolution ($system_resolution). Using system resolution."
+    fi
+
+    debug "Using resolution: $lower_resolution"
+    echo "$lower_resolution"
+  fi
+}
+
+calculate_resolution_area_calculate_resolution_area() {
+  local resolution="$1"
+  local width height
+  width=$(echo "$resolution" | cut -d'x' -f1)
+  height=$(echo "$resolution" | cut -d'x' -f2)
+  echo $((width * height))
+}
+
 get_display_resolution_kde() {
   display=$(kscreen-doctor -o | awk '
     /Output:/ {
