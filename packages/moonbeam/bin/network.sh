@@ -1,9 +1,10 @@
 check_host_latency() {
   local current_latency=$1
   local max_latency=$2
+  local host=$3
 
   if (($(echo "$current_latency == 0" | bc -l))); then
-    if measured_latency=$(measure_latency); then
+    if measured_latency=$(measure_latency "$host"); then
       debug "Measured latency: $measured_latency ms"
       current_latency=$measured_latency
     else
@@ -28,6 +29,7 @@ get_optimal_bitrate() {
   local available_bitrate=$1
   local max_resolution=$2
   local max_fps=$3
+  local host=$4
 
   local measured_bitrate
   local estimated_bitrate
@@ -115,6 +117,7 @@ measure_network_speed_to_host() {
 }
 
 measure_latency() {
+  local host=$1
   local ping_result
 
   info "Measuring ping..."

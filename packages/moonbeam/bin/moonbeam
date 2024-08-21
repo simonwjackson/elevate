@@ -112,48 +112,50 @@ Note:
   - Latency will be automatically detected
 "
 
-# Default values
-max_resolution="1920x1080"
-min_resolution="256x256"
-max_fps=0
-min_fps=24
-available_bitrate=0
-prioritize="fps"
-latency=0
-max_latency=0
-scaling_steps=128
-host=""
-app=""
-log_file="/tmp/moonbeam.log"
-extra_moonlight_options=""
-dry_run="${DRY_RUN:=false}"
-reconnect=false
-max_resolution_set=false
-min_resolution_set=false
-resolution_set=false
-shorthand_res_set=false
-max_fps_set=false
-min_fps_set=false
+declare -A settings
+settings=(
+  [max_resolution]="1920x1080"
+  [min_resolution]="256x256"
+  [max_fps]=0
+  [min_fps]=24
+  [available_bitrate]=0
+  [prioritize]="fps"
+  [latency]=0
+  [max_latency]=0
+  [scaling_steps]=128
+  [host]=""
+  [app]=""
+  [log_file]="/tmp/moonbeam.log"
+  [extra_moonlight_options]=""
+  [dry_run]="${DRY_RUN:=false}"
+  [reconnect]=false
+  [max_resolution_set]=false
+  [min_resolution_set]=false
+  [resolution_set]=false
+  [shorthand_res_set]=false
+  [max_fps_set]=false
+  [min_fps_set]=false
+)
 
 export LOG_LEVEL=2
 
 validate_user_input() {
   # Validate max_latency
-  if [[ -n "$max_latency" && ! "$max_latency" =~ ^[0-9]+$ ]]; then
+  if [[ -n "${settings[max_latency]}" && ! "${settings[max_latency]}" =~ ^[0-9]+$ ]]; then
     error "Max latency must be a positive integer"
     return 1
   fi
 
   # Validate bitrate
-  if [[ -n "$available_bitrate" && ! "$available_bitrate" =~ ^[0-9]+$ ]]; then
+  if [[ -n "${settings[available_bitrate]}" && ! "${settings[available_bitrate]}" =~ ^[0-9]+$ ]]; then
     error "Bitrate must be a positive integer"
     return 1
   fi
 
   # Validate resolutions
-  local res_to_check=("$max_resolution" "$min_resolution")
-  if [[ "$resolution_set" == "true" ]]; then
-    res_to_check+=("$resolution")
+  local res_to_check=("${settings[max_resolution]}" "${settings[min_resolution]}")
+  if [[ "${settings[resolution_set]}" == "true" ]]; then
+    res_to_check+=("${settings[resolution]}")
   fi
   for res in "${res_to_check[@]}"; do
     if ! is_valid_resolution "$res"; then
@@ -163,7 +165,7 @@ validate_user_input() {
   done
 
   # Validate FPS
-  local fps_to_check=("$max_fps" "$min_fps")
+  local fps_to_check=("${settings[max_fps]}" "${settings[min_fps]}")
   for fps in "${fps_to_check[@]}"; do
     if [[ -n "$fps" && ! "$fps" =~ ^[0-9]+$ ]]; then
       error "FPS must be a positive integer"
@@ -172,27 +174,27 @@ validate_user_input() {
   done
 
   # Validate priority
-  if [[ "$prioritize" != "resolution" && "$prioritize" != "fps" ]]; then
+  if [[ "${settings[prioritize]}" != "resolution" && "${settings[prioritize]}" != "fps" ]]; then
     error "Priority must be either 'resolution' or 'fps'"
     return 1
   fi
 
   # Validate host and app
-  if [[ -z "$host" || -z "$app" ]]; then
+  if [[ -z "${settings[host]}" || -z "${settings[app]}" ]]; then
     error "Missing required arguments: stream <host> <app>"
     return 1
   fi
 
   # Additional validation from limit_max_display_values
-  if [[ "$max_resolution_set" == "true" || "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
-    if ! [[ "$max_resolution" =~ ^[0-9]+x[0-9]+$ ]]; then
+  if [[ "${settings[max_resolution_set]}" == "true" || "${settings[resolution_set]}" == "true" || "${settings[shorthand_res_set]}" == "true" ]]; then
+    if ! [[ "${settings[max_resolution]}" =~ ^[0-9]+x[0-9]+$ ]]; then
       error "Invalid resolution format. Expected WxH (e.g., 1920x1080)."
       return 1
     fi
   fi
 
-  if [[ "$max_fps_set" == "true" ]]; then
-    if ! [[ "$max_fps" =~ ^[0-9]+$ ]]; then
+  if [[ "${settings[max_fps_set]}" == "true" ]]; then
+    if ! [[ "${settings[max_fps]}" =~ ^[0-9]+$ ]]; then
       error "Invalid FPS. Expected a positive integer."
       return 1
     fi
@@ -223,56 +225,56 @@ parse_args() {
       exit 0
       ;;
     --max-latency)
-      max_latency="$2"
+      settings[max_latency]="$2"
       shift 2
       ;;
     --bitrate)
-      available_bitrate="$2"
+      settings[available_bitrate]="$2"
       shift 2
       ;;
     --max-resolution)
-      max_resolution=$(convert_shorthand_resolution "$2")
-      max_resolution_set=true
+      settings[max_resolution]=$(convert_shorthand_resolution "$2")
+      settings[max_resolution_set]=true
       shift 2
       ;;
     --resolution)
-      resolution=$(convert_shorthand_resolution "$2")
-      max_resolution="$resolution"
-      min_resolution="$resolution"
-      resolution_set=true
+      settings[resolution]=$(convert_shorthand_resolution "$2")
+      settings[max_resolution]="${settings[resolution]}"
+      settings[min_resolution]="${settings[resolution]}"
+      settings[resolution_set]=true
       shift 2
       ;;
     --min-resolution)
-      min_resolution=$(convert_shorthand_resolution "$2")
-      min_resolution_set=true
+      settings[min_resolution]=$(convert_shorthand_resolution "$2")
+      settings[min_resolution_set]=true
       shift 2
       ;;
     --360* | --480* | --540* | --720* | --900* | --1080* | --1440* | --2K | --4K)
       res=$(convert_shorthand_resolution "${1#--}")
-      max_resolution="$res"
-      min_resolution="$res"
-      shorthand_res_set=true
+      settings[max_resolution]="$res"
+      settings[min_resolution]="$res"
+      settings[shorthand_res_set]=true
       shift
       ;;
     --max-fps)
-      max_fps="$2"
-      max_fps_set=true
+      settings[max_fps]="$2"
+      settings[max_fps_set]=true
       shift 2
       ;;
     --fps)
-      max_fps="$2"
-      min_fps="$2"
-      max_fps_set=true
-      min_fps_set=true
+      settings[max_fps]="$2"
+      settings[min_fps]="$2"
+      settings[max_fps_set]=true
+      settings[min_fps_set]=true
       shift 2
       ;;
     --min-fps)
-      min_fps="$2"
-      min_fps_set=true
+      settings[min_fps]="$2"
+      settings[min_fps_set]=true
       shift 2
       ;;
     -p | --priority)
-      prioritize="$2"
+      settings[prioritize]="$2"
       shift 2
       ;;
     --log-level)
@@ -280,21 +282,21 @@ parse_args() {
       shift 2
       ;;
     --dry-run)
-      dry_run=true
+      settings[dry_run]=true
       shift
       ;;
     --reconnect)
-      reconnect=true
+      settings[reconnect]=true
       shift
       ;;
     stream)
-      host="$2"
-      app="$3"
+      settings[host]="$2"
+      settings[app]="$3"
       shift 3
       ;;
     *)
       # If it's not a recognized option, assume it's a Moonlight option and pass it through
-      extra_moonlight_options+=" $1"
+      settings[extra_moonlight_options]+=" $1"
       shift
       ;;
     esac
@@ -339,44 +341,28 @@ display_streaming_settings() {
 }
 
 main() {
+  local -n config="$1"
+  parse_args "${@:2}"
+
   local streaming_params
-
-  parse_args "$@"
-
   if ! streaming_params=$(
     limit_max_display_values \
-      "$max_resolution_set" \
-      "$resolution_set" \
-      "$shorthand_res_set" \
-      "$max_resolution" \
-      "$max_fps_set" \
-      "$max_fps"
+      "${config[max_resolution_set]}" \
+      "${config[resolution_set]}" \
+      "${config[shorthand_res_set]}" \
+      "${config[max_resolution]}" \
+      "${config[max_fps_set]}" \
+      "${config[max_fps]}"
   ); then
     exit 1
   fi
-  read -r max_resolution max_fps <<<"$streaming_params"
+  read -r config["max_resolution"] config["max_fps"] <<<"$streaming_params"
 
-  declare -A scrubbed_moonbeam_config
-  scrubbed_moonbeam_config=(
-    [available_bitrate]="$available_bitrate"
-    [max_resolution]="$max_resolution"
-    [max_fps]="$max_fps"
-    [min_fps]="$min_fps"
-    [min_resolution]="$min_resolution"
-    [latency]="$latency"
-    [max_latency]="$max_latency"
-    [prioritize]="$prioritize"
-    [scaling_steps]="$scaling_steps"
-    [host]="$host"
-    [app]="$app"
-    [reconnect]="$reconnect"
-    [extra_moonlight_options]="$extra_moonlight_options"
-  )
-
-  run_moonlight_session scrubbed_moonbeam_config
+  # Pass the settings array by name to run_moonlight_session
+  run_moonlight_session config
 }
 
 # Only run the main function if the script is being executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+  main settings "$@"
 fi

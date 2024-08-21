@@ -113,19 +113,20 @@ moonlight_session() {
 }
 
 run_moonlight_session() {
-  local -n config=$1
+  local -n local_config=$1
 
   log info "Starting Moonlight stream (Log Level: $LOG_LEVEL)"
 
   while true; do
     new_available_bitrate=$(
       get_optimal_bitrate \
-        "${config[available_bitrate]}" \
-        "${config[max_resolution]}" \
-        "${config[max_fps]}"
+        "${local_config[available_bitrate]}" \
+        "${local_config[max_resolution]}" \
+        "${local_config[max_fps]}" \
+        "${local_config[host]}"
     )
 
-    if ! new_latency=$(check_host_latency "${config[latency]}" "${config[max_latency]}"); then
+    if ! new_latency=$(check_host_latency "${local_config[latency]}" "${local_config[max_latency]}" "${local_config[host]}"); then
       error "Stream cancelled due to high latency."
       return 1
     fi
@@ -133,31 +134,31 @@ run_moonlight_session() {
     debug "Calculating best settings..."
     if ! result=$(
       optimize_streaming_settings \
-        "${config[min_fps]}" \
-        "${config[max_fps]}" \
-        "${config[min_resolution]}" \
-        "${config[max_resolution]}" \
+        "${local_config[min_fps]}" \
+        "${local_config[max_fps]}" \
+        "${local_config[min_resolution]}" \
+        "${local_config[max_resolution]}" \
         "$new_available_bitrate" \
         "$new_latency" \
-        "${config[prioritize]}" \
-        "${config[scaling_steps]}"
+        "${local_config[prioritize]}" \
+        "${local_config[scaling_steps]}"
     ); then
       error "$result"
       return 1
     fi
     read -r best_resolution best_fps best_bitrate <<<"$result"
 
-    display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$new_latency" "${config[host]}" "${config[app]}"
-    moonlight_cmd=$(build_moonlight_cmd "$best_resolution" "$best_fps" "$best_bitrate" "${config[host]}" "${config[app]}" "${config[extra_moonlight_options]}")
+    display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$new_latency" "${local_config[host]}" "${local_config[app]}"
+    moonlight_cmd=$(build_moonlight_cmd "$best_resolution" "$best_fps" "$best_bitrate" "${local_config[host]}" "${local_config[app]}" "${local_config[extra_moonlight_options]}")
 
     debug "Command: $moonlight_cmd"
 
-    if moonlight_session "$moonlight_cmd" "${config[reconnect]}"; then
+    if moonlight_session "$moonlight_cmd" "${local_config[reconnect]}"; then
       log info "Exiting."
       break
     fi
 
-    if [ "${config[reconnect]}" = true ]; then
+    if [ "${local_config[reconnect]}" = true ]; then
       log info "Reopening Moonlight stream. Press Ctrl+C to exit."
     else
       log info "Moonlight stream closed. Exiting."
