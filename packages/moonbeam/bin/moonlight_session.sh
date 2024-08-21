@@ -52,6 +52,17 @@ log_moonlight_output() {
   fi
 }
 
+build_moonlight_cmd() {
+  local resolution=$1
+  local fps=$2
+  local bitrate=$3
+  local host=$4
+  local app=$5
+  local extra=$6
+
+  echo "moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra stream $host $app"
+}
+
 check_for_disconnect() {
   local line="$1"
 

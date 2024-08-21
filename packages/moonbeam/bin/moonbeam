@@ -200,28 +200,28 @@ validate_inputs() {
   return 0
 }
 
+convert_shorthand_resolution() {
+  local shorthand=$1
+  shorthand=${shorthand%p}
+
+  case $shorthand in
+  360) echo "640x360" ;;
+  480) echo "854x480" ;;
+  540) echo "960x540" ;;
+  900) echo "1600x900" ;;
+  720) echo "1280x720" ;;
+  1080) echo "1920x1080" ;;
+  1440) echo "2560x1440" ;;
+  2K) echo "2048x1080" ;;
+  4K | 2160) echo "3840x2160" ;;
+  *) echo "$shorthand" ;; # Return as-is if not a shorthand
+  esac
+}
+
 parse_args() {
   handle_non_stream_command() {
     local moonlight_cmd="moonlight $*"
     eval "$moonlight_cmd"
-  }
-
-  convert_shorthand_resolution() {
-    local shorthand=$1
-    shorthand=${shorthand%p}
-
-    case $shorthand in
-    360) echo "640x360" ;;
-    480) echo "854x480" ;;
-    540) echo "960x540" ;;
-    900) echo "1600x900" ;;
-    720) echo "1280x720" ;;
-    1080) echo "1920x1080" ;;
-    1440) echo "2560x1440" ;;
-    2K) echo "2048x1080" ;;
-    4K | 2160) echo "3840x2160" ;;
-    *) echo "$shorthand" ;; # Return as-is if not a shorthand
-    esac
   }
 
   if [[ ! " $* " =~ " stream " ]]; then
@@ -486,7 +486,7 @@ calculate_bitrate() {
   fi
 }
 
-determine_latency() {
+get_host_latency() {
   local current_latency=$1
   local max_latency=$2
 
@@ -535,16 +535,6 @@ get_streaming_parameters() {
   echo "$new_max_resolution" "$new_max_fps"
 }
 
-build_moonlight_cmd() {
-  local resolution=$1
-  local fps=$2
-  local bitrate=$3
-  local host=$4
-  local app=$5
-
-  echo "moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra_moonlight_options stream $host $app"
-}
-
 manage_moonlight_session() {
   local available_bitrate=$1
   local max_resolution=$2
@@ -570,7 +560,7 @@ manage_moonlight_session() {
         "$max_fps"
     )
 
-    if ! new_latency=$(determine_latency "$latency" "$max_latency"); then
+    if ! new_latency=$(get_host_latency "$latency" "$max_latency"); then
       error "Stream cancelled due to high latency."
       return 1
     fi
