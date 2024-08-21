@@ -379,7 +379,7 @@ determine_bitrate() {
     bitrate="$BITRATE"
     log debug "Using provided bitrate" bitrate "${bitrate}Kbps"
   else
-    bitrate=$(calculate_bitrate "$resolution" "$speed")
+    bitrate=$(get_optimal_bitrate "$resolution" "$speed")
     log debug "Determined bitrate based on resolution and speed" bitrate "${bitrate}Kbps" resolution "$resolution" speed "$speed"
 
     if [ -n "$MAX_BITRATE" ] && ((bitrate > MAX_BITRATE)); then
@@ -391,7 +391,7 @@ determine_bitrate() {
   echo "$bitrate"
 }
 
-calculate_bitrate() {
+get_optimal_bitrate() {
   local resolution="$1"
   local speed="$2"
   local bitrate

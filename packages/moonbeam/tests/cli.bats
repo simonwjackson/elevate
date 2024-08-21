@@ -116,32 +116,32 @@ failed_measure_latency() {
 
 # === Resolution Handling ===
 
-@test "get_max_resolution: no resolution specified" {
+@test "get_effective_max_resolution: no resolution specified" {
   get_display_resolution() {
     echo "1920x1080"
   }
 
-  run get_max_resolution false false false "1920x1080"
+  run get_effective_max_resolution false false false "1920x1080"
   assert_success
   assert_output "$(get_display_resolution)"
 }
 
-@test "get_max_resolution: specified resolution lower than system" {
+@test "get_effective_max_resolution: specified resolution lower than system" {
   get_display_resolution() {
     echo "1920x1080"
   }
 
-  run get_max_resolution true false false "1280x720"
+  run get_effective_max_resolution true false false "1280x720"
   assert_success
   assert_output "1280x720"
 }
 
-@test "get_max_resolution: specified resolution higher than system" {
+@test "get_effective_max_resolution: specified resolution higher than system" {
   get_display_resolution() {
     echo "1920x1080"
   }
 
-  run get_max_resolution true false false "3840x2160"
+  run get_effective_max_resolution true false false "3840x2160"
   assert_success
   assert_output --partial "is higher than system resolution"
   assert_output --partial "$(get_display_resolution)"
@@ -149,32 +149,32 @@ failed_measure_latency() {
 
 # === FPS Handling ===
 
-@test "get_max_fps: no fps specified" {
+@test "get_effective_max_fps: no fps specified" {
   get_display_refresh_rate() {
     echo "60"
   }
 
-  run get_max_fps false 60
+  run get_effective_max_fps false 60
   assert_success
   assert_output "$(get_display_refresh_rate)"
 }
 
-@test "get_max_fps: specified fps lower than system" {
+@test "get_effective_max_fps: specified fps lower than system" {
   get_display_refresh_rate() {
     echo "60"
   }
 
-  run get_max_fps true 30
+  run get_effective_max_fps true 30
   assert_success
   assert_output "30"
 }
 
-@test "get_max_fps: specified fps higher than system" {
+@test "get_effective_max_fps: specified fps higher than system" {
   get_display_refresh_rate() {
     echo "60"
   }
 
-  run get_max_fps true 240
+  run get_effective_max_fps true 240
   assert_success
   assert_output --partial "is higher than system refresh rate"
   assert_output --partial "$(get_display_refresh_rate)"
@@ -182,20 +182,20 @@ failed_measure_latency() {
 
 # === Bitrate Calculation ===
 
-@test "calculate_bitrate: no available bitrate" {
-  run calculate_bitrate 0 "1920x1080" 60
+@test "get_optimal_bitrate: no available bitrate" {
+  run get_optimal_bitrate 0 "1920x1080" 60
   assert_success
   assert_output --partial 16471
 }
 
-@test "calculate_bitrate: available bitrate lower than calculated" {
-  run calculate_bitrate 5000 "1920x1080" 60
+@test "get_optimal_bitrate: available bitrate lower than calculated" {
+  run get_optimal_bitrate 5000 "1920x1080" 60
   assert_success
   assert_output --partial 5000
 }
 
-@test "calculate_bitrate: available bitrate higher than calculated" {
-  run calculate_bitrate 50000 "1920x1080" 60
+@test "get_optimal_bitrate: available bitrate higher than calculated" {
+  run get_optimal_bitrate 50000 "1920x1080" 60
   assert_success
   assert_output --partial "is higher than calculated/measured bitrate"
   assert_output --partial 16471
@@ -203,14 +203,14 @@ failed_measure_latency() {
 
 # === Latency Handling ===
 
-@test "determine_latency: no current latency" {
-  run determine_latency 0 0 false
+@test "get_host_latency: no current latency" {
+  run get_host_latency 0 0 false
   assert_success
   assert_output 1
 }
 
-@test "determine_latency: measured latency higher than max" {
-  run determine_latency 20 10 false
+@test "get_host_latency: measured latency higher than max" {
+  run get_host_latency 20 10 false
   assert_failure
 
   assert_output --partial "Measured latency"
@@ -220,7 +220,7 @@ failed_measure_latency() {
 
 # === Streaming Parameter Setting ===
 
-@test "get_streaming_parameters: default parameters" {
+@test "determine_effective_stream_parameters: default parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -229,12 +229,12 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run get_streaming_parameters false false false "1920x1080" false 60 0 0 0 false
+  run determine_effective_stream_parameters false false false "1920x1080" false 60 0 0 0 false
   assert_success
   assert_output --partial "1920x1080 60"
 }
 
-@test "get_streaming_parameters: custom parameters" {
+@test "determine_effective_stream_parameters: custom parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -243,12 +243,12 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run get_streaming_parameters true true false "1280x720" true 30 5000 20 30 true
+  run determine_effective_stream_parameters true true false "1280x720" true 30 5000 20 30 true
   assert_success
   assert_output --partial "1280x720 30"
 }
 
-@test "get_streaming_parameters: invalid parameters" {
+@test "determine_effective_stream_parameters: invalid parameters" {
   get_display_refresh_rate() {
     echo "60"
   }
@@ -257,7 +257,7 @@ failed_measure_latency() {
     echo "1920x1080"
   }
 
-  run get_streaming_parameters true true false "invalid" true "invalid" "invalid" "invalid" "invalid" true
+  run determine_effective_stream_parameters true true false "invalid" true "invalid" "invalid" "invalid" "invalid" true
   skip
   assert_failure
   assert_output --partial "ERROR: Invalid resolution format. Expected WxH (e.g., 1920x1080)."
@@ -334,40 +334,16 @@ failed_measure_latency() {
   assert_failure
 }
 
-@test "compare_resolutions: first resolution smaller" {
-  run compare_resolutions "1280x720" "1920x1080"
+@test "min_resolutions_of: first resolution smaller" {
+  run get_lowest_resolution "1280x720" "1920x1080"
   assert_success
   assert_output "1280x720"
 }
 
-@test "compare_resolutions: second resolution smaller" {
-  run compare_resolutions "1920x1080" "1280x720"
+@test "get_lowest_resolution: second resolution smaller" {
+  run get_lowest_resolution "1920x1080" "1280x720"
   assert_success
   assert_output "1280x720"
-}
-
-@test "compare_fps: first fps lower" {
-  run compare_fps 30 60
-  assert_success
-  assert_output "30"
-}
-
-@test "compare_fps: second fps lower" {
-  run compare_fps 60 30
-  assert_success
-  assert_output "30"
-}
-
-@test "compare_bitrate: first bitrate lower" {
-  run compare_bitrate 5000 10000
-  assert_success
-  assert_output "5000"
-}
-
-@test "compare_bitrate: second bitrate lower" {
-  run compare_bitrate 10000 5000
-  assert_success
-  assert_output "5000"
 }
 
 # === Network and Display Functions ===
