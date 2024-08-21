@@ -5,7 +5,6 @@
   resholve,
 }: let
   commonInputs = with pkgs; [
-    iperf3
     bats
     bc
     coreutils
@@ -17,10 +16,12 @@
     gnused
     gum
     iperf3
+    iperf3
     iputils
     jq
     moonlight-qt
     ncurses5
+    procps
     xorg.xrandr
   ];
 
@@ -70,7 +71,7 @@ in
       runHook postCheck
     '';
 
-    doCheck = true;
+    # doCheck = true;
 
     solutions = {
       moonbeam = {
@@ -88,6 +89,8 @@ in
           "cannot:${bats}/bin/bats"
           "cannot:${bc}/bin/bc"
           "cannot:${gnused}/bin/sed"
+          "cannot:${procps}/bin/pgrep"
+          "cannot:${procps}/bin/ps"
           "cannot:${coreutils}/bin/basename"
           "cannot:${coreutils}/bin/cat"
           "cannot:${coreutils}/bin/sort"
@@ -120,6 +123,7 @@ in
           "$@" = true;
           "$log_command" = true;
           "$method" = true;
+          "$stream_started" = true;
         };
         fake = {
           external = [

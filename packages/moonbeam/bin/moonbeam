@@ -7,7 +7,7 @@ source ./calculate.sh
 source ./display.sh
 source ./network.sh
 
-usage_doc="Game Streaming Settings Calculator
+usage_doc="Moonlight optimization for Linux nomads
 
 Usage:
   $(basename "$0") [options] stream <host> <app>
@@ -471,7 +471,7 @@ compare_resolutions() {
   fi
 }
 
-set_max_resolution() {
+get_max_resolution() {
   local max_resolution_set=$1
   local resolution_set=$2
   local shorthand_res_set=$3
@@ -508,7 +508,7 @@ compare_fps() {
   fi
 }
 
-set_max_fps() {
+get_max_fps() {
   local max_fps_set=$1
   local current_max_fps=$2
   local display_fps
@@ -663,13 +663,13 @@ set_streaming_parameters() {
   local new_latency
 
   new_max_resolution=$(
-    set_max_resolution \
+    get_max_resolution \
       "$max_resolution_set" \
       "$resolution_set" \
       "$shorthand_res_set" \
       "$max_resolution"
   )
-  new_max_fps=$(set_max_fps "$max_fps_set" "$max_fps")
+  new_max_fps=$(get_max_fps "$max_fps_set" "$max_fps")
   new_available_bitrate=$(
     calculate_bitrate \
       "$available_bitrate" \
@@ -689,9 +689,10 @@ set_streaming_parameters() {
 }
 
 main() {
+  local streaming_params
+
   parse_args "$@"
 
-  local streaming_params
   if ! streaming_params=$(
     set_streaming_parameters \
       "$max_resolution_set" \
