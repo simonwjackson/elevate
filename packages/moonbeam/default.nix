@@ -92,6 +92,7 @@ in
           "cannot:${procps}/bin/pgrep"
           "cannot:${procps}/bin/ps"
           "cannot:${coreutils}/bin/basename"
+          "cannot:${coreutils}/bin/mkfifo"
           "cannot:${coreutils}/bin/cat"
           "cannot:${coreutils}/bin/sort"
           "cannot:${coreutils}/bin/tr"
@@ -124,6 +125,7 @@ in
           "$log_command" = true;
           "$method" = true;
           "$stream_started" = true;
+          "$command" = true;
         };
         fake = {
           external = [

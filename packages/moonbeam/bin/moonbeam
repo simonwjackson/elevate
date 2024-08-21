@@ -6,6 +6,7 @@ source ./log.sh
 source ./calculate.sh
 source ./display.sh
 source ./network.sh
+source ./moonlight_session.sh
 
 usage_doc="Moonlight optimization for Linux nomads
 
@@ -32,9 +33,8 @@ Moonbeam Options:
   --max-latency <ms>                           Maximum allowed latency in milliseconds
   -p, --priority <resolution|fps>              Prioritize resolution or FPS in optimization (default: fps)
   --log-level <level>                          Set log level (QUIET, INFO, WARN, DEBUG, TRACE, VERBOSE)
-  --interactive                                Enable interactive mode
   --dry-run                                    Show the Moonlight command without executing it
-  --detach                                     Detach the stream and run in the background
+  --reconnect                                  Automatically reconnect if the stream is disconnected
   -h, --help                                   Show this help message
 
 Moonlight Options:
@@ -125,9 +125,8 @@ host=""
 app=""
 log_file="/tmp/moonbeam.log"
 extra_moonlight_options=""
-interactive=false
-dry_run=false
-detach=false
+dry_run="${DRY_RUN:=false}"
+reconnect=false
 max_resolution_set=false
 min_resolution_set=false
 resolution_set=false
@@ -175,10 +174,6 @@ parse_args() {
     --help | -h)
       echo "$usage_doc"
       exit 0
-      ;;
-    --interactive)
-      interactive=true
-      shift
       ;;
     --max-latency)
       if [[ ! "$2" =~ ^[0-9]+$ ]]; then
@@ -298,11 +293,10 @@ parse_args() {
       dry_run=true
       shift
       ;;
-    --detach)
-      detach=true
+    --reconnect)
+      reconnect=true
       shift
       ;;
-
     stream)
       if [[ $# -lt 3 ]]; then
         error "Missing required arguments: stream <host> <app>"
@@ -323,102 +317,6 @@ parse_args() {
   if [[ -z "$host" || -z "$app" ]]; then
     error "Missing required arguments: stream <host> <app>"
     exit 1
-  fi
-}
-
-start_moonlight_stream() {
-  local host=$1
-  local app=$2
-  local resolution=$3
-  local fps=$4
-  local bitrate=$5
-  local dry_run=$6
-
-  local moonlight_cmd="moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra_moonlight_options stream \"$host\" \"$app\""
-
-  if [ "$dry_run" = true ] || [ "$DRY_RUN" = true ]; then
-    debug "Dry run mode. The following command would be executed:"
-    debug "Command: $moonlight_cmd"
-    exit 0
-  fi
-
-  # Create a temporary file to store the output
-  local temp_file
-  temp_file=$(mktemp)
-
-  # Function to check for the first video packet
-  check_for_video_packet() {
-    if grep -q "Received first video packet" "$temp_file"; then
-      return 0
-    fi
-    return 1
-  }
-
-  # Start Moonlight in the background
-  if [ "$LOG_LEVEL" == 5 ]; then
-    eval "$moonlight_cmd 2>&1 | tee $temp_file | tee -a $log_file &"
-  else
-    eval "$moonlight_cmd > $temp_file 2>&1 &"
-  fi
-  local pid=$!
-
-  log info "Waiting for first video packet..." pid $pid
-
-  gum spin --spinner points --title "Connecting to ($host)..." -- bash -c "while true; do if check_for_video_packet; then exit 0; fi; if ! kill -0 $pid 2>/dev/null; then exit 1; fi; sleep 0.1; done" &
-  local spin_pid=$!
-
-  # Wait for either the first video packet or the Moonlight process to exit
-  while true; do
-    if check_for_video_packet; then
-      kill $spin_pid 2>/dev/null
-      wait $spin_pid 2>/dev/null
-      break
-    fi
-    if ! kill -0 $pid 2>/dev/null; then
-      kill $spin_pid 2>/dev/null
-      wait $spin_pid 2>/dev/null
-      log error "Moonlight process exited before receiving first video packet"
-      if [ "$LOG_LEVEL" = 5 ]; then
-        tee -a $log_file <"$temp_file"
-      else
-        cat "$temp_file" >>$log_file
-      fi
-      rm "$temp_file"
-      return 1
-    fi
-    sleep 0.1
-  done
-
-  log info "First video packet received."
-  if [ "$LOG_LEVEL" = 5 ]; then
-    echo "First video packet received." | tee -a $log_file
-  fi
-
-  if [ "$detach" = true ]; then
-    log info "Detaching..."
-
-    if [ "$LOG_LEVEL" = 5 ]; then
-      echo "Detaching..." | tee -a $log_file
-    fi
-
-    rm "$temp_file"
-    disown $pid
-    return 0
-  else
-    # For non-detached mode, continue to show output
-    log info "Continuing in attached mode. Press Ctrl+C to exit."
-
-    if [ "$LOG_LEVEL" = 5 ]; then
-      # Show remaining output in real-time
-      tail -f -n +1 "$temp_file" | tee -a $log_file &
-    else
-      # Show remaining output only in log file
-      tail -f -n +1 "$temp_file" >>$log_file &
-    fi
-    wait $pid
-    local exit_status=$?
-    rm "$temp_file"
-    return $exit_status
   fi
 }
 
@@ -588,7 +486,6 @@ calculate_bitrate() {
 determine_latency() {
   local current_latency=$1
   local max_latency=$2
-  local interactive=$3
 
   if (($(echo "$current_latency == 0" | bc -l))); then
     if measured_latency=$(measure_latency); then
@@ -604,32 +501,21 @@ determine_latency() {
   fi
 
   if (($(echo "$max_latency > 0" | bc -l))) && (($(echo "$current_latency > $max_latency" | bc -l))); then
-    if [ "$interactive" = true ]; then
-      warn "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms)."
-      if ! gum confirm "Do you want to continue with the higher latency?"; then
-        return 1
-      fi
-    else
-      error "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms). Aborting."
-      return 1
-    fi
+    error "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms). Aborting."
+    return 1
   fi
 
   echo "$current_latency"
   return 0
 }
 
-set_streaming_parameters() {
+get_streaming_parameters() {
   local max_resolution_set=$1
   local resolution_set=$2
   local shorthand_res_set=$3
   local max_resolution=$4
   local max_fps_set=$5
   local max_fps=$6
-  local available_bitrate=$7
-  local latency=$8
-  local max_latency=$9
-  local interactive=${10}
 
   # Input validation
   if ! [[ "$max_resolution" =~ ^[0-9]+x[0-9]+$ ]] && [[ "$max_resolution_set" == "true" || "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
@@ -642,25 +528,8 @@ set_streaming_parameters() {
     return 1
   fi
 
-  if ! [[ "$available_bitrate" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: Invalid bitrate. Expected a positive integer." >&2
-    return 1
-  fi
-
-  if ! [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-    echo "ERROR: Invalid latency. Expected a positive number." >&2
-    return 1
-  fi
-
-  if ! [[ "$max_latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-    echo "ERROR: Invalid max latency. Expected a positive number." >&2
-    return 1
-  fi
-
   local new_max_resolution
   local new_max_fps
-  local new_available_bitrate
-  local new_latency
 
   new_max_resolution=$(
     get_max_resolution \
@@ -670,22 +539,86 @@ set_streaming_parameters() {
       "$max_resolution"
   )
   new_max_fps=$(get_max_fps "$max_fps_set" "$max_fps")
-  new_available_bitrate=$(
-    calculate_bitrate \
-      "$available_bitrate" \
-      "$new_max_resolution" \
-      "$new_max_fps"
-  )
 
-  if ! new_latency=$(determine_latency "$latency" "$max_latency" "$interactive"); then
-    if [ "$interactive" = true ]; then
-      echo "ERROR: Stream cancelled due to high latency." >&2
-    fi
-    return 1
-  fi
-
-  echo "$new_max_resolution" "$new_max_fps" "$new_available_bitrate" "$new_latency"
+  echo "$new_max_resolution" "$new_max_fps"
   return 0
+}
+
+build_moonlight_cmd() {
+  local resolution=$1
+  local fps=$2
+  local bitrate=$3
+  local host=$4
+  local app=$5
+
+  echo "moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra_moonlight_options stream $host $app"
+}
+
+manage_moonlight_session() {
+  local available_bitrate=$1
+  local max_resolution=$2
+  local max_fps=$3
+  local min_fps=$4
+  local min_resolution=$5
+  local latency=$6
+  local max_latency=$7
+  local prioritize=$8
+  local scaling_steps=$9
+  local host=${10}
+  local app=${11}
+  local reconnect=${12}
+  local extra_moonlight_options=${13}
+
+  log info "Starting Moonlight stream (Log Level: $LOG_LEVEL)"
+
+  while true; do
+    new_available_bitrate=$(
+      calculate_bitrate \
+        "$available_bitrate" \
+        "$max_resolution" \
+        "$max_fps"
+    )
+
+    if ! new_latency=$(determine_latency "$latency" "$max_latency"); then
+      error "Stream cancelled due to high latency."
+      return 1
+    fi
+
+    debug "Calculating best settings..."
+    if ! result=$(
+      optimize_streaming_settings \
+        "$min_fps" \
+        "$max_fps" \
+        "$min_resolution" \
+        "$max_resolution" \
+        "$new_available_bitrate" \
+        "$new_latency" \
+        "$prioritize" \
+        "$scaling_steps"
+    ); then
+      error "$result"
+      return 1
+    fi
+    read -r best_resolution best_fps best_bitrate <<<"$result"
+
+    display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$new_latency" "$host" "$app"
+    moonlight_cmd=$(build_moonlight_cmd "$best_resolution" "$best_fps" "$best_bitrate" "$host" "$app" "$extra_moonlight_options")
+
+    debug "Command: $moonlight_cmd"
+    debug "Reconnect: $reconnect"
+
+    if moonlight_session "$moonlight_cmd" "$reconnect"; then
+      log info "Exiting."
+      break
+    fi
+
+    if [ "$reconnect" = true ]; then
+      log info "Reopening Moonlight stream. Press Ctrl+C to exit."
+    else
+      log info "Moonlight stream closed. Exiting."
+      break
+    fi
+  done
 }
 
 main() {
@@ -694,49 +627,32 @@ main() {
   parse_args "$@"
 
   if ! streaming_params=$(
-    set_streaming_parameters \
+    get_streaming_parameters \
       "$max_resolution_set" \
       "$resolution_set" \
       "$shorthand_res_set" \
       "$max_resolution" \
       "$max_fps_set" \
-      "$max_fps" \
-      "$available_bitrate" \
-      "$latency" \
-      "$max_latency" \
-      "$interactive"
+      "$max_fps"
   ); then
     exit 1
   fi
-  read -r max_resolution max_fps available_bitrate latency <<<"$streaming_params"
+  read -r max_resolution max_fps <<<"$streaming_params"
 
-  debug "Calculating best settings..."
-  if ! result=$(
-    optimize_streaming_settings \
-      "$min_fps" \
-      "$max_fps" \
-      "$min_resolution" \
-      "$max_resolution" \
-      "$available_bitrate" \
-      "$latency" \
-      "$prioritize" \
-      "$scaling_steps"
-  ); then
-    error "$result"
-    exit 1
-  fi
-  read -r best_resolution best_fps best_bitrate <<<"$result"
-
-  display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$latency" "$host" "$app"
-
-  if [ "$interactive" = true ] && [ "$dry_run" = false ]; then
-    if ! gum confirm "Do you want to start the stream with these settings?"; then
-      debug "Stream cancelled by user."
-      exit 0
-    fi
-  fi
-
-  start_moonlight_stream "$host" "$app" "$best_resolution" "$best_fps" "$best_bitrate" "$dry_run"
+  manage_moonlight_session \
+    "$available_bitrate" \
+    "$max_resolution" \
+    "$max_fps" \
+    "$min_fps" \
+    "$min_resolution" \
+    "$latency" \
+    "$max_latency" \
+    "$prioritize" \
+    "$scaling_steps" \
+    "$host" \
+    "$app" \
+    "$reconnect" \
+    "$extra_moonlight_options"
 }
 
 # Only run the main function if the script is being executed directly

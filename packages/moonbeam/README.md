@@ -27,6 +27,17 @@ Replace `MyHost` with the name of the computer you're streaming from, and `"My G
 
 ## Common Examples
 
+### 1. Auto Mode with Reconnect
+
+```
+moonbeam \
+  --auto \
+  --reconnect \
+  stream MyHost "My Game"
+```
+
+This example uses the auto mode to automatically set the best streaming parameters and enables the reconnect feature to automatically reconnect if the connection drops.
+
 ### 1. Set Specific Quality
 
 If you want to set specific quality parameters:
