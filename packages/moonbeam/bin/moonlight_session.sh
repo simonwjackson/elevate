@@ -112,6 +112,38 @@ moonlight_session() {
   fi
 }
 
+display_streaming_settings() {
+  local resolution="$1"
+  local fps="$2"
+  local bitrate_kbps="$3"
+  local latency="$4"
+  local host="$5"
+  local app="$6"
+
+  # Convert Kbps to rounded Mbps
+  local bitrate_mbps=$(((bitrate_kbps + 500) / 1000))
+
+  # Round latency to the nearest integer
+  local rounded_latency
+  rounded_latency=$(printf "%.0f" "$latency")
+
+  gum style \
+    --border normal \
+    --border-foreground 212 \
+    --padding "0 2 1 0" \
+    --margin 1 \
+    -- \
+    "$(gum format -- "
+# Streaming Settings
+- Host: $host
+- App: $app
+- Resolution: $resolution
+- FPS: $fps
+- Bitrate: ${bitrate_mbps} Mbps 
+- Latency: ${rounded_latency}ms
+    ")"
+}
+
 run_moonlight_session() {
   local -n local_config=$1
 
