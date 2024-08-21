@@ -15,7 +15,7 @@ export LOG_LEVEL=2
 declare -A CONFIG
 initialize_config() {
   CONFIG=(
-    [max_resolution]="1920x1080"
+    [max_resolution]=""
     [min_resolution]="256x256"
     [max_fps]=0
     [min_fps]=24

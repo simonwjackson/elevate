@@ -105,9 +105,11 @@ Note:
 
 validate_user_input() {
   # Validate max_latency
-  if [[ -n "${CONFIG[max_latency]}" && ! "${CONFIG[max_latency]}" =~ ^[0-9]+$ ]]; then
-    error "Max latency must be a positive integer"
-    return 1
+  if [[ -n "${CONFIG[max_latency]}" ]]; then
+    if ! [[ "${CONFIG[max_latency]}" =~ ^[0-9]+$ ]]; then
+      error "Max latency must be a positive integer (with optional 'ms' suffix)"
+      return 1
+    fi
   fi
 
   # Validate bitrate
@@ -189,7 +191,9 @@ parse_args() {
       exit 0
       ;;
     --max-latency)
-      CONFIG[max_latency]="$2"
+      local latency_value="$2"
+      latency_value="${latency_value%ms}"
+      CONFIG[max_latency]="$latency_value"
       shift 2
       ;;
     --bitrate)
@@ -197,9 +201,14 @@ parse_args() {
       shift 2
       ;;
     --max-resolution)
-      CONFIG[max_resolution]=$(convert_shorthand_resolution "$2")
+      if [[ -z "$2" || "$2" == -* ]]; then
+        CONFIG[max_resolution]=$(get_display_resolution)
+      else
+        CONFIG[max_resolution]=$(convert_shorthand_resolution "$2")
+        shift
+      fi
       CONFIG[max_resolution_set]=true
-      shift 2
+      shift
       ;;
     --resolution)
       CONFIG[resolution]=$(convert_shorthand_resolution "$2")
@@ -221,9 +230,14 @@ parse_args() {
       shift
       ;;
     --max-fps)
-      CONFIG[max_fps]="$2"
+      if [[ -z "$2" || "$2" == -* ]]; then
+        CONFIG[max_fps]=$(get_display_refresh_rate)
+      else
+        CONFIG[max_fps]="$2"
+        shift
+      fi
       CONFIG[max_fps_set]=true
-      shift 2
+      shift
       ;;
     --fps)
       CONFIG[max_fps]="$2"
