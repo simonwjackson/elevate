@@ -136,6 +136,70 @@ min_fps_set=false
 
 export LOG_LEVEL=2
 
+validate_inputs() {
+  # Validate max_latency
+  if [[ -n "$max_latency" && ! "$max_latency" =~ ^[0-9]+$ ]]; then
+    error "Max latency must be a positive integer"
+    return 1
+  fi
+
+  # Validate bitrate
+  if [[ -n "$available_bitrate" && ! "$available_bitrate" =~ ^[0-9]+$ ]]; then
+    error "Bitrate must be a positive integer"
+    return 1
+  fi
+
+  # Validate resolutions
+  local res_to_check=("$max_resolution" "$min_resolution")
+  if [[ "$resolution_set" == "true" ]]; then
+    res_to_check+=("$resolution")
+  fi
+  for res in "${res_to_check[@]}"; do
+    if ! is_valid_resolution "$res"; then
+      error "Invalid resolution format: $res"
+      return 1
+    fi
+  done
+
+  # Validate FPS
+  local fps_to_check=("$max_fps" "$min_fps")
+  for fps in "${fps_to_check[@]}"; do
+    if [[ -n "$fps" && ! "$fps" =~ ^[0-9]+$ ]]; then
+      error "FPS must be a positive integer"
+      return 1
+    fi
+  done
+
+  # Validate priority
+  if [[ "$prioritize" != "resolution" && "$prioritize" != "fps" ]]; then
+    error "Priority must be either 'resolution' or 'fps'"
+    return 1
+  fi
+
+  # Validate host and app
+  if [[ -z "$host" || -z "$app" ]]; then
+    error "Missing required arguments: stream <host> <app>"
+    return 1
+  fi
+
+  # Additional validation from get_streaming_parameters
+  if [[ "$max_resolution_set" == "true" || "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
+    if ! [[ "$max_resolution" =~ ^[0-9]+x[0-9]+$ ]]; then
+      error "Invalid resolution format. Expected WxH (e.g., 1920x1080)."
+      return 1
+    fi
+  fi
+
+  if [[ "$max_fps_set" == "true" ]]; then
+    if ! [[ "$max_fps" =~ ^[0-9]+$ ]]; then
+      error "Invalid FPS. Expected a positive integer."
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
 parse_args() {
   handle_non_stream_command() {
     local moonlight_cmd="moonlight $*"
@@ -176,72 +240,31 @@ parse_args() {
       exit 0
       ;;
     --max-latency)
-      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
-        error "Max latency must be a positive integer"
-        exit 1
-      fi
       max_latency="$2"
       shift 2
       ;;
-
     --bitrate)
-      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
-        error "Bitrate must be a positive integer"
-        exit 1
-      fi
       available_bitrate="$2"
       shift 2
       ;;
     --max-resolution)
-      if [[ "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
-        error "Cannot use --max-resolution with --resolution or shorthand resolution options."
-        exit 1
-      fi
       max_resolution=$(convert_shorthand_resolution "$2")
-      if ! is_valid_resolution "$max_resolution"; then
-        error "Invalid resolution format for --max-resolution"
-        exit 1
-      fi
       max_resolution_set=true
       shift 2
       ;;
     --resolution)
-      if [[ "$max_resolution_set" == "true" || "$min_resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
-        error "Cannot use --resolution with other resolution options."
-        exit 1
-      fi
       resolution=$(convert_shorthand_resolution "$2")
-      if ! is_valid_resolution "$resolution"; then
-        error "Invalid resolution format for --resolution"
-        exit 1
-      fi
       max_resolution="$resolution"
       min_resolution="$resolution"
       resolution_set=true
       shift 2
       ;;
     --min-resolution)
-      if [[ "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
-        error "Cannot use --min-resolution with --resolution or shorthand resolution options."
-        exit 1
-      fi
       min_resolution=$(convert_shorthand_resolution "$2")
-      if ! is_valid_resolution "$min_resolution"; then
-        error "Invalid resolution format for --min-resolution"
-        exit 1
-      fi
       min_resolution_set=true
       shift 2
       ;;
     --360* | --480* | --540* | --720* | --900* | --1080* | --1440* | --2K | --4K)
-      if [[ "$max_resolution_set" == "true" || "$min_resolution_set" == "true" || "$resolution_set" == "true" ]]; then
-        error "Cannot use shorthand resolution with other resolution options."
-        exit 1
-      fi
-      if [[ "$shorthand_res_set" == "true" ]]; then
-        error "Multiple shorthand resolution options provided. Please use only one."
-        exit 1
-      fi
       res=$(convert_shorthand_resolution "${1#--}")
       max_resolution="$res"
       min_resolution="$res"
@@ -249,19 +272,11 @@ parse_args() {
       shift
       ;;
     --max-fps)
-      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
-        error "FPS must be a positive integer"
-        exit 1
-      fi
       max_fps="$2"
       max_fps_set=true
       shift 2
       ;;
     --fps)
-      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
-        error "FPS must be a positive integer"
-        exit 1
-      fi
       max_fps="$2"
       min_fps="$2"
       max_fps_set=true
@@ -269,19 +284,11 @@ parse_args() {
       shift 2
       ;;
     --min-fps)
-      if [[ ! "$2" =~ ^[0-9]+$ ]]; then
-        error "FPS must be a positive integer"
-        exit 1
-      fi
       min_fps="$2"
       min_fps_set=true
       shift 2
       ;;
     -p | --priority)
-      if [[ "$2" != "resolution" && "$2" != "fps" ]]; then
-        error "priority must be either 'resolution' or 'fps'"
-        exit 1
-      fi
       prioritize="$2"
       shift 2
       ;;
@@ -298,10 +305,6 @@ parse_args() {
       shift
       ;;
     stream)
-      if [[ $# -lt 3 ]]; then
-        error "Missing required arguments: stream <host> <app>"
-        exit 1
-      fi
       host="$2"
       app="$3"
       shift 3
@@ -314,8 +317,8 @@ parse_args() {
     esac
   done
 
-  if [[ -z "$host" || -z "$app" ]]; then
-    error "Missing required arguments: stream <host> <app>"
+  # Call validate_inputs at the end of parse_args
+  if ! validate_inputs; then
     exit 1
   fi
 }
@@ -517,17 +520,6 @@ get_streaming_parameters() {
   local max_fps_set=$5
   local max_fps=$6
 
-  # Input validation
-  if ! [[ "$max_resolution" =~ ^[0-9]+x[0-9]+$ ]] && [[ "$max_resolution_set" == "true" || "$resolution_set" == "true" || "$shorthand_res_set" == "true" ]]; then
-    echo "ERROR: Invalid resolution format. Expected WxH (e.g., 1920x1080)." >&2
-    return 1
-  fi
-
-  if ! [[ "$max_fps" =~ ^[0-9]+$ ]] && [[ "$max_fps_set" == "true" ]]; then
-    echo "ERROR: Invalid FPS. Expected a positive integer." >&2
-    return 1
-  fi
-
   local new_max_resolution
   local new_max_fps
 
@@ -541,7 +533,6 @@ get_streaming_parameters() {
   new_max_fps=$(get_max_fps "$max_fps_set" "$max_fps")
 
   echo "$new_max_resolution" "$new_max_fps"
-  return 0
 }
 
 build_moonlight_cmd() {
