@@ -604,8 +604,17 @@ manage_moonlight_session() {
     display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$new_latency" "$host" "$app"
     moonlight_cmd=$(build_moonlight_cmd "$best_resolution" "$best_fps" "$best_bitrate" "$host" "$app" "$extra_moonlight_options")
 
+    moonlight_cmd=$(
+      build_moonlight_cmd \
+        "$best_resolution" \
+        "$best_fps" \
+        "$best_bitrate" \
+        "$host" \
+        "$app" \
+        "$extra_moonlight_options"
+    )
+
     debug "Command: $moonlight_cmd"
-    debug "Reconnect: $reconnect"
 
     if moonlight_session "$moonlight_cmd" "$reconnect"; then
       log info "Exiting."
