@@ -338,82 +338,6 @@ display_streaming_settings() {
     ")"
 }
 
-run_moonlight_session() {
-  local available_bitrate=$1
-  local max_resolution=$2
-  local max_fps=$3
-  local min_fps=$4
-  local min_resolution=$5
-  local latency=$6
-  local max_latency=$7
-  local prioritize=$8
-  local scaling_steps=$9
-  local host=${10}
-  local app=${11}
-  local reconnect=${12}
-  local extra_moonlight_options=${13}
-
-  log info "Starting Moonlight stream (Log Level: $LOG_LEVEL)"
-
-  while true; do
-    new_available_bitrate=$(
-      get_optimal_bitrate \
-        "$available_bitrate" \
-        "$max_resolution" \
-        "$max_fps"
-    )
-
-    if ! new_latency=$(check_host_latency "$latency" "$max_latency"); then
-      error "Stream cancelled due to high latency."
-      return 1
-    fi
-
-    debug "Calculating best settings..."
-    if ! result=$(
-      optimize_streaming_settings \
-        "$min_fps" \
-        "$max_fps" \
-        "$min_resolution" \
-        "$max_resolution" \
-        "$new_available_bitrate" \
-        "$new_latency" \
-        "$prioritize" \
-        "$scaling_steps"
-    ); then
-      error "$result"
-      return 1
-    fi
-    read -r best_resolution best_fps best_bitrate <<<"$result"
-
-    display_streaming_settings "$best_resolution" "$best_fps" "$best_bitrate" "$new_latency" "$host" "$app"
-    moonlight_cmd=$(build_moonlight_cmd "$best_resolution" "$best_fps" "$best_bitrate" "$host" "$app" "$extra_moonlight_options")
-
-    moonlight_cmd=$(
-      build_moonlight_cmd \
-        "$best_resolution" \
-        "$best_fps" \
-        "$best_bitrate" \
-        "$host" \
-        "$app" \
-        "$extra_moonlight_options"
-    )
-
-    debug "Command: $moonlight_cmd"
-
-    if moonlight_session "$moonlight_cmd" "$reconnect"; then
-      log info "Exiting."
-      break
-    fi
-
-    if [ "$reconnect" = true ]; then
-      log info "Reopening Moonlight stream. Press Ctrl+C to exit."
-    else
-      log info "Moonlight stream closed. Exiting."
-      break
-    fi
-  done
-}
-
 main() {
   local streaming_params
 
@@ -432,20 +356,24 @@ main() {
   fi
   read -r max_resolution max_fps <<<"$streaming_params"
 
-  run_moonlight_session \
-    "$available_bitrate" \
-    "$max_resolution" \
-    "$max_fps" \
-    "$min_fps" \
-    "$min_resolution" \
-    "$latency" \
-    "$max_latency" \
-    "$prioritize" \
-    "$scaling_steps" \
-    "$host" \
-    "$app" \
-    "$reconnect" \
-    "$extra_moonlight_options"
+  declare -A scrubbed_moonbeam_config
+  scrubbed_moonbeam_config=(
+    [available_bitrate]="$available_bitrate"
+    [max_resolution]="$max_resolution"
+    [max_fps]="$max_fps"
+    [min_fps]="$min_fps"
+    [min_resolution]="$min_resolution"
+    [latency]="$latency"
+    [max_latency]="$max_latency"
+    [prioritize]="$prioritize"
+    [scaling_steps]="$scaling_steps"
+    [host]="$host"
+    [app]="$app"
+    [reconnect]="$reconnect"
+    [extra_moonlight_options]="$extra_moonlight_options"
+  )
+
+  run_moonlight_session scrubbed_moonbeam_config
 }
 
 # Only run the main function if the script is being executed directly
