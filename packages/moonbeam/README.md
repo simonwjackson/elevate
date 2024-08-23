@@ -14,16 +14,16 @@ Moonbeam auto configures [Moonlight](https://moonlight-stream.org) for any porta
 
 ## Basic Usage
 
-The easiest way to start streaming is with the --auto option:
+The easiest way to start streaming is:
 
 ```
-moonbeam --auto stream MyHost "My Game"
+moonbeam  stream MyHost "My Game"
 ```
 
 Replace `MyHost` with the name of the computer you're streaming from, and `"My Game"` with the name of the game you want to play.
 
 > [!TIP]
-> The --auto option sets the best FPS and resolution based on your system and network. It also sets a maximum latency to ensure responsive gameplay. This is the simplest way to get a great streaming experience without worrying about technical details.
+> Moonbeam automatically sets the best FPS and resolution based on your system and network. This is the simplest way to get a great streaming experience without worrying about technical details.
 
 ## Common Examples
 
@@ -31,7 +31,6 @@ Replace `MyHost` with the name of the computer you're streaming from, and `"My G
 
 ```
 moonbeam \
-  --auto \
   --reconnect \
   stream MyHost "My Game"
 ```
@@ -114,12 +113,12 @@ This uses 1080p at 60 FPS, but stops if the delay is more than 20 milliseconds.
     stream <HOST> <APP> \
     --max-resolution 720p \
     --max-fps 120 \
-    --optimize-for fps
+    --priority fps
 ```
 
 This script checks if you're on a specific Wi-Fi network (like at home). If you are, it uses your full screen resolution. If not (like when traveling), it optimizes for performance with a lower resolution but higher frame rate.
 
-2. Optimize for travel or home use automatically: 
+2. Prioritize for travel or home use automatically: 
 
 ```bash
 > nix shell \
@@ -137,7 +136,7 @@ This script checks if you're on a specific Wi-Fi network (like at home). If you 
       -- moonbeam stream "$HOST" "$APP" \
         --max-resolution 720p \
         --max-fps 120 \
-        --optimize-for fps
+        --priority fps
     || moonbeam stream "$HOST" "$APP" \
          --resolution 1080p \
          --fps 120
@@ -148,7 +147,7 @@ This script checks if you're on a specific Wi-Fi network (like at home). If you 
 ## Tips
 
 - [Moonlight](https://moonlight-stream.org) remembers your last settings. You can just use `moonbeam stream MyHost "My Game"` to use the same settings as before.
-- If you're not sure what settings to use, just run the basic command. Moonbeam will try to choose the best settings for you.
+- If you're not sure what settings to use, just run the basic command. Moonbeam will automatically choose the best settings for you.
 - Use `--priority fps` if you prefer smooth motion over sharp images, or `--priority resolution` if you prefer sharper images over smoother motion.
 - When you set a range (like min and max resolution or FPS), Moonbeam doesn't just choose between the two extremes. It tries many options in between to find the best balance for your current network conditions.
 

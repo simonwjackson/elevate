@@ -121,6 +121,10 @@ calculate_resolution_area_calculate_resolution_area() {
 }
 
 get_display_resolution_kde() {
+  if ! command -v kscreen-doctor &>/dev/null; then
+    exit 1
+  fi
+
   display=$(kscreen-doctor -o | awk '
     /Output:/ {
         if (enabled && priority > max_priority) {
@@ -154,6 +158,10 @@ get_display_resolution_kde() {
 }
 
 get_display_resolution_xorg() {
+  if ! command -v kscreen-doctor &>/dev/null; then
+    exit 1
+  fi
+
   xrandr 2>/dev/null | awk '
     /connected/ {
         output = $1
@@ -209,6 +217,11 @@ get_rotated_resolution() {
 
 get_display_resolution_hyprland() {
   local monitor_info
+
+  if ! command -v hyprctl &>/dev/null; then
+    exit 1
+  fi
+
   monitor_info=$(hyprctl monitors -j | jq -r '.[0]')
 
   local width height transform

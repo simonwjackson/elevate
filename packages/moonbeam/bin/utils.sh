@@ -114,13 +114,21 @@ present_config() {
 
   convert_to_mbps() {
     local kbps=$1
-    echo $(((kbps + 500) / 1000))
+    if [[ "$kbps" =~ ^[0-9]+$ ]]; then
+      echo $(((kbps + 500) / 1000))
+    else
+      echo "$kbps"
+    fi
   }
 
   # Function to round latency to the nearest integer
   round_latency() {
     local latency=$1
-    printf "%.0f" "$latency"
+    if [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+      printf "%.0f" "$latency"
+    else
+      echo "$latency"
+    fi
   }
 
   # Function to handle empty or zero values
@@ -130,7 +138,7 @@ present_config() {
 
     if [[ -z "$value" ]]; then
       echo "N/A"
-    elif [[ "$value" -eq 0 ]]; then
+    elif [[ "$value" == "0" ]]; then
       case "$key" in
       max_latency) echo "Unconstrained" ;;
       max_bitrate) echo "Dynamic (based on resolution and FPS)" ;;
@@ -155,16 +163,16 @@ present_config() {
         echo "# Moonbeam Configuration"
         echo
 
-        echo "* Resolution: $(format_value min_resolution "${cfg[min_resolution]}") - $(format_value max_resolution "${cfg[max_resolution]}")"
-        echo "* FPS: $(format_value min_fps "${cfg[min_fps]}") - $(format_value max_fps "${cfg[max_fps]}")"
+        echo "* Resolution: $(format_value min_resolution "${cfg[min_resolution]:-N/A}") - $(format_value max_resolution "${cfg[max_resolution]:-N/A}")"
+        echo "* FPS: $(format_value min_fps "${cfg[min_fps]:-N/A}") - $(format_value max_fps "${cfg[max_fps]:-N/A}")"
 
         # Handle latency
-        if [[ -n "${cfg[max_latency]}" || -z "${cfg[max_latency]}" ]]; then
+        if [[ -n "${cfg[max_latency]}" ]]; then
           echo "* Max Latency: $(format_value max_latency "${cfg[max_latency]}")"
         fi
 
         # Handle bitrate
-        if [[ -n "${cfg[max_bitrate]}" || -z "${cfg[max_bitrate]}" ]]; then
+        if [[ -n "${cfg[max_bitrate]}" ]]; then
           echo "* Max Bitrate: $(format_value max_bitrate "${cfg[max_bitrate]}")"
         fi
 
