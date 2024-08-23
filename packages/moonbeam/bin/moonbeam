@@ -17,11 +17,9 @@ initialize_config() {
   CONFIG=(
     [max_resolution]=""
     [min_resolution]="256x256" # Hard limit from moonlight
-    [bitrate]=0
     [max_fps]=65536
     [min_fps]=30
     [max_bitrate]=0
-    [latency]=0
     [max_latency]=0
     [resolution_steps]=9
     [fps_steps]=1

@@ -123,6 +123,28 @@ present_config() {
     printf "%.0f" "$latency"
   }
 
+  # Function to handle empty or zero values
+  format_value() {
+    local key=$1
+    local value=$2
+
+    if [[ -z "$value" ]]; then
+      echo "N/A"
+    elif [[ "$value" -eq 0 ]]; then
+      case "$key" in
+      max_latency) echo "Unconstrained" ;;
+      max_bitrate) echo "Dynamic (based on resolution and FPS)" ;;
+      *) echo "Auto" ;;
+      esac
+    else
+      case "$key" in
+      max_latency) echo "$(round_latency "$value")ms" ;;
+      max_bitrate) echo "$(convert_to_mbps "$value")Mbps" ;;
+      *) echo "$value" ;;
+      esac
+    fi
+  }
+
   gum style \
     --border normal \
     --margin "1 0" \
@@ -133,23 +155,23 @@ present_config() {
         echo "# Moonbeam Configuration"
         echo
 
-        echo "* Resolution: ${cfg[min_resolution]} - ${cfg[max_resolution]}"
-        echo "* FPS: ${cfg[min_fps]} - ${cfg[max_fps]}"
+        echo "* Resolution: $(format_value min_resolution "${cfg[min_resolution]}") - $(format_value max_resolution "${cfg[max_resolution]}")"
+        echo "* FPS: $(format_value min_fps "${cfg[min_fps]}") - $(format_value max_fps "${cfg[max_fps]}")"
 
-        # Round and display latency
-        if [[ -n "${cfg[latency]}" ]]; then
-          echo "* Max Latency: $(round_latency "${cfg[latency]}")ms"
+        # Handle latency
+        if [[ -n "${cfg[max_latency]}" || -z "${cfg[max_latency]}" ]]; then
+          echo "* Max Latency: $(format_value max_latency "${cfg[max_latency]}")"
         fi
 
-        # Round and display latency
-        if [[ -n "${cfg[latency]}" ]]; then
-          echo "* Max Bitrate: $(convert_to_mbps "${cfg[max_bitrate]}")Mbps"
+        # Handle bitrate
+        if [[ -n "${cfg[max_bitrate]}" || -z "${cfg[max_bitrate]}" ]]; then
+          echo "* Max Bitrate: $(format_value max_bitrate "${cfg[max_bitrate]}")"
         fi
 
         for key in "${!cfg[@]}"; do
           case "$key" in
-          min_* | max_*) continue ;; # Skip min/max items as they're already displayed
-          *) printf "* %s: %s\n" "$(format_key "$key")" "${cfg[$key]}" ;;
+          min_resolution | max_resolution | min_fps | max_fps | max_latency | max_bitrate) continue ;; # Skip items already displayed
+          *) printf "* %s: %s\n" "$(format_key "$key")" "$(format_value "$key" "${cfg[$key]}")" ;;
           esac
         done | sort
       } | gum format
