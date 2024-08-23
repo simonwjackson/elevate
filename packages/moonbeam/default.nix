@@ -38,7 +38,7 @@ in
 
     patchPhase = with pkgs; ''
       # HACK
-      sed -i 's| -- iperf| -- ${lib.getExe iperf3}|g' ./bin/moonbeam
+      sed -i 's| -- iperf| -- ${iperf3}/bin/iperf3|g' ./bin/moonbeam
       sed -i 's|log_command="gum|log_command="${lib.getExe gum}|g' ./bin/moonbeam
     '';
 
@@ -88,36 +88,39 @@ in
         execer = with pkgs; [
           "cannot:${bats}/bin/bats"
           "cannot:${bc}/bin/bc"
-          "cannot:${gnused}/bin/sed"
-          "cannot:${procps}/bin/pgrep"
-          "cannot:${procps}/bin/ps"
           "cannot:${coreutils}/bin/basename"
-          "cannot:${coreutils}/bin/mkfifo"
           "cannot:${coreutils}/bin/cat"
-          "cannot:${coreutils}/bin/sort"
-          "cannot:${coreutils}/bin/tr"
-          "cannot:${coreutils}/bin/uniq"
-          "cannot:${coreutils}/bin/dirname"
           "cannot:${coreutils}/bin/cut"
           "cannot:${coreutils}/bin/date"
+          "cannot:${coreutils}/bin/dirname"
           "cannot:${coreutils}/bin/env"
+          "cannot:${coreutils}/bin/fold"
           "cannot:${coreutils}/bin/head"
+          "cannot:${coreutils}/bin/mkdir"
+          "cannot:${coreutils}/bin/mkfifo"
           "cannot:${coreutils}/bin/mktemp"
           "cannot:${coreutils}/bin/rm"
+          "cannot:${coreutils}/bin/seq"
           "cannot:${coreutils}/bin/sleep"
-          "cannot:${coreutils}/bin/mkdir"
+          "cannot:${coreutils}/bin/sort"
+          "cannot:${coreutils}/bin/tac"
           "cannot:${coreutils}/bin/tail"
-          "cannot:${ncurses5}/bin/tput"
           "cannot:${coreutils}/bin/tee"
+          "cannot:${coreutils}/bin/tr"
+          "cannot:${coreutils}/bin/uniq"
           "cannot:${coreutils}/bin/wc"
           "cannot:${findutils}/bin/xargs"
           "cannot:${gawk}/bin/awk"
           "cannot:${gnugrep}/bin/grep"
+          "cannot:${gnused}/bin/sed"
           "cannot:${gum}/bin/gum"
           "cannot:${iperf3}/bin/iperf3"
           "cannot:${iputils}/bin/ping"
           "cannot:${jq}/bin/jq"
           "cannot:${moonlight-qt}/bin/moonlight"
+          "cannot:${ncurses5}/bin/tput"
+          "cannot:${procps}/bin/pgrep"
+          "cannot:${procps}/bin/ps"
           "cannot:${xorg.xrandr}/bin/xrandr"
         ];
         keep = {
@@ -133,6 +136,7 @@ in
             # HACK: https://github.com/abathur/resholve/issues/80
             "ping"
             "kscreen-doctor"
+            "hyprctl"
           ];
         };
       };

@@ -25,7 +25,12 @@ log() {
 
   # Always log if level is greater than VERBOSE, otherwise respect LOG_LEVEL
   if [ "$level_value" -gt 5 ] || [ "$level_value" -le "$LOG_LEVEL" ]; then
-    gum log --level "$level" "$message"
+    if [ "$level_value" -eq 4 ]; then
+      gum style \
+        "$(gum style --foreground 23 'TRACE') $*" >&2
+    else
+      gum log --level "$level" "$message"
+    fi
   fi
   # Return 1 for ERROR and FATAL levels
   if [ "$level_value" -ge 6 ]; then

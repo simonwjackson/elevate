@@ -1,27 +1,25 @@
 check_host_latency() {
-  local current_latency=$1
-  local max_latency=$2
-  local host=$3
+  local max_latency=$1
+  local host=$2
+  local measured_latency
 
-  if (($(echo "$current_latency == 0" | bc -l))); then
-    if measured_latency=$(measure_latency "$host"); then
-      debug "Measured latency: $measured_latency ms"
-      current_latency=$measured_latency
-    else
-      local default_latency=1
-      warn "Failed to measure latency. Using default value: $default_latency ms"
-      current_latency=$default_latency
-    fi
-  else
-    info "Using provided latency: $current_latency ms"
+  if ((max_latency == 0)); then
+    return 0
   fi
 
-  if (($(echo "$max_latency > 0" | bc -l))) && (($(echo "$current_latency > $max_latency" | bc -l))); then
-    error "Measured latency ($current_latency ms) is higher than the specified maximum ($max_latency ms). Aborting."
+  if ! measured_latency=$(measure_latency "$host"); then
+    warn "Failed to measure latency. Continuing anyway."
+    return 0
+  fi
+
+  debug "Measured latency: $measured_latency ms"
+
+  if (($(echo "$measured_latency > $max_latency" | bc -l))); then
+    error "Measured latency ($measured_latency ms) exceeds maximum ($max_latency ms). Aborting."
     return 1
   fi
 
-  echo "$current_latency"
+  # Latency is within acceptable range
   return 0
 }
 

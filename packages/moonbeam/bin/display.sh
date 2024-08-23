@@ -42,27 +42,22 @@ get_lowest_resolution() {
 }
 
 get_effective_max_fps() {
-  local max_fps_set=$1
-  local current_max_fps=$2
+  local current_max_fps=$1
   local display_fps
 
   display_fps="$(get_display_refresh_rate)"
   debug "System refresh rate: $display_fps"
 
-  if [[ "$max_fps_set" != "true" ]]; then
-    debug "No max FPS specified. Using display refresh rate: $display_fps"
-    echo "$display_fps"
-  else
-    local lower_fps
-    lower_fps=$(get_lowest_value "$current_max_fps" "$display_fps")
+  # debug "No max FPS specified. Using display refresh rate: $display_fps"
+  local lower_fps
+  lower_fps=$(get_lowest_value "$current_max_fps" "$display_fps")
 
-    if [[ "$lower_fps" != "$current_max_fps" ]]; then
-      warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
-    fi
-
-    debug "Using FPS: $lower_fps"
-    echo "$lower_fps"
+  if [[ "$lower_fps" != "$current_max_fps" ]]; then
+    warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
   fi
+
+  debug "Using FPS: $lower_fps"
+  echo "$lower_fps"
 }
 
 get_lowest_value() {
@@ -95,25 +90,22 @@ convert_shorthand_resolution() {
 }
 
 get_effective_max_resolution() {
-  local max_resolution_set=$1
-  local resolution_set=$2
-  local shorthand_res_set=$3
-  local current_max_resolution=$4
+  local requested_resolution=$1
   local system_resolution
+  local lower_resolution
 
   system_resolution=$(get_display_resolution)
   debug "System resolution: $system_resolution"
 
-  if [[ "$max_resolution_set" != "true" && "$resolution_set" != "true" && "$shorthand_res_set" != "true" ]]; then
-    debug "No resolution specified. Using system resolution: $system_resolution"
-    echo "$system_resolution"
-  else
-    local lower_resolution
-    lower_resolution=$(get_lowest_resolution "$current_max_resolution" "$system_resolution")
+  # debug "No resolution specified. Using system resolution: $system_resolution"
+  lower_resolution=$(
+    get_lowest_resolution \
+      "$requested_resolution" \
+      "$system_resolution"
+  )
 
-    if [[ "$lower_resolution" != "$current_max_resolution" ]]; then
-      warn "Requested resolution ($current_max_resolution) is higher than system resolution ($system_resolution). Using system resolution."
-    fi
+  if [[ "$lower_resolution" != "$requested_resolution" ]]; then
+    warn "Requested resolution ($requested_resolution) is higher than system resolution ($system_resolution). Using system resolution."
 
     debug "Using resolution: $lower_resolution"
     echo "$lower_resolution"
@@ -196,12 +188,47 @@ get_display_resolution_xorg() {
   '
 }
 
+get_rotated_resolution() {
+  local width=$1
+  local height=$2
+  local transform=$3
+
+  case $transform in
+  normal | 0 | 180)
+    echo "${width}x${height}"
+    ;;
+  90 | 270)
+    echo "${height}x${width}"
+    ;;
+  *)
+    error "Unknown transform $transform"
+    echo "${width}x${height}"
+    ;;
+  esac
+}
+
+get_display_resolution_hyprland() {
+  local monitor_info
+  monitor_info=$(hyprctl monitors -j | jq -r '.[0]')
+
+  local width height transform
+  width=$(echo "$monitor_info" | jq -r '.width')
+  height=$(echo "$monitor_info" | jq -r '.height')
+  transform=$(echo "$monitor_info" | jq -r '.transform')
+
+  get_rotated_resolution "$width" "$height" "$transform"
+}
+
+get_display_refresh_rate_hyprland() {
+  hyprctl monitors -j | jq -r '.[0].refreshRate' | awk '{printf "%.0f\n", $1}'
+}
+
 get_display_resolution() {
   local result
   local methods=(
+    "get_display_resolution_hyprland"
     "get_display_resolution_kde"
     "get_display_resolution_xorg"
-    # Add more methods here in the future
   )
   for method in "${methods[@]}"; do
     if type "$method" &>/dev/null; then
@@ -221,6 +248,7 @@ get_display_refresh_rate() {
 
   # List of functions to try, in order of preference
   local methods=(
+    "get_display_refresh_rate_hyprland"
     "get_display_refresh_rate_kde"
     "get_display_refresh_rate_xorg"
     # Add more methods here in the future
