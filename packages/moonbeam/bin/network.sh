@@ -1,3 +1,18 @@
+#!/bin/bash
+
+##
+# @file network.sh
+# @brief Network utility functions for latency checking and bitrate optimization.
+# @author Unknown
+# @date Unknown
+
+##
+# @brief Check if the latency to a host is within acceptable limits.
+#
+# @param max_latency The maximum acceptable latency in milliseconds.
+# @param host The hostname or IP address to check.
+#
+# @return 0 if latency is acceptable, 1 if it exceeds the maximum.
 check_host_latency() {
   local max_latency=$1
   local host=$2
@@ -23,6 +38,15 @@ check_host_latency() {
   return 0
 }
 
+##
+# @brief Calculate the optimal bitrate based on network conditions and video parameters.
+#
+# @param available_bitrate The maximum available bitrate in Kbps.
+# @param max_resolution The maximum video resolution.
+# @param max_fps The maximum frames per second.
+# @param host The hostname or IP address to measure network speed against.
+#
+# @return The optimal bitrate in Kbps.
 get_optimal_bitrate() {
   local available_bitrate=$1
   local max_resolution=$2
@@ -66,6 +90,13 @@ get_optimal_bitrate() {
   fi
 }
 
+##
+# @brief Measure network speed to a specific host using iperf3.
+#
+# @param host The hostname or IP address to measure speed against.
+# @param port The port to use for the iperf3 test.
+#
+# @return The measured network speed in Kbps, or 1 on failure.
 measure_network_speed_to_host() {
   local host=$1
   local port=$2
@@ -114,6 +145,12 @@ measure_network_speed_to_host() {
   return 1
 }
 
+##
+# @brief Measure latency to a specific host using ping.
+#
+# @param host The hostname or IP address to measure latency against.
+#
+# @return The measured latency in milliseconds, or 1 on failure.
 measure_latency() {
   local host=$1
   local ping_result

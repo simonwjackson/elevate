@@ -2,6 +2,13 @@
 
 source ./log.sh
 
+##
+# @brief Check if a resolution string is valid
+#
+# @param $1 The resolution string to check (format: WIDTHxHEIGHT)
+#
+# @return 0 if valid, 1 if invalid
+#
 is_valid_resolution() {
   local resolution="$1"
   local width height
@@ -33,6 +40,15 @@ is_valid_resolution() {
 #   return 1
 # fi
 
+##
+# @brief Generate scaled resolutions between min and max resolutions
+#
+# @param $1 Minimum resolution (format: WIDTHxHEIGHT)
+# @param $2 Maximum resolution (format: WIDTHxHEIGHT)
+# @param $3 Number of scaling steps
+#
+# @return Prints the list of scaled resolutions
+#
 generate_scaled_resolutions() {
   local min_resolution="$1"
   local max_resolution="$2"
@@ -68,6 +84,14 @@ generate_scaled_resolutions() {
   } | sort -t'x' -k1,1n -k2,2n | uniq
 }
 
+##
+# @brief Estimate the required bitrate for a given resolution and FPS
+#
+# @param $1 Resolution (format: WIDTHxHEIGHT)
+# @param $2 Frames per second (FPS)
+#
+# @return Estimated bitrate in Kbps
+#
 estimate_required_bitrate() {
   local resolution="$1"
   local fps="$2"
@@ -97,6 +121,16 @@ estimate_required_bitrate() {
   echo "$estimated_bitrate"
 }
 
+##
+# @brief Find the best FPS for a given latency
+#
+# @param $1 Latency in milliseconds
+# @param $2 Minimum FPS
+# @param $3 Maximum FPS
+# @param $4 Space-separated string of valid FPS values
+#
+# @return The best FPS value
+#
 find_best_fps_for_latency() {
   local latency="$1"
   local min_fps="$2"
@@ -144,6 +178,20 @@ find_best_fps_for_latency() {
   echo "$best_fps"
 }
 
+##
+# @brief Optimize streaming settings based on given parameters
+#
+# @param $1 Minimum FPS
+# @param $2 Maximum FPS
+# @param $3 Minimum resolution (format: WIDTHxHEIGHT)
+# @param $4 Maximum resolution (format: WIDTHxHEIGHT)
+# @param $5 Available bandwidth in Kbps
+# @param $6 Latency in milliseconds
+# @param $7 Preference ("fps" or "resolution")
+# @param $8 Number of scaling steps
+#
+# @return Optimized resolution, FPS, and bitrate
+#
 optimize_streaming_settings() {
   local min_fps="$1"
   local max_fps="$2"
@@ -240,6 +288,13 @@ optimize_streaming_settings() {
 # result=$(calculate_scaled_resolutions "640x360" "1920x1080" 9)
 # echo "Scaled resolutions: $result"
 
+##
+# @brief Parse a resolution string into width and height
+#
+# @param $1 Resolution string (format: WIDTHxHEIGHT)
+#
+# @return Space-separated width and height
+#
 parse_resolution() {
   local res=$1
   local width height
@@ -254,10 +309,26 @@ parse_resolution() {
   fi
 }
 
+##
+# @brief Round a number to the nearest integer
+#
+# @param $1 Number to round
+#
+# @return Rounded number
+#
 round() {
   printf "%.0f" "$1"
 }
 
+##
+# @brief Scale a resolution by a given factor
+#
+# @param $1 Current width
+# @param $2 Current height
+# @param $3 Scale factor
+#
+# @return Space-separated scaled width and height
+#
 scale_resolution() {
   local current_width=$1
   local current_height=$2
@@ -271,6 +342,17 @@ scale_resolution() {
   echo "$new_width $new_height"
 }
 
+##
+# @brief Generate a list of resolutions between current and target
+#
+# @param $1 Current width
+# @param $2 Current height
+# @param $3 Target width
+# @param $4 Target height
+# @param $5 Number of resolutions to generate
+#
+# @return List of space-separated width-height pairs
+#
 generate_resolutions() {
   local current_width=$1
   local current_height=$2
@@ -303,6 +385,15 @@ generate_resolutions() {
   done
 }
 
+##
+# @brief Calculate scaled resolutions between current and target
+#
+# @param $1 Current resolution (format: WIDTHxHEIGHT)
+# @param $2 Target resolution (format: WIDTHxHEIGHT)
+# @param $3 Number of resolutions to generate (default: 9)
+#
+# @return Space-separated list of scaled resolutions
+#
 calculate_scaled_resolutions() {
   local current_res=$1
   local target_res=$2
@@ -317,6 +408,14 @@ calculate_scaled_resolutions() {
     awk '{ printf "%dx%d ", $1, $2 }' | sed 's/ $//'
 }
 
+##
+# @brief Find the minimum viable resolution between min and max
+#
+# @param $1 Minimum resolution (format: WIDTHxHEIGHT)
+# @param $2 Maximum resolution (format: WIDTHxHEIGHT)
+#
+# @return The minimum viable resolution
+#
 minimum_viable_resolution() {
   local min=$1
   local max=$2
@@ -344,6 +443,16 @@ minimum_viable_resolution() {
 #   return 1
 # fi
 
+##
+# @brief Find factors of a number within a given range
+#
+# @param $1 Range start
+# @param $2 Range end
+# @param $3 Multiplier
+# @param $4 Maximum number of factors to return (optional, default: -1 for all)
+#
+# @return Space-separated list of factors
+#
 find_factors_in_range() {
   local range_start=$1
   local range_end=$2

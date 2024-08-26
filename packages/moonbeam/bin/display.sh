@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+###
+# @brief Limits the maximum display values based on system capabilities.
+#
+# @param max_resolution_set Whether a max resolution is set
+# @param resolution_set The set resolution
+# @param shorthand_res_set The shorthand resolution set
+# @param max_resolution The maximum resolution
+# @param max_fps_set Whether a max FPS is set
+# @param max_fps The maximum FPS
+#
+# @return A string containing the effective max resolution and max FPS
+#
 limit_max_display_values() {
   local max_resolution_set=$1
   local resolution_set=$2
@@ -23,6 +35,12 @@ limit_max_display_values() {
   echo "$new_max_resolution" "$new_max_fps"
 }
 
+# @brief Compares two resolutions and returns the one with the lower area.
+#
+# @param res1 First resolution in format "widthxheight"
+# @param res2 Second resolution in format "widthxheight"
+#
+# @return The resolution with the lower area
 get_lowest_resolution() {
   local res1="$1"
   local res2="$2"
@@ -41,6 +59,11 @@ get_lowest_resolution() {
   fi
 }
 
+# @brief Determines the effective maximum FPS based on system capabilities.
+#
+# @param current_max_fps The current maximum FPS setting
+#
+# @return The effective maximum FPS
 get_effective_max_fps() {
   local current_max_fps=$1
   local display_fps
@@ -60,6 +83,12 @@ get_effective_max_fps() {
   echo "$lower_fps"
 }
 
+# @brief Returns the lower of two values.
+#
+# @param x First value
+# @param y Second value
+#
+# @return The lower of the two input values
 get_lowest_value() {
   local x="$1"
   local y="$2"
@@ -71,6 +100,11 @@ get_lowest_value() {
   fi
 }
 
+# @brief Converts shorthand resolution notation to full "widthxheight" format.
+#
+# @param shorthand The shorthand resolution notation
+#
+# @return The full resolution in "widthxheight" format
 convert_shorthand_resolution() {
   local shorthand=$1
   shorthand=${shorthand%p}
@@ -89,6 +123,11 @@ convert_shorthand_resolution() {
   esac
 }
 
+# @brief Determines the effective maximum resolution based on system capabilities.
+#
+# @param requested_resolution The requested maximum resolution
+#
+# @return The effective maximum resolution
 get_effective_max_resolution() {
   local requested_resolution=$1
   local system_resolution
@@ -112,6 +151,11 @@ get_effective_max_resolution() {
   fi
 }
 
+# @brief Calculates the area of a given resolution.
+#
+# @param resolution The resolution in "widthxheight" format
+#
+# @return The area of the resolution (width * height)
 calculate_resolution_area_calculate_resolution_area() {
   local resolution="$1"
   local width height
@@ -120,6 +164,9 @@ calculate_resolution_area_calculate_resolution_area() {
   echo $((width * height))
 }
 
+# @brief Retrieves the display resolution for KDE environments.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_kde() {
   if ! command -v kscreen-doctor &>/dev/null; then
     exit 1
@@ -157,6 +204,9 @@ get_display_resolution_kde() {
   fi
 }
 
+# @brief Retrieves the display resolution for X.Org environments.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_xorg() {
   if ! command -v kscreen-doctor &>/dev/null; then
     exit 1
@@ -196,6 +246,13 @@ get_display_resolution_xorg() {
   '
 }
 
+# @brief Calculates the rotated resolution based on the transform.
+#
+# @param width The original width
+# @param height The original height
+# @param transform The rotation transform (0, 90, 180, 270, or "normal")
+#
+# @return The rotated resolution in "widthxheight" format
 get_rotated_resolution() {
   local width=$1
   local height=$2
@@ -215,6 +272,9 @@ get_rotated_resolution() {
   esac
 }
 
+# @brief Retrieves the display resolution for Hyprland environments.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_hyprland() {
   local monitor_info
 
@@ -232,10 +292,16 @@ get_display_resolution_hyprland() {
   get_rotated_resolution "$width" "$height" "$transform"
 }
 
+# @brief Retrieves the display refresh rate for Hyprland environments.
+#
+# @return The display refresh rate as an integer
 get_display_refresh_rate_hyprland() {
   hyprctl monitors -j | jq -r '.[0].refreshRate' | awk '{printf "%.0f\n", $1}'
 }
 
+# @brief Retrieves the display resolution using available methods.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution() {
   local result
   local methods=(
@@ -256,6 +322,9 @@ get_display_resolution() {
   return 1
 }
 
+# @brief Retrieves the display refresh rate using available methods.
+#
+# @return The display refresh rate as an integer, or exits with 1 if unsuccessful
 get_display_refresh_rate() {
   local result
 
@@ -281,6 +350,9 @@ get_display_refresh_rate() {
   return 1
 }
 
+# @brief Retrieves the display refresh rate for KDE environments.
+#
+# @return The display refresh rate as an integer
 get_display_refresh_rate_kde() {
   kscreen-doctor -o 2>/dev/null | awk '
         /Output:/ {output=$2; connected=0; priority=-1}
@@ -300,6 +372,9 @@ get_display_refresh_rate_kde() {
     '
 }
 
+# @brief Retrieves the display refresh rate for X.Org environments.
+#
+# @return The display refresh rate as an integer
 get_display_refresh_rate_xorg() {
   xrandr 2>/dev/null | awk '
         /connected/ {

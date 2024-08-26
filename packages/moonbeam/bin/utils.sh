@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+##
+# @file utils.sh
+# @brief Utility functions for Moonbeam configuration and argument processing.
+# @details This file contains various utility functions used for handling
+# Moonbeam configuration, processing command-line arguments, and displaying
+# configuration information.
+
+##
+# @brief Apply display limits to the configuration.
+# @return 0 on success, 1 on failure.
+# @details This function applies the maximum resolution and FPS limits
+# to the current configuration.
 apply_display_limits() {
   local streaming_params
 
@@ -17,6 +29,12 @@ apply_display_limits() {
   read -r CONFIG["max_resolution"] CONFIG["max_fps"] <<<"$streaming_params"
 }
 
+##
+# @brief Convert command-line arguments to an associative array.
+# @param args_array Name of the associative array to store the arguments.
+# @return 0 on success, 1 on failure.
+# @details This function processes command-line arguments and stores them
+# in an associative array, handling both long and short options.
 convert_args_to_assoc_array() {
   set -E # Enable error trapping
   trap 'error "Error on line $LINENO. Exit code: $?"' ERR
@@ -77,7 +95,12 @@ convert_args_to_assoc_array() {
   return 0
 }
 
-# Helper function to convert bitrate values
+##
+# @brief Convert bitrate values to a standardized format.
+# @param value The bitrate value to convert.
+# @return The converted bitrate value in Kbps.
+# @details This function converts bitrate values from various formats
+# (e.g., "5Mbps", "500Kbps") to a standardized Kbps value.
 convert_bitrate_value() {
   local value="$1"
   local numeric_value
@@ -94,15 +117,29 @@ convert_bitrate_value() {
   fi
 }
 
-# Helper function to convert latency values (remove 'ms' suffix if present)
+##
+# @brief Convert latency values to a standardized format.
+# @param value The latency value to convert.
+# @return The converted latency value without the 'ms' suffix.
+# @details This function removes the 'ms' suffix from latency values if present.
 convert_latency_value() {
   echo "${1%ms}" # Remove 'ms' suffix if present
 }
 
+##
+# @brief Set a configuration value.
+# @param key The configuration key to set.
+# @param value The value to set for the given key.
+# @details This function sets a value in the CONFIG associative array.
 set_config() {
   CONFIG[$1]="$2"
 }
 
+##
+# @brief Present the current configuration in a formatted output.
+# @param cfg Name of the associative array containing the configuration.
+# @details This function displays the current configuration in a
+# user-friendly format using the gum utility for styling.
 present_config() {
   local -n cfg=$1
 
