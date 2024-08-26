@@ -1,3 +1,9 @@
+import? "packages/battery/justfile"
+import? "packages/tdp/justfile"
+import? "packages/steam-launch/justfile"
+import? "packages/service/justfile"
+import? "packages/runner/justfile"
+import? "packages/elevate/justfile"
 import? "packages/moonbeaming/justfile"
 import? "packages/moonbeam/justfile"
 

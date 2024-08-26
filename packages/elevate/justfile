@@ -1,8 +1,7 @@
 # This justfile dynamically runs tasks from package.json scripts
 # Set the default shell to bash
 
-
 [group('cli')]
-moonbeam *args:
-    nix run .#moonbeam -- {{args}}
+elevate *args:
+    nix run .#elevate -- {{args}}
 

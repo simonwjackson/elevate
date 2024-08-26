@@ -1,6 +1,6 @@
 {
-  "name": "moonbeaming",
-  "description": "moonbeaming",
+  "name": "moonbeam.ing",
+  "description": "moonbeam website",
   "type": "module",
   "version": "0.0.1",
   "dependencies": {

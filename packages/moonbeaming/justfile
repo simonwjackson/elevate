@@ -1,17 +1,14 @@
 # This justfile dynamically runs tasks from package.json scripts
 # Set the default shell to bash
 
-moonbeaming-default:
-    @just --list
-
 [group('development')]
-@moonbeaming-dev:
-    nix develop .#moonbeaming --command bunx --bun astro dev
+moonbeaming-dev:
+    nix develop .#moonbeam.ing --command bunx --bun astro dev
 
 [group('production')]
 moonbeaming-build:
-    nix develop .#moonbeaming --command bunx --bun astro check && nix develop .#moonbeaming --command bunx --bun astro build
+    nix develop .#moonbeam.ing --command bunx --bun astro check && nix develop .#moonbeam.ing --command bunx --bun astro build
 
 [group('production')]
 moonbeaming-preview:
-    nix develop .#moonbeaming --command bunx --bun astro preview 
+    nix develop .#moonbeam.ing --command bunx --bun astro preview 
