@@ -1,0 +1,11 @@
+# This justfile dynamically runs tasks from package.json scripts
+# Set the default shell to bash
+
+set shell := ["bash", "-c"]
+
+moonbeam-default:
+    @just --list
+
+moonbeam *args:
+    nix run .#moonbeam -- {{args}}
+
