@@ -1,0 +1,16 @@
+# This justfile dynamically runs tasks from package.json scripts
+# Set the default shell to bash
+
+set shell := ["bash", "-c"]
+
+default:
+    @just --list
+
+dev:
+    nix develop .#moonbeaming --command bunx --bun astro dev
+
+build:
+    nix develop .#moonbeaming --command bunx --bun astro check && nix develop .#moonbeaming --command bunx --bun astro build
+
+preview:
+    nix develop .#moonbeaming --command bunx --bun astro preview 
