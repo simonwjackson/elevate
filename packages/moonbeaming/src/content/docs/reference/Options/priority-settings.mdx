@@ -1,0 +1,97 @@
+---
+title: Priority  
+description: Learn how to set streaming priorities in Moonbeam to optimize for either resolution or frame rate
+sidebar:
+  order: 5
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+When streaming games, you often need to balance between visual quality (resolution) and smooth motion (FPS). Moonbeam allows you to prioritize one over the other using the priority setting, helping you achieve the best possible experience based on your preferences and network conditions.
+
+## Setting Priority
+
+Use the `--priority` option to set your streaming priority:
+
+```bash
+moonbeam --priority resolution stream MyHost "My Game"
+```
+
+or
+
+```bash
+moonbeam --priority fps stream MyHost "My Game"
+```
+
+## Priority Options
+
+Moonbeam supports two priority options:
+
+1. `fps` (default): Prioritizes maintaining the highest possible frame rate, potentially at the cost of resolution.
+2. `resolution`: Prioritizes maintaining the highest possible resolution, potentially at the cost of frame rate.
+
+:::note
+If no priority is specified, Moonbeam defaults to prioritizing FPS.
+:::
+
+## Best Practices
+
+1. **Game-Specific Tuning**: Choose your priority based on the type of game:
+   - For fast-paced, competitive games (e.g., FPS, racing games), prioritize FPS.
+   - For visually rich games where detail is important (e.g., exploration games, RPGs), prioritize resolution.
+
+2. **Network Considerations**: On less stable or slower networks, prioritizing FPS often provides a smoother experience.
+
+3. **Display Capabilities**: Consider your display's capabilities when setting priority:
+   - If you have a high refresh rate monitor (e.g., 144Hz), prioritizing FPS can take full advantage of it.
+   - If you have a 4K display but a more limited network, prioritizing resolution can help maintain visual clarity.
+
+4. **Combine with Other Settings**: Use priority in conjunction with max/min resolution and FPS settings for fine-grained control:
+
+   ```bash
+   moonbeam --priority resolution --max-resolution 1920x1080 --min-resolution 1280x720 --max-fps 60 --min-fps 30 stream MyHost "My Game"
+   ```
+
+   This setup prioritizes resolution but still ensures a minimum of 30 FPS.
+
+<Steps>
+
+1. Start with the default FPS priority:
+   ```bash
+   moonbeam stream MyHost "My Game"
+   ```
+
+2. If you notice the game looks pixelated or lacks detail, switch to resolution priority:
+   ```bash
+   moonbeam --priority resolution stream MyHost "My Game"
+   ```
+
+3. Adjust other settings (max/min resolution and FPS) to fine-tune the experience while maintaining your chosen priority.
+
+</Steps>
+
+:::tip
+For most action and multiplayer games, prioritizing FPS usually provides the best overall experience. Switch to resolution priority for games where visual detail is more important than fluid motion.
+:::
+
+## Examples
+
+### Prioritizing Smooth Motion for a Fast-Paced Game
+
+```bash
+moonbeam --priority fps --max-fps 144 --min-fps 60 --max-resolution 1920x1080 --min-resolution 1280x720 stream MyHost "FastPacedGame"
+```
+
+This configuration prioritizes maintaining a high frame rate (between 60 and 144 FPS) and will lower the resolution if necessary to maintain smooth gameplay.
+
+### Prioritizing Visual Quality for a Scenic Game
+
+```bash
+moonbeam --priority resolution --max-resolution 3840x2160 --min-resolution 1920x1080 --max-fps 60 --min-fps 30 stream MyHost "ScenicGame"
+```
+
+This setup prioritizes maintaining high resolution (between 1080p and 4K) and will lower the frame rate if necessary to preserve visual detail.
+
+:::caution
+Remember that prioritizing one aspect (resolution or FPS) may lead to noticeable reductions in the other, especially on limited networks. Always be prepared to adjust your settings for the best balance.
+:::

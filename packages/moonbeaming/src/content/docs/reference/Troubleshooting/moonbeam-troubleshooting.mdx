@@ -1,0 +1,222 @@
+---
+title: Troubleshooting Moonbeam
+description: A comprehensive guide to troubleshooting Moonbeam, including using dry run mode and resolving common issues
+slug: troubleshooting
+sidebar:
+  order: 1
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+While Moonbeam is designed to provide a smooth streaming experience, you may encounter issues from time to time. This guide covers how to use dry run mode for testing and debugging, as well as common problems and their solutions to help you get back to streaming quickly.
+
+## Dry Run Mode
+
+Moonbeam's dry run mode is a powerful feature that allows you to test your streaming configuration without actually initiating a stream. This is particularly useful for debugging, testing new settings, or verifying your setup before committing to a full streaming session.
+
+### Enabling Dry Run Mode
+
+To use dry run mode, simply add the `--dry-run` flag to your Moonbeam command:
+
+```bash
+moonbeam --dry-run stream MyHost "My Game"
+```
+
+### What Dry Run Mode Does
+
+When you use dry run mode, Moonbeam will:
+
+1. Parse all your command-line arguments
+2. Perform all the usual pre-stream checks and calculations
+3. Display the final Moonlight command that would be executed
+4. Show you the optimized streaming settings
+5. Exit without actually starting the stream
+
+<Steps>
+
+1. Run your Moonbeam command with the `--dry-run` flag.
+
+2. Review the output, which includes calculated settings and the final Moonlight command.
+
+3. Make any necessary adjustments to your command or setup.
+
+4. Run the dry run again if needed, or proceed with the actual streaming command.
+
+</Steps>
+
+:::tip
+Dry run mode is an excellent way to experiment with different settings and see how Moonbeam will optimize them, without the overhead of starting an actual stream.
+:::
+
+### Understanding Dry Run Output
+
+The dry run output typically includes:
+
+- <Badge text="Resolved Settings" /> The final resolution, FPS, and bitrate that Moonbeam calculated based on your inputs and system capabilities.
+- <Badge text="Network Info" variant="note" /> Results of network speed tests and latency measurements.
+- <Badge text="Moonlight Command" variant="caution" /> The exact Moonlight command that would be executed.
+
+Here's an example of what the output might look like:
+
+```
+Moonbeam Configuration:
+* Resolution: 1280x720 - 1920x1080
+* FPS: 30 - 60
+* Max Bitrate: 20Mbps
+* Max Latency: 50ms
+* Priority: fps
+* Reconnect: true
+
+Calculated optimal settings:
+Resolution: 1600x900
+FPS: 60
+Bitrate: 15Mbps
+
+Command: moonlight --resolution 1600x900 --fps 60 --bitrate 15000 stream MyHost "My Game"
+```
+
+### Use Cases for Dry Run Mode
+
+1. **Debugging**: Quickly identify issues with your command or configuration.
+2. **Testing New Settings**: Experiment with different options to see how they affect the final streaming parameters.
+3. **Documentation**: Generate examples of optimized settings for different scenarios.
+4. **Scripting**: Use dry run mode in scripts to programmatically determine optimal settings.
+
+:::caution
+Remember that dry run mode doesn't actually test the connection to your host or start a stream. It's a simulation based on your current network conditions and system capabilities.
+:::
+
+## Common Issues and Solutions
+
+If you're still experiencing issues after using dry run mode, here are some common problems and their solutions:
+
+### Connection Failures
+
+<Steps>
+
+1. **Issue**: Moonbeam fails to connect to the host computer.
+
+   **Solution**: 
+   - Ensure both your client and host are on the same network.
+   - Check if the host computer is powered on and running Sunshine.
+   - Verify that the correct hostname or IP address is being used.
+   - Check your firewall settings on both the host and client.
+
+2. **Issue**: "Unable to connect to host" error message.
+
+   **Solution**:
+   - Try using the IP address of the host instead of the hostname.
+   - Ensure that Sunshine is running on the host computer.
+   - Check if the required ports (47984, 47989, 48010) are open on your router.
+
+</Steps>
+
+### Performance Issues
+
+<Steps>
+
+1. **Issue**: Stuttering or laggy gameplay.
+
+   **Solution**:
+   - Lower the streaming resolution or FPS using the `--max-resolution` and `--max-fps` options.
+   - Reduce network congestion by closing other bandwidth-heavy applications.
+   - Try using a wired Ethernet connection instead of Wi-Fi.
+
+2. **Issue**: Poor image quality.
+
+   **Solution**:
+   - Increase the bitrate using the `--bitrate` option.
+   - Ensure your network can handle the increased data load.
+   - Consider upgrading your router or network infrastructure.
+
+</Steps>
+
+### Audio Problems
+
+<Steps>
+
+1. **Issue**: No audio during streaming.
+
+   **Solution**:
+   - Check if audio is muted on either the host or client.
+   - Ensure the correct audio output device is selected on your client.
+   - Try restarting both Moonbeam and Sunshine.
+
+2. **Issue**: Audio delay or desync.
+
+   **Solution**:
+   - Lower the streaming quality to reduce latency.
+   - Check for any audio processing software that might be causing delays.
+   - Ensure your audio drivers are up to date.
+
+</Steps>
+
+### Input Issues
+
+<Steps>
+
+1. **Issue**: Keyboard or mouse input not registering.
+
+   **Solution**:
+   - Check if your input devices are properly connected.
+   - Ensure no other application is capturing your inputs.
+   - Try using the `--absolute-mouse` option for better mouse control.
+
+2. **Issue**: Controller not working.
+
+   **Solution**:
+   - Verify that your controller is properly connected and recognized by your system.
+   - Use the `--multi-controller` option if you're using multiple controllers.
+   - Check if the controller works locally outside of Moonbeam.
+
+</Steps>
+
+:::tip
+If you're experiencing persistent issues, try running Moonbeam with the `--debug` option to get more detailed logging information. This can help identify the root cause of the problem.
+:::
+
+### Resolution and Display Issues
+
+<Steps>
+
+1. **Issue**: Incorrect resolution or aspect ratio.
+
+   **Solution**:
+   - Use the `--resolution` option to manually set the desired resolution.
+   - Ensure your display settings on the host match your client's capabilities.
+   - Check if your GPU drivers are up to date on both the host and client.
+
+2. **Issue**: Black screen after connection.
+
+   **Solution**:
+   - Wait a few seconds as sometimes it takes a moment for the stream to start.
+   - Try restarting both Moonbeam and Sunshine.
+   - Check if the game or application has actually launched on the host.
+
+</Steps>
+
+### Network-related Problems
+
+<Steps>
+
+1. **Issue**: High latency or input lag.
+
+   **Solution**:
+   - Use the `--max-latency` option to set a latency limit.
+   - Reduce network congestion by closing other applications.
+   - Consider using a wired connection instead of Wi-Fi.
+
+2. **Issue**: Frequent disconnections.
+
+   **Solution**:
+   - Enable the `--reconnect` option to automatically reconnect.
+   - Check your Wi-Fi signal strength or consider using a wired connection.
+   - Ensure your router firmware is up to date.
+
+</Steps>
+
+:::caution
+Remember that streaming performance is highly dependent on your network conditions. Always ensure you have a stable and fast network connection for the best experience.
+:::
+
+By utilizing Moonbeam's dry run mode and addressing these common issues, you should be able to resolve most problems encountered while using Moonbeam. If you continue to experience difficulties, consider checking the [Moonbeam documentation](/getting-started/introduction) or seeking help from the [community forums](/reference/Appendices/13-3-glossary-of-terms#getting-support).

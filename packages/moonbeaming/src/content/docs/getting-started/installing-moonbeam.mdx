@@ -1,0 +1,279 @@
+---
+title: Installing
+description: A comprehensive guide to installing Moonbeam, a Moonlight optimization tool for Linux nomads
+sidebar:
+  order: 2
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+This guide will walk you through various methods of installing and using Moonbeam, a powerful tool for optimizing Moonlight game streaming on Linux systems.
+
+## Prerequisites
+
+Before you begin, ensure that you have:
+
+- A Linux-based operating system
+- Administrative (sudo) access to your system
+- A stable internet connection
+
+:::note
+Moonbeam is designed for Linux systems. Windows & macOS are not supported at this time.
+:::
+
+## Installing Nix
+
+Moonbeam relies on the Nix package manager. If you don't already have Nix installed, follow these steps:
+
+<Steps>
+
+1. Open a terminal on your Linux system.
+
+2. Run the following command to install Nix:
+
+   ```bash title="Installing Nix..."
+   sh <(curl -L https://nixos.org/nix/install) --daemon
+   ```
+
+3. Follow the on-screen prompts to complete the installation.
+
+4. After installation, restart your terminal or run:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+5. Verify the installation:
+
+   ```bash
+   nix --version
+   ```
+
+   You should see output similar to:
+
+   ```
+   nix (Nix) 2.3.12
+   ```
+
+</Steps>
+
+:::caution
+Always read and understand any scripts before executing them on your system.
+:::
+
+## Setting Up Nix Flakes
+
+Nix Flakes provide a more deterministic and reproducible way to manage Nix packages. Here's how to enable them:
+
+<Steps>
+
+1. Edit your Nix configuration file:
+
+   ```bash
+   sudo nano /etc/nix/nix.conf
+   ```
+
+2. Add or modify the following line:
+
+   ```
+   experimental-features = nix-command flakes
+   ```
+
+3. Save the file and exit the editor.
+
+4. Restart the Nix daemon:
+
+   ```bash
+   sudo systemctl restart nix-daemon
+   ```
+
+</Steps>
+
+## Try Moonbeam Without Installing
+
+You can run Moonbeam directly without installing it using:
+
+```bash
+nix run github:simonwjackson/elevate#moonbeam
+```
+
+To pass options to Moonbeam when using this method, simply add them after the package name:
+
+```bash
+nix run github:simonwjackson/elevate#moonbeam -- --help
+```
+
+This method is perfect for trying out Moonbeam without making any changes to your system.
+
+## Installing Moonbeam
+
+Now you have several options to install Moonbeam:
+
+### Option 1: Install Using nix-env
+
+To install Moonbeam globally using `nix-env`:
+
+```bash
+nix-env -iA github:simonwjackson/elevate#moonbeam
+```
+
+:::caution
+This method is not recommended for NixOS systems as it can lead to conflicts with the declarative system configuration.
+:::
+
+### Option 2: Building from Source
+
+For the latest development version:
+
+<Steps>
+
+1. Clone the Elevate repository:
+
+   ```bash
+   git clone https://github.com/simonwjackson/elevate.git
+   ```
+
+2. Change to the Elevate directory:
+
+   ```bash
+   cd elevate
+   ```
+
+3. Build and install Moonbeam.
+
+   ```bash title="Building and installing Moonbeam..."
+   nix profile install .#moonbeam
+   ```
+
+4. Verify the installation:
+
+   ```bash
+   moonbeam --version
+   ```
+
+</Steps>
+
+:::tip[Updating Moonbeam]
+To update a source installation of Moonbeam:
+
+```bash
+cd elevate
+git pull
+nix profile upgrade .#moonbeam
+```
+:::
+
+Certainly! I'll update Option 3 to include two separate sections: one for using Flakes (which is the more modern approach) and one for the older method without Flakes. Here's the revised Option 3 section:
+
+### Option 3: Add to NixOS Configuration
+
+For NixOS users, you can add Moonbeam to your system configuration. There are two methods to do this:
+
+#### Using Flakes
+
+<Steps>
+
+1. If you haven't already, enable Flakes in your NixOS configuration by adding the following to your `configuration.nix`:
+
+   ```nix
+   nix = {
+     package = pkgs.nixFlakes;
+     extraOptions = ''
+       experimental-features = nix-command flakes
+     '';
+   };
+   ```
+
+2. Create or edit your `flake.nix` file in your NixOS configuration directory:
+
+   ```bash
+   sudo nano /etc/nixos/flake.nix
+   ```
+
+3. Add Moonbeam to your inputs and include it in your system configuration:
+
+   ```nix
+   {
+     inputs = {
+       nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+       elevate.url = "github:simonwjackson/elevate";
+     };
+
+     outputs = { self, nixpkgs, elevate }: {
+       nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+         system = "x86_64-linux";
+         modules = [
+           ./configuration.nix
+           ({ pkgs, ... }: {
+             environment.systemPackages = [ elevate.packages.x86_64-linux.moonbeam ];
+           })
+         ];
+       };
+     };
+   }
+   ```
+
+   Replace `your-hostname` with your actual hostname.
+
+4. Rebuild your NixOS configuration:
+
+   ```bash
+   sudo nixos-rebuild switch --flake /etc/nixos
+   ```
+
+</Steps>
+
+#### Without Flakes (Legacy Method)
+
+If you're not using Flakes, you can still add Moonbeam to your NixOS configuration:
+
+<Steps>
+
+1. Edit your `configuration.nix`:
+
+   ```bash
+   sudo nano /etc/nixos/configuration.nix
+   ```
+
+2. Add the Elevate repository as a Nix channel and include Moonbeam in your system packages:
+
+   ```nix
+   { config, pkgs, ... }:
+
+   let
+     elevate = import (builtins.fetchTarball {
+       url = "https://flakehub.com/f/simonwjackson/elevate/*.tar.gz";
+     }) {};
+   in
+   {
+     # ... your other configuration ...
+
+     environment.systemPackages = with pkgs; [
+       # ... your other packages ...
+       elevate.moonbeam
+     ];
+   }
+   ```
+
+3. Rebuild your NixOS configuration:
+
+   ```bash
+   sudo nixos-rebuild switch
+   ```
+
+</Steps>
+
+
+## Verifying the Installation
+
+Regardless of the installation method, you can verify Moonbeam is correctly installed by running:
+
+```bash
+moonbeam --version
+```
+
+You should see output indicating the version of Moonbeam you've installed.
+
+Congratulations! You have successfully installed or set up Moonbeam on your Linux system. You're now ready to start optimizing your Moonlight game streaming experience.
+
+<Badge text="Next Steps" variant="success" /> Proceed to the "Basic Usage" section to learn how to use Moonbeam for streaming games and applications.

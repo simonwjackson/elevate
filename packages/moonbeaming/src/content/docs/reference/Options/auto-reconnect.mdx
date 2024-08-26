@@ -1,0 +1,65 @@
+---
+title: Auto-reconnect 
+description: Learn how to use Moonbeam's auto-reconnect feature for uninterrupted streaming sessions
+sidebar:
+  order: 6
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+Moonbeam offers an auto-reconnect feature that helps maintain your streaming session even when faced with temporary network disruptions. This feature is particularly useful for users with unstable internet connections or those who frequently switch between networks.
+
+## Enabling Auto-reconnect
+
+To enable the auto-reconnect functionality, use the `--reconnect` flag when launching your Moonbeam streaming session:
+
+```bash
+moonbeam --reconnect stream MyHost "My Game"
+```
+
+## How Auto-reconnect Works
+
+When auto-reconnect is enabled, Moonbeam will:
+
+1. Monitor the connection status during your streaming session.
+2. Detect any unexpected disconnections.
+3. Automatically attempt to re-establish the connection.
+4. Resume the streaming session from where it left off, if possible.
+
+<Steps>
+
+1. Moonbeam detects a disconnection event.
+
+2. It immediately begins trying to reconnect to the host.
+
+3. Once reconnected, Moonbeam will attempt to resume the streaming session.
+
+4. If successful, your game or application will continue from where it left off.
+
+</Steps>
+
+:::tip
+Auto-reconnect is especially useful for mobile setups or when using Moonbeam on laptops that might frequently change Wi-Fi networks.
+:::
+
+## Limitations and Considerations
+
+While auto-reconnect is a powerful feature, it's important to understand its limitations:
+
+- <Badge text="Time Limit" /> There's a maximum time limit for reconnection attempts (usually around 60 seconds).
+- <Badge text="Game State" variant="caution" /> Some games may not properly resume if disconnected for too long.
+- <Badge text="Network Changes" variant="note" /> Major network changes (e.g., switching from Wi-Fi to cellular) may require a manual restart.
+
+## Best Practices
+
+To make the most of the auto-reconnect feature:
+
+1. Ensure your host computer is set to remain awake and doesn't enter sleep mode.
+2. For critical gaming sessions, consider using a wired connection on both the host and client side.
+3. If you experience frequent disconnections, try lowering your stream quality settings.
+
+:::caution
+While auto-reconnect can help maintain your session, it's not a substitute for a stable network connection. For the best experience, always try to use a reliable internet connection.
+:::
+
+By utilizing Moonbeam's auto-reconnect functionality, you can enjoy more stable and uninterrupted streaming sessions, even in less-than-ideal network conditions.

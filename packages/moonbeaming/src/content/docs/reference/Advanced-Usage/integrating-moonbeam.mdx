@@ -1,0 +1,119 @@
+---
+title: Integrating Moonbeam with Other Tools
+description: Learn how to integrate Moonbeam with other tools to enhance your game streaming experience
+---
+import { Steps, Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Moonbeam, being fully compatible with Moonlight, can be integrated with various tools to create a more tailored streaming setup. This section covers several examples of such integrations, demonstrating Moonbeam's flexibility and backwards compatibility with Moonlight.
+
+## Gamescope Integration
+
+Gamescope, a micro-compositing window manager, can be particularly useful when streaming games. For Moonbeam (and Moonlight) users, its primary benefit is the upscaling technology it provides.
+
+<Steps>
+
+1. Install Gamescope:
+
+   <Tabs syncKey="os">
+   <TabItem label="Nix">
+   ```bash
+   nix-env -iA nixpkgs.gamescope
+   ```
+   </TabItem>
+   <TabItem label="Ubuntu">
+   ```bash
+   sudo add-apt-repository ppa:kisak/kisak-mesa
+   sudo apt update
+   sudo apt install gamescope
+   ```
+   </TabItem>
+   <TabItem label="Arch">
+   ```bash
+   sudo pacman -S gamescope
+   ```
+   </TabItem>
+   <TabItem label="Fedora">
+   ```bash
+   sudo dnf install gamescope
+   ```
+   </TabItem>
+   </Tabs>
+
+2. Use Gamescope with Moonbeam:
+
+   ```bash
+   gamescope -f -F fsr -- moonbeam stream <HOST> <APP> --max-resolution 720p --max-fps 120 --priority fps
+   ```
+
+   This command launches your stream in a Gamescope window with FSR (FidelityFX Super Resolution) upscaling enabled. The double dash (`--`) separates Gamescope options from the Moonbeam command, ensuring each application correctly interprets its own options.
+
+</Steps>
+
+:::tip
+Gamescope can help improve visual quality when streaming at lower resolutions, thanks to its upscaling capabilities.
+:::
+
+## Gamemode Integration
+
+Gamemode is a daemon that can optimize your system for gaming. While primarily designed for local gaming, it can potentially benefit streaming setups as well.
+
+<Steps>
+
+1. Install Gamemode:
+
+   <Tabs syncKey="os">
+   <TabItem label="Nix">
+   ```bash
+   nix-env -iA nixpkgs.gamemode
+   ```
+   </TabItem>
+   <TabItem label="Ubuntu">
+   ```bash
+   sudo apt install gamemode
+   ```
+   </TabItem>
+   <TabItem label="Arch">
+   ```bash
+   sudo pacman -S gamemode
+   ```
+   </TabItem>
+   <TabItem label="Fedora">
+   ```bash
+   sudo dnf install gamemode
+   ```
+   </TabItem>
+   </Tabs>
+
+2. Use Gamemode with Moonbeam:
+
+   ```bash
+   gamemoderun moonbeam stream <HOST> <APP>
+   ```
+
+   This command applies Gamemode optimizations while running your Moonbeam stream.
+
+</Steps>
+
+:::caution
+Gamemode may conflict with some power management tools. Test thoroughly to ensure compatibility with your system.
+:::
+
+## Integration with Desktop Environments
+
+You can create desktop shortcuts or menu entries for quick access to your favorite games through Moonbeam. This method works for both Moonbeam and standard Moonlight.
+
+Create a `.desktop` file in `~/.local/share/applications/`:
+
+```ini
+[Desktop Entry]
+Name=Stream Game
+Exec=moonbeam stream <HOST> "My Favorite Game"
+Type=Application
+Categories=Game;
+```
+
+This creates a menu entry that launches your specified game through Moonbeam when clicked.
+
+:::note
+Replace `<HOST>` and `"My Favorite Game"` with your actual host and game name.
+:::
