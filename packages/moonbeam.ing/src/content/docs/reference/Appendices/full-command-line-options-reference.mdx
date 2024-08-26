@@ -1,0 +1,165 @@
+---
+title: Moonbeam Command-Line Options Reference
+description: A comprehensive guide to all command-line options available in Moonbeam
+sidebar:
+  order: 2
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+
+# Full Command-Line Options Reference
+
+This section provides a detailed reference for all command-line options available in Moonbeam. Understanding these options will help you fine-tune your streaming experience and take full advantage of Moonbeam's capabilities.
+
+## Basic Usage
+
+The basic structure of a Moonbeam command is:
+
+```bash
+moonbeam [options] stream <host> <app>
+```
+
+- `<host>`: The hostname or IP address of your streaming host
+- `<app>`: The name of the application or game you want to stream
+
+## Moonbeam-Specific Options
+
+These options are unique to Moonbeam and provide additional functionality beyond standard Moonlight options.
+
+### Resolution Options
+
+```bash
+--resolution <WxH>           Set both min and max resolution (e.g., 1920x1080)
+--max-resolution <WxH>       Maximum resolution (e.g., 1920x1080)
+--min-resolution <WxH>       Minimum resolution (e.g., 640x360)
+--resolution-steps <steps>   Number of steps for resolution scaling (default: 128)
+```
+
+:::tip
+You can also use shorthand resolution options like `--360`, `--720`, `--1080`, `--4K`, etc., to quickly set both min and max resolution to common presets.
+:::
+
+### FPS Options
+
+```bash
+--fps <fps>                  Set both min and max FPS (e.g., 60)
+--max-fps <fps>              Maximum FPS (e.g., 120)
+--min-fps <fps>              Minimum FPS (e.g., 30)
+```
+
+### Bitrate Options
+
+```bash
+--bitrate <bitrate>          Available bitrate in Kbps
+--max-bitrate <max_bitrate>  Maximum bitrate in Kbps
+```
+
+### Latency Option
+
+```bash
+--max-latency <ms>           Maximum allowed latency in milliseconds
+```
+
+### Priority Option
+
+```bash
+-p, --priority <resolution|fps>  Prioritize resolution or FPS in optimization (default: fps)
+```
+
+### Other Moonbeam Options
+
+```bash
+--log-level <level>          Set log level (QUIET, INFO, WARN, DEBUG, TRACE, VERBOSE)
+--dry-run                    Show the Moonlight command without executing it
+--reconnect                  Automatically reconnect if the stream is disconnected
+```
+
+## Standard Moonlight Options
+
+Moonbeam supports all standard Moonlight options. Here are some of the most commonly used ones:
+
+### Display Options
+
+```bash
+--vsync                      Use V-Sync
+--no-vsync                   Do not use V-Sync
+--display-mode <mode>        Select display mode: borderless/fullscreen/windowed
+```
+
+### Audio Options
+
+```bash
+--audio-config <config>      Select audio config: 5.1-surround/7.1-surround/stereo
+--mute-on-focus-loss         Mute audio when Moonlight window loses focus
+--no-mute-on-focus-loss      Do not mute audio on focus loss
+```
+
+### Input Options
+
+```bash
+--multi-controller           Use multiple controller support
+--absolute-mouse             Use remote desktop optimized mouse control
+--mouse-buttons-swap         Swap left and right mouse buttons
+--touchscreen-trackpad       Use touchscreen in trackpad mode
+```
+
+### Performance Options
+
+```bash
+--game-optimization          Use game optimizations
+--frame-pacing               Use frame pacing
+--no-frame-pacing            Do not use frame pacing
+```
+
+### Video Options
+
+```bash
+--hdr                        Use HDR streaming
+--no-hdr                     Do not use HDR streaming
+--video-codec <codec>        Select video codec: AV1/H.264/HEVC/auto
+--video-decoder <decoder>    Select video decoder
+```
+
+### Miscellaneous Options
+
+```bash
+--quit-after                 Quit app after session
+--keep-awake                 Prevent display sleep while streaming
+--performance-overlay        Show performance overlay
+--capture-system-keys <mode> Select capture system key combos: always/fullscreen/never
+```
+
+:::note
+This list doesn't cover all available Moonlight options. For a complete and up-to-date list, refer to the official Moonlight documentation or run `moonlight --help`.
+:::
+
+## Examples
+
+Here are some example commands to help you get started:
+
+1. Stream a game with automatic settings:
+
+```bash
+moonbeam stream myhost "My Favorite Game"
+```
+
+2. Set a specific resolution and FPS:
+
+```bash
+moonbeam --resolution 1920x1080 --fps 60 stream myhost "My Favorite Game"
+```
+
+3. Use auto-reconnect and prioritize resolution:
+
+```bash
+moonbeam --reconnect --priority resolution stream myhost "My Favorite Game"
+```
+
+4. Dry run with custom bitrate and latency limits:
+
+```bash
+moonbeam --dry-run --max-bitrate 50000 --max-latency 20 stream myhost "My Favorite Game"
+```
+
+By combining these options, you can create a streaming experience tailored to your specific needs and network conditions.

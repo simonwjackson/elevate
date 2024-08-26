@@ -1,0 +1,126 @@
+---
+title: FPS Settings
+description: Learn how to configure FPS settings in Moonbeam for Moonlight streaming
+sidebar:
+  order: 2
+---
+
+Frames per second (FPS) significantly impacts perceived smoothness in gaming. Moonbeam provides options to constrain the minimum and maximum FPS settings to consider before starting a Moonlight stream.
+
+:::tip
+If you're unsure about your network conditions or experiencing inconsistent performance, try running Moonbeam without any FPS flags. This allows the software to dynamically find optimal settings for your situation.
+:::
+
+:::note
+Once the stream starts, the FPS rate remains static regardless of the option used.
+:::
+
+## Configuring FPS
+
+Moonbeam offers two main approaches to constrain FPS optimization:
+
+### 1. Refining FPS Range with `--max-fps` and `--min-fps`
+
+These options let you define the range of FPS values that Moonbeam will consider during connection analysis:
+
+```bash
+moonbeam --max-fps 120 --min-fps 60 stream MyHost "My Game"
+```
+
+This command restricts Moonbeam to consider FPS values between 60 and 120 when launching Moonlight.
+
+:::note
+If you don't specify `--max-fps`, moonbeam automatically detects and uses your display's refresh rate as the maximum FPS. This is ideal in most situations.
+:::
+
+### 2. Setting a Specific FPS with `--fps`
+
+To set a fixed frame rate, use the `--fps` option:
+
+```bash
+moonbeam --fps 60 stream MyHost "My Game"
+```
+
+This setting is equivalent to the FPS option in the standard Moonlight client.
+
+
+## Fine-tuning with FPS Scaling Steps
+
+The `--fps-steps` option allows for more granular control over FPS optimization:
+
+```bash
+moonbeam --max-fps 120 --min-fps 30 --fps-steps 2 stream MyHost "My Game"
+```
+
+This option determines the number of intermediate FPS values Moonbeam will consider. Here are some examples:
+
+1. `--fps-steps 1` (default): FPS options are 30, 60, 120
+2. `--fps-steps 2`: FPS options are 30, 40, 60, 80, 120
+3. `--fps-steps 3`: FPS options are 30, 37, 45, 60, 75, 90, 120
+
+:::tip
+Consider these trade-offs when choosing a step count:
+
+- Lower step count (e.g., 1):
+  + Less potential for screen tearing
+  - Moonbeam may choose a lower framerate due to fewer options
+
+- Higher step count (e.g., 2 or 3):
+  + Higher risk of screen tearing
+  + Moonbeam is more likely to find a higher FPS for your network connection
+:::
+
+If you experience screen tearing with higher `--fps-steps` values, try adding Moonlight's `--vsync` option:
+
+```bash
+moonbeam --max-fps 120 --min-fps 30 --fps-steps 3 --vsync stream MyHost "My Game"
+```
+
+This can help reduce screen tearing but may affect responsiveness.
+
+## FPS Priority
+
+The `--priority fps` option instructs Moonbeam to favor frame rate over resolution when determining optimal streaming settings. Before starting the stream, Moonbeam calculates bandwidth requirements for various resolutions at the target FPS, selecting the best combination your network can support.
+
+For example:
+
+```bash
+moonbeam --priority fps --max-fps 120 --max-resolution 4K stream MyHost "My Game"
+```
+
+With this configuration, Moonbeam will consider the bandwidth needed for all screen resolutions at 120fps before calculate the optimal settings, considering the following resolutions and the target 120 FPS:
+
+1. 4K (3840x2160)
+2. 1440p (2560x1440)
+3. 1080p (1920x1080)
+4. 720p (1280x720)
+
+If Moonbeam's pre-stream calculations determine that your network cannot sustain 120 FPS at any of these resolutions, it will then consider lower frame rates (calculated from --fps-steps) at each resolution, starting again from the highest (4K in this case).
+
+Moonbeam will select the combination of resolution and FPS that best meets the priority of maintaining high FPS while staying within your network's capabilities. This selected configuration is then used to initiate the stream.
+
+:::note
+For more detailed information about priority settings, including how to balance FPS and resolution priorities, please refer to the [Priority Settings](./4-5-priority-settings) page.
+:::
+
+Best Practices for FPS Configuration
+
+1. **Match Your Display**: Without specifying `--max-fps`, moonbeam will set the value to your display's refresh rate.
+
+2. **Consider Your Network**:
+   - For stable, low-latency connections: Consider a higher FPS range for improved visual fluidity.
+   - For high-latency connections (e.g., cellular networks or satellite internet): Use a lower FPS range (e.g., `--max-fps 60 --min-fps 30`) or omit FPS flags to allow automatic adjustment.
+
+3. **Flexible FPS Range**: Using a wide FPS range allows moonbeam to find the ideal setting. For unstable connections, consider omitting FPS constraints entirely.
+
+4. **Balance FPS and Resolution**: Higher FPS requires more bandwidth. Adjust both FPS and resolution based on your game's needs and network capacity.
+
+:::caution
+Setting an FPS higher than your display's refresh rate or the game's maximum FPS provides no visible benefit and may waste bandwidth. In such cases, moonbeam will likely automatically reduce the FPS to match your current display's refresh rate.
+:::
+
+:::note
+All settings, including FPS, are locked once the moonlight client connects to the host. Currently, it's not possible to change these settings during an active Moonlight session. To modify settings, you'll need to disconnect and restart the stream.
+:::
+
+By understanding and utilizing these FPS settings, you can effectively optimize Moonlight's behavior for Moonbeam across various network conditions and game types. Experiment to find the best balance for your specific setup and preferences.

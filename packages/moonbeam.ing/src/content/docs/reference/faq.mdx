@@ -1,0 +1,74 @@
+---
+title: Frequently Asked Questions
+description: Answers to common questions about using Moonbeam for game streaming on Linux
+---
+
+## General Questions
+
+### How does Moonbeam differ from Moonlight?
+
+Moonbeam is a wrapper around Moonlight that enhances the user experience, particularly for Linux users. It automates many of the settings and optimizations that users would otherwise have to configure manually. Importantly, Moonbeam is fully backwards compatible with Moonlight, so you can use it seamlessly with existing Moonlight setups.
+
+### Is Moonbeam compatible with all Linux distributions?
+
+Moonbeam is compatible with practically all modern Linux distributions. As long as your distribution can run Moonlight, it should be able to run Moonbeam.
+
+### Do I need special hardware to use Moonbeam?
+
+The hardware requirements for Moonbeam are the same as those for Moonlight. If your system can run Moonlight, it can run Moonbeam.
+
+### Can I use Moonbeam on non-Linux systems?
+
+Currently, Moonbeam is designed specifically for Linux systems and is not available for other operating systems. Support for non-Linux systems is unlikely to be added in the near future.
+
+## Setup and Installation
+
+### How do I set up Sunshine on my host PC?
+
+For detailed instructions on setting up Sunshine on your host PC, please refer to the [official Sunshine documentation](https://docs.lizardbyte.dev/projects/sunshine/en/latest/about/setup.html).
+
+### Can I use Moonbeam with NVIDIA GeForce Experience instead of Sunshine?
+
+Yes, just like Moonlight, Moonbeam can be used with NVIDIA GeForce Experience as the host software. Moonbeam is compatible with any host setup that works with Moonlight.
+
+## Misc
+
+### Can I use Moonbeam to stream non-game applications?
+
+Absolutely! Most installations of Sunshine have a "Desktop" mode preconfigured, which allows you to stream your entire desktop. This enables you to use any application on your host PC through Moonbeam.
+
+### How does Moonbeam handle different network conditions?
+
+Moonbeam is designed to adapt to various network conditions automatically. For a detailed explanation of how Moonbeam optimizes streaming based on your network, please refer to our [Network Considerations](/reference/Troubleshooting/understanding-network-speed-tests) guide.
+
+### What does the "dry run" mode do and when should I use it?
+
+Dry run mode allows you to see what settings Moonbeam would use without actually starting a stream. It's useful for testing configurations or debugging issues. For more information, check out our [Troubleshooting](/reference/Troubleshooting/moonbeam-troubleshooting#dry-run-mode) guide.
+
+### Where can I find Moonbeam's log files for debugging?
+
+Moonbeam's log files are located at `/tmp/moonbeam.log`. These logs can be very helpful when troubleshooting issues or reporting bugs.
+
+## Advanced Usage
+
+### Is it possible to use Moonbeam in scripts or automation?
+
+Yes, Moonbeam can be easily integrated into scripts or automation workflows. For examples and best practices, please see our [Scripting with Moonbeam](/reference/Advanced-Usage/scripting) guide.
+
+### Are there any plans for future features in Moonbeam?
+
+While Moonbeam is mostly feature-complete, we have a few experimental features that we're considering for future releases. Stay tuned to our GitHub repository for updates and announcements.
+
+## Compatibility
+
+### Can I use Moonbeam on a Steam Deck?
+
+Yes, Moonbeam works on the Steam Deck, just as Moonlight does. In fact, Moonbeam is especially useful for portable devices like the Steam Deck, as it can automatically optimize streaming settings for varying network conditions.
+
+### Is Moonbeam compatible with cloud gaming services?
+
+No, Moonbeam (like Moonlight) is designed as a self-hosted solution for game streaming. It's not compatible with commercial cloud gaming services.
+
+### Can I use Moonbeam on a Raspberry Pi or other single-board computers?
+
+While we haven't personally tested Moonbeam on single-board computers like the Raspberry Pi, there's no reason why it shouldn't work. As long as the device can run Moonlight and meets the minimum requirements, Moonbeam should be able to function.
