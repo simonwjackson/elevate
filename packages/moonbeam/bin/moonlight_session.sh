@@ -229,7 +229,7 @@ run_moonlight_session() {
         "${local_config[extra_moonlight_options]}"
     )
 
-    present_config local_config
+    present_config local_config "$new_latency" "$new_available_bitrate"
 
     debug "Command: $moonlight_cmd"
 

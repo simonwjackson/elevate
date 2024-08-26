@@ -208,7 +208,7 @@ get_display_resolution_kde() {
 #
 # @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_xorg() {
-  if ! command -v kscreen-doctor &>/dev/null; then
+  if ! command -v xrandr &>/dev/null; then
     exit 1
   fi
 
@@ -296,6 +296,10 @@ get_display_resolution_hyprland() {
 #
 # @return The display refresh rate as an integer
 get_display_refresh_rate_hyprland() {
+  if ! command -v hyprctl &>/dev/null; then
+    exit 1
+  fi
+
   hyprctl monitors -j | jq -r '.[0].refreshRate' | awk '{printf "%.0f\n", $1}'
 }
 
@@ -318,6 +322,7 @@ get_display_resolution() {
       fi
     fi
   done
+
   warn "Error: Could not determine display resolution"
   return 1
 }
@@ -354,6 +359,10 @@ get_display_refresh_rate() {
 #
 # @return The display refresh rate as an integer
 get_display_refresh_rate_kde() {
+  if ! command -v kscreen-doctor &>/dev/null; then
+    exit 1
+  fi
+
   kscreen-doctor -o 2>/dev/null | awk '
         /Output:/ {output=$2; connected=0; priority=-1}
         /connected/ {connected=1}
@@ -376,6 +385,10 @@ get_display_refresh_rate_kde() {
 #
 # @return The display refresh rate as an integer
 get_display_refresh_rate_xorg() {
+  if ! command -v xrandr &>/dev/null; then
+    exit 1
+  fi
+
   xrandr 2>/dev/null | awk '
         /connected/ {
             output = $1

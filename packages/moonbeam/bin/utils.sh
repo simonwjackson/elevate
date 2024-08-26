@@ -142,6 +142,8 @@ set_config() {
 # user-friendly format using the gum utility for styling.
 present_config() {
   local -n cfg=$1
+  local current_latency=$2
+  local current_bandwith=$2
 
   format_key() {
     local key="$1"
@@ -205,12 +207,12 @@ present_config() {
 
         # Handle latency
         if [[ -n "${cfg[max_latency]}" ]]; then
-          echo "* Max Latency: $(format_value max_latency "${cfg[max_latency]}")"
+          echo "* Latency: ${current_latency}ms ($(format_value max_latency "${cfg[max_latency]}") Max)"
         fi
 
         # Handle bitrate
         if [[ -n "${cfg[max_bitrate]}" ]]; then
-          echo "* Max Bitrate: $(format_value max_bitrate "${cfg[max_bitrate]}")"
+          echo "* Bitrate: ${current_bandwith}Mbps ($(format_value max_bitrate "${cfg[max_bitrate]}") Max)"
         fi
 
         for key in "${!cfg[@]}"; do
