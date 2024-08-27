@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+VERSION="__VERSION__"
+
 set -euo pipefail
 
 source ./log.sh
@@ -63,6 +65,7 @@ Moonbeam Options:
   --dry-run                                    Show the Moonlight command without executing it
   --reconnect                                  Automatically reconnect if the stream is disconnected
   -h, --help                                   Show this help message
+  --version                                    Show version information
 
 Moonlight Options:
   --vsync                                      Use V-Sync.
@@ -218,22 +221,26 @@ set_early_log_level() {
 }
 
 process_args() {
-  handle_non_stream_command() {
-    local moonlight_cmd="moonlight $*"
-    eval "$moonlight_cmd"
-  }
-
-  if [[ ! " $* " =~ " stream " ]]; then
-    local moonlight_cmd="moonlight $*"
-    handle_non_stream_command "$@" |
-      sed \
-        -e 's/Moonlight/Moonbeam/g' \
-        -e "s/moonlight/$(basename "$0")/g"
-    exit $?
-  fi
+  # handle_non_stream_command() {
+  #   local moonlight_cmd="moonlight $*"
+  #   eval "$moonlight_cmd"
+  # }
+  #
+  # if [[ ! " $* " =~ " stream " ]]; then
+  #   local moonlight_cmd="moonlight $*"
+  #   handle_non_stream_command "$@" |
+  #     sed \
+  #       -e 's/Moonlight/Moonbeam/g' \
+  #       -e "s/moonlight/$(basename "$0")/g"
+  #   exit $?
+  # fi
 
   while [[ $# -gt 0 ]]; do
     case $1 in
+    --version)
+      echo "Moonbeam version $VERSION"
+      exit 0
+      ;;
     --help | -h)
       echo "$usage_doc"
       exit 0

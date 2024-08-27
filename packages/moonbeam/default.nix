@@ -1,4 +1,5 @@
 {
+  lib,
   inputs,
   bash,
   pkgs,
@@ -16,7 +17,6 @@
     gnused
     gum
     iperf3
-    iperf3
     iputils
     jq
     moonlight-qt
@@ -26,20 +26,35 @@
   ];
 
   inputBins = map (pkg: "${pkg}/bin") commonInputs;
+
+  generateVersion = let
+    getDate = pkgs.writeShellScript "get-date" ''
+      date +%Y.%m.%d
+    '';
+
+    sourceHash = builtins.substring 0 8 (builtins.hashString "sha256" (builtins.readFile ./bin/moonbeam));
+  in
+    pkgs.lib.removeSuffix "\n" (builtins.readFile (pkgs.runCommand "version" {} ''
+      date=$(${getDate})
+      echo "$date-${sourceHash}" > $out
+    ''));
 in
   resholve.mkDerivation rec {
     pname = "moonbeam";
-    version = "0.1.0";
+    version = generateVersion;
     src = ./.;
 
     buildInputs =
       [pkgs.bats]
       ++ commonInputs;
 
-    patchPhase = with pkgs; ''
+    patchPhase = ''
       # HACK
-      sed -i 's| -- iperf| -- ${iperf3}/bin/iperf3|g' ./bin/moonbeam
-      sed -i 's|log_command="gum|log_command="${lib.getExe gum}|g' ./bin/moonbeam
+      sed -i 's| -- iperf| -- ${pkgs.iperf3}/bin/iperf3|g' ./bin/moonbeam
+      sed -i 's|log_command="gum|log_command="${lib.getExe pkgs.gum}|g' ./bin/moonbeam
+
+      # Replace version placeholder
+      sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
     '';
 
     buildPhase = ''

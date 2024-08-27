@@ -118,7 +118,7 @@ check_for_disconnect() {
   local line="$1"
 
   if [[ "$line" == *"Control stream received unexpected disconnect event"* ]]; then
-    warn "Detected disconnect event. Restarting Moonlight stream."
+    warn "Detected disconnect event."
     return 0
   fi
   return 1
