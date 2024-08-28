@@ -144,6 +144,7 @@ in
           "$method" = true;
           "$stream_started" = true;
           "$command" = true;
+          "$new_latency" = true;
         };
         fake = {
           external = [
