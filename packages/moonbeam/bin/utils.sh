@@ -253,8 +253,8 @@ spin() {
   local frame_count=${#spinner_frames[@]}
   local i=0
 
-  tput civis >&2             # Hide cursor
-  trap 'tput cnorm >&2' EXIT # Ensure cursor is shown even if the script is interrupted
+  tput civis >&2 # Hide cursor
+  trap 'tput cnorm >&2; exit' INT TERM EXIT
 
   sleep 0.2 # Wait a bit to allow the info message to be printed
 
@@ -267,7 +267,7 @@ spin() {
 
   printf "\r%-*s\r" $((${#message} + ${#spinner_frames[0]} + 1)) "" >&2 # Clear the entire line
   tput cnorm >&2                                                        # Show cursor
-}                                                                       # Show cursor
+}
 
 await() {
   local spin_args=()

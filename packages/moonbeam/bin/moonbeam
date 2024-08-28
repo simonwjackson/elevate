@@ -296,7 +296,7 @@ process_args() {
       CONFIG[fps_steps]="$2"
       shift 2
       ;;
-    -p | --priority)
+    --priority)
       set_config "priority" "$2"
       shift 2
       ;;
@@ -341,7 +341,7 @@ main() {
   validate_user_input "$@"
   process_args "$@"
   generate_missing_config
-  # run_moonlight_session CONFIG
+  run_moonlight_session CONFIG
 }
 
 # Only run the main function if the script is being executed directly

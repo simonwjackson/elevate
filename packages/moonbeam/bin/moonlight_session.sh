@@ -179,6 +179,25 @@ moonlight_session() {
 }
 
 ##
+# @brief Checks if Sunshine is online on the host
+# @param host The hostname or IP address of the Sunshine host
+# @return 0 if Sunshine is online, 1 otherwise
+#
+check_sunshine_availability() {
+  local host="$1"
+  local port=47989
+  local timeout=2
+
+  if nc -z -w "$timeout" "$host" "$port" 2>/dev/null; then
+    debug "Sunshine is online on $host:$port"
+    return 0
+  else
+    error "Sunshine is not available on $host:$port"
+    return 1
+  fi
+}
+
+##
 # @brief Runs a Moonlight session with optimized settings and reconnection logic
 # @param $1 Reference to the configuration associative array
 # @return 0 on success, 1 on failure
@@ -189,6 +208,11 @@ run_moonlight_session() {
   log info "Starting Moonlight stream"
 
   while true; do
+    if ! check_sunshine_availability "${local_config[host]}"; then
+      error "Sunshine is not available on the host. Please ensure it's running."
+      return 1
+    fi
+
     if ! new_latency=$(
       await \
         --message "Ping.." \

@@ -21,6 +21,7 @@
     jq
     moonlight-qt
     ncurses5
+    netcat
     procps
     xorg.xrandr
   ];
@@ -134,6 +135,7 @@ in
           "cannot:${jq}/bin/jq"
           "cannot:${moonlight-qt}/bin/moonlight"
           "cannot:${ncurses5}/bin/tput"
+          "cannot:${netcat}/bin/nc"
           "cannot:${procps}/bin/pgrep"
           "cannot:${procps}/bin/ps"
           "cannot:${xorg.xrandr}/bin/xrandr"
