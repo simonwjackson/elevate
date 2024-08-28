@@ -24,6 +24,7 @@
     netcat
     procps
     xorg.xrandr
+    pandoc # Add Pandoc to the inputs
   ];
 
   inputBins = map (pkg: "${pkg}/bin") commonInputs;
@@ -49,6 +50,8 @@ in
       [pkgs.bats]
       ++ commonInputs;
 
+    nativeBuildInputs = [pkgs.pandoc]; # Add Pandoc as a native build input
+
     patchPhase = ''
       # HACK
       sed -i 's| -- iperf| -- ${pkgs.iperf3}/bin/iperf3|g' ./bin/moonbeam
@@ -56,15 +59,23 @@ in
 
       # Replace version placeholder
       sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
+      sed -i "s/__DATE__/$(date +'%B %d, %Y')/g" docs/moonbeam.1.md
     '';
 
     buildPhase = ''
       mkdir -p $out
       cp -R . $out
+
+      # Generate manpage from Markdown
+      ${pkgs.pandoc}/bin/pandoc -s -t man -o moonbeam.1 docs/moonbeam.1.md
     '';
 
     installPhase = ''
       chmod +x $out/bin/*
+
+      # Install the generated manpage
+      mkdir -p $out/share/man/man1
+      cp moonbeam.1 $out/share/man/man1/
     '';
 
     postPatch = ''
@@ -80,13 +91,11 @@ in
     checkPhase = ''
       runHook preCheck
 
-      # export PATH="$out/bin:$PATH"
       cd $out/bin
       ${pkgs.bats.withLibraries (p: [p.bats-support p.bats-assert])}/bin/bats --verbose-run ../tests
 
       runHook postCheck
     '';
-
     # doCheck = true;
 
     solutions = {

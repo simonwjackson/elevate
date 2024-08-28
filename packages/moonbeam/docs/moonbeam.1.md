@@ -1,3 +1,11 @@
+---
+title: MOONBEAM
+section: 1
+header: User Manual
+footer: Moonbeam __VERSION__
+date: __DATE__
+---
+
 # NAME
 
 moonbeam - Optimize Moonlight game streaming for Linux
@@ -9,7 +17,6 @@ moonbeam - Optimize Moonlight game streaming for Linux
 # DESCRIPTION
 
 Moonbeam is a command-line tool that enhances Moonlight game streaming on Linux systems. It automatically configures optimal streaming settings based on network conditions and system capabilities.
-
 Key features:
 
 - Automatic optimization of resolution, frame rate, and bitrate
