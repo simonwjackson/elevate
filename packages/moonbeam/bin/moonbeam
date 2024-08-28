@@ -11,7 +11,7 @@ source ./display.sh
 source ./network.sh
 source ./moonlight_session.sh
 
-export LOG_LEVEL=2
+export LOG_LEVEL=3
 
 declare -A CONFIG
 
