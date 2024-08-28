@@ -189,7 +189,7 @@ run_moonlight_session() {
   log info "Starting Moonlight stream"
 
   while true; do
-    new_latency=$(
+    if ! new_latency=$(
       await \
         --message "Ping.." \
         --speed 0.25 \
@@ -199,11 +199,9 @@ run_moonlight_session() {
         check_host_latency \
         "${local_config[max_latency]}" \
         "${local_config[host]}"
-    )
-
-    if ! $new_latency; then
+    ); then
       error "Stream cancelled due to high latency."
-      return 1
+      exit 0
     fi
 
     new_available_bitrate=$(
@@ -221,6 +219,7 @@ run_moonlight_session() {
     )
 
     debug "Calculating best settings..."
+
     if ! result=$(
       await \
         --message "Building configuration.." \
@@ -253,7 +252,11 @@ run_moonlight_session() {
         "${local_config[extra_moonlight_options]}"
     )
 
-    present_config local_config "$new_latency" "$new_available_bitrate"
+    present_config \
+      local_config \
+      "$best_resolution" \
+      "$best_fps" \
+      "$best_bitrate"
 
     debug "Command: $moonlight_cmd"
 

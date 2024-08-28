@@ -123,6 +123,23 @@ convert_shorthand_resolution() {
   esac
 }
 
+convert_resolution_to_shorthand() {
+  local resolution=$1
+
+  case $resolution in
+  "640x360") echo "360p" ;;
+  "854x480") echo "480p" ;;
+  "960x540") echo "540p" ;;
+  "1600x900") echo "900p" ;;
+  "1280x720") echo "720p" ;;
+  "1920x1080") echo "1080p" ;;
+  "2560x1440") echo "1440p" ;;
+  "2048x1080") echo "2K" ;;
+  "3840x2160") echo "4K" ;;
+  *) echo "$resolution" ;; # Return as-is if not a known resolution
+  esac
+}
+
 # @brief Determines the effective maximum resolution based on system capabilities.
 #
 # @param requested_resolution The requested maximum resolution

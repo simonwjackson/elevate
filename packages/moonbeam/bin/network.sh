@@ -18,23 +18,28 @@ check_host_latency() {
   local host=$2
   local measured_latency
 
-  if ((max_latency == 0)); then
+  # Check if latency measurement is disabled
+  if [[ $max_latency -eq -1 ]]; then
+    echo "0"
     return 0
   fi
 
+  # Measure latency
   if ! measured_latency=$(measure_latency "$host"); then
-    warn "Failed to measure latency. Continuing anyway."
+    warn "Failed to measure latency for $host. Continuing anyway."
+    echo "0"
     return 0
   fi
 
-  debug "Measured latency: $measured_latency ms"
+  debug "Measured latency for $host: ${measured_latency} ms"
 
+  # Compare measured latency with maximum allowed
   if (($(echo "$measured_latency > $max_latency" | bc -l))); then
-    error "Measured latency ($measured_latency ms) exceeds maximum ($max_latency ms). Aborting."
+    error "Measured latency (${measured_latency} ms) exceeds maximum (${max_latency} ms) for $host. Aborting."
     return 1
   fi
 
-  # Latency is within acceptable range
+  echo "$measured_latency"
   return 0
 }
 
@@ -165,13 +170,11 @@ measure_latency() {
       "$host" |
       tail -1 |
       awk '{print $4}' |
-      cut \
-        -d '/' \
-        -f 2
+      cut -d '/' -f 2 |
+      xargs printf "%.0f" 2>/dev/null || echo ""
   )
 
   if [ -z "$ping_result" ]; then
-    latency=1
     error "Failed to measure ping to $host. Check your network connection or host."
     return 1
   fi

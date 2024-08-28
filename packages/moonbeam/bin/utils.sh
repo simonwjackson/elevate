@@ -332,15 +332,52 @@ await() {
   rm "$output_pipe" "$error_pipe" "$progress_pipe"
 }
 
-##
-# @brief Present the current configuration in a formatted output.
-# @param cfg Name of the associative array containing the configuration.
-# @details This function displays the current configuration in a
-# user-friendly format using the gum utility for styling.
+convert_to_mbps() {
+  local kbps=$1
+
+  if [[ "$kbps" =~ ^[0-9]+$ ]]; then
+    echo $(((kbps + 500) / 1000))
+  else
+    echo "$kbps"
+  fi
+}
+
+convert_bool() {
+  local input=$1
+
+  input=$(echo "$input" | tr '[:upper:]' '[:lower:]')
+  case "$input" in
+  true | t | yes | y | 1) echo "Yes" ;;
+  false | f | no | n | 0) echo "No" ;;
+  *) echo "Invalid input" ;;
+  esac
+}
+
 present_config() {
   local -n cfg=$1
+  local resolution=$2
+  local fps=$3
+  local bitrate=$4
+
+  results=$({
+    echo "# Moonbeam Configuration"
+    echo
+    echo "* $(convert_resolution_to_shorthand "$resolution") @ ${fps} fps"
+    echo "* Bitrate: $(convert_to_mbps "$bitrate") Mbps"
+    echo "* Reconnect: $(convert_bool "${cfg[reconnect]}")"
+  } | gum format)
+
+  gum style \
+    --border normal \
+    --margin "1 0" \
+    --padding "0 1 1 0" \
+    --border-foreground 212 "$results"
+}
+
+present_config_detail() {
+  local -n cfg=$1
   local current_latency=$2
-  local current_bandwith=$2
+  local current_bandwidth=$3
 
   format_key() {
     local key="$1"
@@ -367,7 +404,6 @@ present_config() {
     fi
   }
 
-  # Function to handle empty or zero values
   format_value() {
     local key=$1
     local value=$2
@@ -382,10 +418,25 @@ present_config() {
       esac
     else
       case "$key" in
-      max_latency) echo "$(round_latency "$value")ms" ;;
-      max_bitrate) echo "$(convert_to_mbps "$value")Mbps" ;;
+      max_latency | current_latency)
+        local rounded_latency
+        rounded_latency=$(round_latency "$value")
+        [[ "$rounded_latency" == "0" ]] && echo "<1" || echo "$rounded_latency"
+        ;;
+      max_bitrate | current_bitrate) convert_to_mbps "$value" ;;
       *) echo "$value" ;;
       esac
+    fi
+  }
+
+  build_latency_line() {
+    local latency=$1
+    local max_latency=$2
+
+    if [[ max_latency -ge 0 ]]; then
+      echo "* Latency: ${latency}ms (Max: ${max_latency}ms)"
+    else
+      echo "* Latency: Unlimited"
     fi
   }
 
@@ -402,15 +453,9 @@ present_config() {
         echo "* Resolution: $(format_value min_resolution "${cfg[min_resolution]:-N/A}") - $(format_value max_resolution "${cfg[max_resolution]:-N/A}")"
         echo "* FPS: $(format_value min_fps "${cfg[min_fps]:-N/A}") - $(format_value max_fps "${cfg[max_fps]:-N/A}")"
 
-        # Handle latency
-        if [[ -n "${cfg[max_latency]}" ]]; then
-          echo "* Latency: ${current_latency}ms ($(format_value max_latency "${cfg[max_latency]}") Max)"
-        fi
+        build_latency_line "$current_latency" "${cfg[max_latency]}"
 
-        # Handle bitrate
-        if [[ -n "${cfg[max_bitrate]}" ]]; then
-          echo "* Bitrate: ${current_bandwith}Mbps ($(format_value max_bitrate "${cfg[max_bitrate]}") Max)"
-        fi
+        echo "* Bitrate: $(convert_to_mbps "$current_bandwidth")Mbps"
 
         for key in "${!cfg[@]}"; do
           case "$key" in
