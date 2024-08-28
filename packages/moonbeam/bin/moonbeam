@@ -60,8 +60,8 @@ Moonbeam Options:
   --max-fps <fps>                              Maximum FPS (e.g., 120)
   --min-fps <fps>                              Minimum FPS (e.g., 30)
   --max-latency <ms>                           Maximum allowed latency in milliseconds
-  -p, --priority <resolution|fps>              Prioritize resolution or FPS in optimization (default: fps)
-  --log-level <level>                          Set log level (QUIET, INFO, WARN, DEBUG, TRACE, VERBOSE)
+  --priority <resolution|fps>              Prioritize resolution or FPS in optimization (default: fps)
+  --log-level <level>                          Set log level (QUIET, SIMPLE, INFO, WARN, DEBUG, TRACE, VERBOSE)
   --dry-run                                    Show the Moonlight command without executing it
   --reconnect                                  Automatically reconnect if the stream is disconnected
   -h, --help                                   Show this help message
@@ -113,7 +113,6 @@ Arguments:
   <app>                      The application to stream
 
 Note: 
-  - Use either --resolution, --max-resolution, --min-resolution, or one of the preset resolutions (--360, --480, --720, --1080, --1440, --4K)
   - If --max-fps is not provided, it will be determined based on the current display's refresh rate
   - If --bitrate is not provided, it will be calculated based on max resolution and FPS
   - Latency will be automatically detected
@@ -221,19 +220,24 @@ set_early_log_level() {
 }
 
 process_args() {
-  # handle_non_stream_command() {
-  #   local moonlight_cmd="moonlight $*"
-  #   eval "$moonlight_cmd"
-  # }
-  #
-  # if [[ ! " $* " =~ " stream " ]]; then
-  #   local moonlight_cmd="moonlight $*"
-  #   handle_non_stream_command "$@" |
-  #     sed \
-  #       -e 's/Moonlight/Moonbeam/g' \
-  #       -e "s/moonlight/$(basename "$0")/g"
-  #   exit $?
-  # fi
+  if [ $# -eq 0 ]; then
+    echo "$usage_doc"
+    exit 0
+  fi
+
+  handle_non_stream_command() {
+    local moonlight_cmd="moonlight $*"
+    eval "$moonlight_cmd"
+  }
+
+  if [[ ! " $* " =~ " stream " ]]; then
+    local moonlight_cmd="moonlight $*"
+    handle_non_stream_command "$@" |
+      sed \
+        -e 's/Moonlight/Moonbeam/g' \
+        -e "s/moonlight/$(basename "$0")/g"
+    exit $?
+  fi
 
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -337,7 +341,7 @@ main() {
   validate_user_input "$@"
   process_args "$@"
   generate_missing_config
-  run_moonlight_session CONFIG
+  # run_moonlight_session CONFIG
 }
 
 # Only run the main function if the script is being executed directly
