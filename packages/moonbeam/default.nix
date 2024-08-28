@@ -24,7 +24,6 @@
     netcat
     procps
     xorg.xrandr
-    pandoc # Add Pandoc to the inputs
   ];
 
   inputBins = map (pkg: "${pkg}/bin") commonInputs;
@@ -50,8 +49,6 @@ in
       [pkgs.bats]
       ++ commonInputs;
 
-    nativeBuildInputs = [pkgs.pandoc]; # Add Pandoc as a native build input
-
     patchPhase = ''
       # HACK
       sed -i 's| -- iperf| -- ${pkgs.iperf3}/bin/iperf3|g' ./bin/moonbeam
@@ -59,23 +56,19 @@ in
 
       # Replace version placeholder
       sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
-      sed -i "s/__DATE__/$(date +'%B %d, %Y')/g" docs/moonbeam.1.md
     '';
 
     buildPhase = ''
       mkdir -p $out
       cp -R . $out
-
-      # Generate manpage from Markdown
-      ${pkgs.pandoc}/bin/pandoc -s -t man -o moonbeam.1 docs/moonbeam.1.md
     '';
 
     installPhase = ''
+      mkdir -p $out/bin $out/share/bash-completion/completions $out/share/zsh/site-functions
+      cp bin/moonbeam $out/bin/
+      cp completion/moonbeam-completion.bash $out/share/bash-completion/completions/moonbeam
+      cp completion/moonbeam-completion.bash $out/share/zsh/site-functions/_moonbeam
       chmod +x $out/bin/*
-
-      # Install the generated manpage
-      mkdir -p $out/share/man/man1
-      cp moonbeam.1 $out/share/man/man1/
     '';
 
     postPatch = ''
@@ -96,6 +89,7 @@ in
 
       runHook postCheck
     '';
+
     # doCheck = true;
 
     solutions = {

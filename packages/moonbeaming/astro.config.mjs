@@ -9,7 +9,7 @@ export default defineConfig({
   server: { host: true },
   integrations: [
     starlight({
-      title: 'My Docs',
+      title: 'Moonbeam',
       social: {
         github: 'https://github.com/withastro/starlight',
       },

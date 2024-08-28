@@ -163,8 +163,6 @@ nix profile upgrade .#moonbeam
 ```
 :::
 
-Certainly! I'll update Option 3 to include two separate sections: one for using Flakes (which is the more modern approach) and one for the older method without Flakes. Here's the revised Option 3 section:
-
 ### Option 3: Add to NixOS Configuration
 
 For NixOS users, you can add Moonbeam to your system configuration. There are two methods to do this:
@@ -263,6 +261,39 @@ If you're not using Flakes, you can still add Moonbeam to your NixOS configurati
 
 </Steps>
 
+## Shell Completion
+
+To enable shell completion for Moonbeam, follow these steps:
+
+<Steps>
+
+1. Locate the Moonbeam completion script. If you installed Moonbeam using `nix-env -iA`, the script should be located at:
+   ```
+   ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+2. For Bash:
+   Add the following line to your `~/.bashrc` file:
+   ```bash
+   source ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+3. For Zsh:
+   Add the following lines to your `~/.zshrc` file:
+   ```zsh
+   autoload -U +X bashcompinit && bashcompinit
+   source ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+4. Restart your shell or run `source ~/.bashrc` (for Bash) or `source ~/.zshrc` (for Zsh) to apply the changes.
+
+</Steps>
+
+Now you can use tab completion with Moonbeam commands and options.
+
+:::note
+If you installed Moonbeam using a different method, the completion script might be in a different location. You may need to search for it or consult the documentation for your specific installation method.
+:::
 
 ## Verifying the Installation
 
