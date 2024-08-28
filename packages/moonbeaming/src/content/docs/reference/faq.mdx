@@ -3,6 +3,8 @@ title: Frequently Asked Questions
 description: Answers to common questions about using Moonbeam for game streaming on Linux
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+
 ## General Questions
 
 ### How does Moonbeam differ from Moonlight?
@@ -30,6 +32,22 @@ For detailed instructions on setting up Sunshine on your host PC, please refer t
 ### Can I use Moonbeam with NVIDIA GeForce Experience instead of Sunshine?
 
 Yes, just like Moonlight, Moonbeam can be used with NVIDIA GeForce Experience as the host software. Moonbeam is compatible with any host setup that works with Moonlight.
+
+### Why does Moonbeam say Sunshine is not available?
+
+Moonbeam displays this message when it can't establish a connection to Sunshine on your host PC. This could happen for several reasons:
+
+<Steps>
+
+1. Sunshine is not running on your host PC.
+2. Your host PC is turned off or not connected to the network.
+3. There's a firewall blocking the connection (port 47989 needs to be open).
+4. Network issues are preventing communication between your client device and host PC.
+5. Sunshine is misconfigured on the host PC.
+
+</Steps>
+
+To resolve this, first ensure Sunshine is running on your host PC. Then, check your network connectivity and firewall settings. Make sure port 47989 is open for both TCP and UDP traffic. If the problem persists, try restarting Sunshine and/or your host PC.
 
 ## Misc
 

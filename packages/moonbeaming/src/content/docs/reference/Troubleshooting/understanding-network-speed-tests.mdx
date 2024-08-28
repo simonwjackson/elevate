@@ -9,6 +9,10 @@ import { Steps, Badge } from '@astrojs/starlight/components';
 
 Moonbeam's ability to optimize your streaming experience heavily relies on understanding and adapting to your network conditions. This section will help you understand how Moonbeam interacts with your network, performs speed tests and latency measurements, and how these factors affect your streaming experience.
 
+## Sunshine Availability Check
+
+Moonbeam's Sunshine availability check requires open communication on port 47989. This port is used for both TCP and UDP traffic. When setting up your network or configuring firewalls, ensure that this port is open between your client device (where Moonbeam is running) and your host PC (where Sunshine is installed). Failure to have this port open may result in Moonbeam being unable to detect Sunshine, even if it's running correctly on the host.
+
 ## Understanding Network Speed Tests
 
 Moonbeam uses network speed tests to determine the optimal streaming settings for your current network conditions. These tests are crucial for providing you with the best possible streaming experience.
@@ -127,5 +131,3 @@ Moonbeam uses the following general thresholds to adjust streaming parameters:
 :::tip
 For competitive gaming or applications requiring quick reactions, prioritize lower latency. For cinematic games or productivity apps, you might prefer higher quality even with slightly increased latency.
 :::
-
-By understanding how Moonbeam performs and uses network speed tests and latency measurements, you can ensure that you're getting the most optimized streaming experience possible. Always consider both your network speed and latency when configuring Moonbeam for the best results.

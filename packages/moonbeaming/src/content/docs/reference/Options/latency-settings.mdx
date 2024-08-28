@@ -7,7 +7,7 @@ sidebar:
 
 import { Steps, Badge } from '@astrojs/starlight/components';
 
-Latency, or input lag, is a crucial factor in game streaming that affects how responsive your controls feel. Moonbeam provides options to manage latency expectations given your network conditions. Moonbeam doesn't directly control latency, but it can measure and respond to it before initiating a moonlight stream. 
+Latency, or input lag, is a crucial factor in game streaming that affects how responsive your controls feel. Moonbeam provides options to manage latency expectations given your network conditions. Moonbeam doesn't directly control latency, but it can measure and respond to it before initiating a Moonlight stream. 
 
 ## Setting Maximum Latency
 
@@ -20,25 +20,27 @@ moonbeam --max-latency 50 stream MyHost "My Game"
 If the measured latency exceeds this threshold, Moonbeam will warn you and abort the connection. In such cases, you may want to try finding a better network connection or optimizing your current network setup before attempting to stream again.
 
 :::note
-If you don't specify a `--max-latency` value, Moonbeam will not enforce a latency limit but will still attempt to minimize FPS within the constraints of your other settings.
+If you don't specify a `--max-latency` value, Moonbeam will not enforce a latency limit but will still attempt to minimize latency within the constraints of your other settings.
 :::
 
 ## How Moonbeam Responds to Current Latency
 
-1. Moonbeam measures the current network latency to your host.
+1. Moonbeam measures the current network latency to your host using a simple `ping` test.
 2. If the measured latency exceeds your set max latency, Moonbeam will warn you and may abort the stream.
+3. The measured latency is used to optimize other streaming parameters, such as FPS.
 
 ## Best Practices
 
-3. **Game-Specific Tuning**: Adjust based on expectations of the type of game:
-   - For fast-paced, competitive games (e.g., FPS, fighting games), set a lower max latency.
-   - For slower-paced games (e.g., strategy, RPGs), you can likely tolerate higher latency.
-
-3. **Network Considerations**: Your network quality significantly impacts latency. Consider these factors:
+1. **Network Quality**: Your network quality significantly impacts latency. Consider these factors:
    - Physical distance to the host
    - Network congestion
    - Wi-Fi vs. Ethernet connection
 
+2. **Game-Specific Tuning**: Adjust based on the type of game:
+   - For fast-paced, competitive games (e.g., FPS, fighting games), set a lower max latency.
+   - For slower-paced games (e.g., strategy, RPGs), you can likely tolerate higher latency.
+
+3. **Balancing Quality and Responsiveness**: Lower latency often requires sacrificing some video quality. Find the right balance for your needs.
 
 ## Testing Different Latency Scenarios
 
@@ -61,7 +63,7 @@ To simulate different network conditions, you can use the `tc` (traffic control)
    sudo tc qdisc change dev <WIFI> root netem delay 100ms
    ```
 
-5. When you're done testing, remove the artificial delay:
+4. When you're done testing, remove the artificial delay:
    ```bash
    sudo tc qdisc del dev <WIFI> root
    ```
@@ -90,7 +92,7 @@ Here are some additional steps you can take to minimize latency:
 
 ## Game Selection for High-Latency Environments
 
-<Badge text="High Latency" variant="caution"/> In some cases, you might encounter network conditions that result in unavoidably high latency (300ms or more). In these situations, some games are more forgiving and can still provide an enjoyable experience despite the higher latency. These games typically don't require split-second reactions or precise timing, allowing you to play comfortably even with noticeable input lag.
+<Badge text="High Latency" variant="caution"/> In some cases, you might encounter network conditions that result in unavoidably high latency (100ms or more). In these situations, some games are more forgiving and can still provide an enjoyable experience despite the higher latency. These games typically don't require split-second reactions or precise timing, allowing you to play comfortably even with noticeable input lag.
 
 ### Games Suitable for High-Latency Environments
 

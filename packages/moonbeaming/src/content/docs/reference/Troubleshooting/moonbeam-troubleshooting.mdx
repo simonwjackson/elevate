@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting Moonbeam
-description: A comprehensive guide to troubleshooting Moonbeam, including using dry run mode and resolving common issues
+description: A comprehensive guide to troubleshooting Moonbeam
 slug: troubleshooting
 sidebar:
   order: 1
@@ -8,7 +8,7 @@ sidebar:
 
 import { Steps, Badge } from '@astrojs/starlight/components';
 
-While Moonbeam is designed to provide a smooth streaming experience, you may encounter issues from time to time. This guide covers how to use dry run mode for testing and debugging, as well as common problems and their solutions to help you get back to streaming quickly.
+While Moonbeam is designed to provide a smooth streaming experience, you may encounter issues from time to time. This guide covers how to use dry run mode and log levels for testing and debugging, as well as common problems and their solutions to help you get back to streaming quickly.
 
 ## Dry Run Mode
 
@@ -48,42 +48,69 @@ When you use dry run mode, Moonbeam will:
 Dry run mode is an excellent way to experiment with different settings and see how Moonbeam will optimize them, without the overhead of starting an actual stream.
 :::
 
-### Understanding Dry Run Output
+## Log Levels
 
-The dry run output typically includes:
+Moonbeam provides various log levels to help you diagnose issues and understand the internal workings of the application.
 
-- <Badge text="Resolved Settings" /> The final resolution, FPS, and bitrate that Moonbeam calculated based on your inputs and system capabilities.
-- <Badge text="Network Info" variant="note" /> Results of network speed tests and latency measurements.
-- <Badge text="Moonlight Command" variant="caution" /> The exact Moonlight command that would be executed.
+### Available Log Levels
 
-Here's an example of what the output might look like:
+Moonbeam supports the following log levels, in order of increasing verbosity:
 
+1. <Badge text="QUIET" variant="info" /> Only critical errors and fatal messages are displayed.
+2. <Badge text="SIMPLE" variant="note" /> Basic operational information is logged (default).
+3. <Badge text="INFO" variant="info" /> General information about the streaming process is provided.
+4. <Badge text="WARN" variant="warning" /> Warnings and all less severe messages are displayed.
+5. <Badge text="DEBUG" variant="success" /> Detailed information useful for debugging is shown.
+6. <Badge text="TRACE" variant="purple" /> Very detailed tracing information is logged.
+7. <Badge text="VERBOSE" variant="blue" /> All possible information is displayed.
+
+In addition to these configurable levels, Moonbeam always outputs messages from the following severity levels, regardless of the chosen log level:
+
+1. <Badge text="ERROR" variant="danger" /> Error messages that indicate issues preventing normal operation.
+2. <Badge text="FATAL" variant="danger" /> Critical errors that cause the application to terminate.
+
+:::note
+`ERROR` and `FATAL` messages are always displayed to ensure that users are aware of critical issues, even when lower verbosity levels are selected.
+:::
+
+### Setting the Log Level
+
+To set a specific log level, use the `--log-level` option followed by the desired level:
+
+```bash
+moonbeam --log-level DEBUG stream MyHost "My Game"
 ```
-Moonbeam Configuration:
-* Resolution: 1280x720 - 1920x1080
-* FPS: 30 - 60
-* Max Bitrate: 20Mbps
-* Max Latency: 50ms
-* Priority: fps
-* Reconnect: true
 
-Calculated optimal settings:
-Resolution: 1600x900
-FPS: 60
-Bitrate: 15Mbps
+This command will run Moonbeam with DEBUG level logging, providing detailed information about the streaming process.
 
-Command: moonlight --resolution 1600x900 --fps 60 --bitrate 15000 stream MyHost "My Game"
-```
+:::tip
+When troubleshooting, start with the `INFO` or `DEBUG` log level. If you need more detailed information, you can increase the verbosity to `TRACE` or `VERBOSE`.
+:::
 
-### Use Cases for Dry Run Mode
+### Using Log Levels for Troubleshooting
 
-1. **Debugging**: Quickly identify issues with your command or configuration.
-2. **Testing New Settings**: Experiment with different options to see how they affect the final streaming parameters.
-3. **Documentation**: Generate examples of optimized settings for different scenarios.
-4. **Scripting**: Use dry run mode in scripts to programmatically determine optimal settings.
+<Steps>
+
+1. Start with the default `SIMPLE` log level for normal operation.
+
+2. If you encounter issues, increase the log level to `INFO` or `DEBUG`:
+   ```bash
+   moonbeam --log-level DEBUG stream MyHost "My Game"
+   ```
+
+3. Review the additional log output to identify potential issues.
+
+4. If needed, further increase the log level to `TRACE` or `VERBOSE` for even more detailed information:
+   ```bash
+   moonbeam --log-level VERBOSE stream MyHost "My Game"
+   ```
+
+5. Use the detailed log information to diagnose and resolve the issue, or provide this information when seeking support.
+
+</Steps>
 
 :::caution
-Remember that dry run mode doesn't actually test the connection to your host or start a stream. It's a simulation based on your current network conditions and system capabilities.
+Higher log levels, especially `TRACE` and `VERBOSE`, can generate a large amount of output. Use these levels judiciously, and be mindful of any sensitive information that may be logged when sharing output with others.
 :::
 
 ## Common Issues and Solutions
