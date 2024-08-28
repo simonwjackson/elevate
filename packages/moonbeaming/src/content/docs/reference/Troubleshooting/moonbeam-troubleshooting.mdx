@@ -56,21 +56,42 @@ Moonbeam provides various log levels to help you diagnose issues and understand 
 
 Moonbeam supports the following log levels, in order of increasing verbosity:
 
-1. <Badge text="QUIET" variant="info" /> Only critical errors and fatal messages are displayed.
+1. <Badge text="QUIET" variant="danger" /> Only critical errors and fatal messages are displayed. 
+
+    Use in production environments where minimal output is desired, or when integrating Moonbeam into automated systems where only critical issues need attention.
+
 2. <Badge text="SIMPLE" variant="note" /> Basic operational information is logged (default).
-3. <Badge text="INFO" variant="info" /> General information about the streaming process is provided.
-4. <Badge text="WARN" variant="warning" /> Warnings and all less severe messages are displayed.
-5. <Badge text="DEBUG" variant="success" /> Detailed information useful for debugging is shown.
-6. <Badge text="TRACE" variant="purple" /> Very detailed tracing information is logged.
-7. <Badge text="VERBOSE" variant="blue" /> All possible information is displayed.
+
+    For everyday use in production, providing essential information without overwhelming the logs.
+
+3. <Badge text="INFO" variant="success" /> General information about the streaming process is provided.
+
+    Use when monitoring the general health and progress of Moonbeam operations, useful for high-level system oversight.
+
+4. <Badge text="WARN" variant="caution" /> Warnings and all less severe messages are displayed.
+
+    Use during testing or when investigating potential issues that don't necessarily prevent operation but might indicate problems.
+
+5. <Badge text="DEBUG" variant="tip" /> Detailed information useful for debugging is shown.
+
+    Use  When troubleshooting specific issues or during development to gain insights into the application's behavior.
+
+6. <Badge text="TRACE" variant="default" /> Very detailed tracing information is logged.
+
+    Use for in-depth debugging of complex issues, particularly useful when working on Moonbeam's internals or when every step of the process needs to be examined.
+
+7. <Badge text="VERBOSE" variant="default" /> All possible information is displayed.
+
+    Use during development or when conducting a comprehensive system analysis. Be cautious with this level in production as it can generate a large volume of logs.
 
 In addition to these configurable levels, Moonbeam always outputs messages from the following severity levels, regardless of the chosen log level:
 
 1. <Badge text="ERROR" variant="danger" /> Error messages that indicate issues preventing normal operation.
+
 2. <Badge text="FATAL" variant="danger" /> Critical errors that cause the application to terminate.
 
 :::note
-`ERROR` and `FATAL` messages are always displayed to ensure that users are aware of critical issues, even when lower verbosity levels are selected.
+<Badge text="ERROR" variant="danger" /> and <Badge text="FATAL" variant="danger" /> messages are always displayed to ensure that users are aware of critical issues, even when lower verbosity levels are selected. This helps maintain system reliability and facilitates quick problem resolution.
 :::
 
 ### Setting the Log Level

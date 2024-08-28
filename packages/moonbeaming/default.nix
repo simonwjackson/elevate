@@ -13,7 +13,7 @@
       local dir="$PWD"
       while [[ "$dir" != "/" ]]; do
         if [[ -f "$dir/flake.nix" ]]; then
-          echo "$dir/packages/moonbeam.ing"
+          echo "$dir/packages/moonbeaming"
           return 0
         fi
         dir="$(dirname "$dir")"
@@ -74,7 +74,7 @@ in
     # Meta information
     meta = with lib; {
       description = "Astro project for moonbeam.ing";
-      homepage = "https://github.com/yourusername/moonbeam.ing"; # Update this
+      homepage = "https://github.com/simonwjackson/elevate/packages/moonbeaming"; # Update this
       license = licenses.mit; # Update this to match your project's license
       maintainers = with maintainers; [yourgithubusername]; # Update this
     };

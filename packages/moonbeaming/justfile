@@ -3,12 +3,12 @@
 
 [group('development')]
 moonbeaming-dev:
-    nix develop .#moonbeam.ing --command bunx --bun astro dev
+    nix develop .#moonbeaming --command bunx --bun astro dev
 
 [group('production')]
 moonbeaming-build:
-    nix develop .#moonbeam.ing --command bunx --bun astro check && nix develop .#moonbeam.ing --command bunx --bun astro build
+    nix develop .#moonbeaming --command bunx --bun astro check && nix develop .#moonbeaming --command bunx --bun astro build
 
 [group('production')]
 moonbeaming-preview:
-    nix develop .#moonbeam.ing --command bunx --bun astro preview 
+    nix develop .#moonbeaming --command bunx --bun astro preview 
