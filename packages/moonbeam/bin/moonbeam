@@ -230,7 +230,7 @@ process_args() {
     eval "$moonlight_cmd"
   }
 
-  if [[ ! " $* " =~ " stream " ]]; then
+  if [[ ! " $* " =~ " stream " ]] && [[ ! " $* " =~ "--version" ]]; then
     local moonlight_cmd="moonlight $*"
     handle_non_stream_command "$@" |
       sed \
