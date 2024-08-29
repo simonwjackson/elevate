@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-source ./log.sh
+BASE_DIR=${BASE_DIR:-$(dirname "$0")}
+
+source "${BASE_DIR}/log.sh"
 
 ##
 # @brief Check if a resolution string is valid

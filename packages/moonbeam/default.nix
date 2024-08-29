@@ -49,9 +49,24 @@ in
       [pkgs.bats]
       ++ commonInputs;
 
+    # HACK
+    postUnpack = ''
+      for file in $sourceRoot/bin/*; do
+        if [ -f "$file" ]; then
+          sed -i '
+            # Remove the BASE_DIR variable declaration
+            /^BASE_DIR=.*$/d
+            # Replace source lines using BASE_DIR with direct source calls
+            s|source "\$.BASE_DIR./\([^"]*\)"|source "./\1"|g
+          ' "$file"
+        fi
+      done
+    '';
+
     patchPhase = ''
       # HACK
       sed -i 's| -- iperf| -- ${pkgs.iperf3}/bin/iperf3|g' ./bin/moonbeam
+      # HACK
       sed -i 's|log_command="gum|log_command="${lib.getExe pkgs.gum}|g' ./bin/moonbeam
 
       # Replace version placeholder
