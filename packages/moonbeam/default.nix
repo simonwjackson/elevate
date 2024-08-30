@@ -6,7 +6,6 @@
   resholve,
 }: let
   commonInputs = with pkgs; [
-    bats
     bc
     coreutils
     findutils
@@ -45,11 +44,9 @@ in
     version = generateVersion;
     src = ./.;
 
-    buildInputs =
-      [pkgs.bats]
-      ++ commonInputs;
+    buildInputs = commonInputs;
 
-    # HACK
+    # HACK: needed for tests
     postUnpack = ''
       for file in $sourceRoot/bin/*; do
         if [ -f "$file" ]; then
@@ -78,6 +75,21 @@ in
       cp -R . $out
     '';
 
+    checkInputs = with pkgs; [
+      shellspec
+    ];
+
+    checkPhase = ''
+      runHook preCheck
+
+      cd $out
+      shellspec --fail-fast --format tap --env LOG_LEVEL=VERBOSE --xtrace
+
+      runHook postCheck
+    '';
+
+    # doCheck = true;
+
     installPhase = ''
       mkdir -p $out/bin $out/share/bash-completion/completions $out/share/zsh/site-functions
       cp bin/moonbeam $out/bin/
@@ -92,21 +104,6 @@ in
       done
     '';
 
-    checkInputs = [
-      (pkgs.bats.withLibraries (p: [p.bats-support p.bats-assert]))
-    ];
-
-    checkPhase = ''
-      runHook preCheck
-
-      cd $out/bin
-      ${pkgs.bats.withLibraries (p: [p.bats-support p.bats-assert])}/bin/bats --verbose-run ../tests
-
-      runHook postCheck
-    '';
-
-    # doCheck = true;
-
     solutions = {
       moonbeam = {
         scripts = [
@@ -120,7 +117,6 @@ in
             "${placeholder "out"}/bin"
           ];
         execer = with pkgs; [
-          "cannot:${bats}/bin/bats"
           "cannot:${bc}/bin/bc"
           "cannot:${coreutils}/bin/basename"
           "cannot:${coreutils}/bin/cat"
@@ -144,6 +140,7 @@ in
           "cannot:${coreutils}/bin/uniq"
           "cannot:${coreutils}/bin/wc"
           "cannot:${findutils}/bin/xargs"
+          "cannot:${shellspec}/bin/shellspec"
           "cannot:${gawk}/bin/awk"
           "cannot:${gnugrep}/bin/grep"
           "cannot:${gnused}/bin/sed"
@@ -168,7 +165,6 @@ in
         };
         fake = {
           external = [
-            "bats_load_library" # Add this line
             # HACK: https://github.com/abathur/resholve/issues/80
             "ping"
             "kscreen-doctor"

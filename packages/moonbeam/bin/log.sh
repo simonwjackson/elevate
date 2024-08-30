@@ -3,9 +3,6 @@
 ## @brief Array of log levels ordered by severity
 LOG_LEVELS=(FATAL ERROR QUIET SIMPLE INFO WARN DEBUG TRACE VERBOSE)
 
-## @brief Default log level (3 = SIMPLE)
-LOG_LEVEL=3 # SIMPLE
-
 ##
 # @brief Main logging function
 # @param level The log level (e.g., INFO, WARN, ERROR)
@@ -15,28 +12,22 @@ log() {
   local level="$1"
   shift
   local message="$*"
+  local gum_level
+  local level_value
 
-  # Check for empty message
-  if [ -z "$message" ]; then
-    error "Empty log message"
-    return 1
+  gum_level="$(echo "$level" | tr '[:upper:]' '[:lower:]')"
+
+  # Handle 'verbose' & 'trace' level (use 'debug' for gum)
+  if [ "$level" = "verbose" ] || [ "$level" = "trace" ]; then
+    gum_level='debug'
   fi
 
-  local level_value
   level_value=$(get_level_value "$level")
 
-  # Always log FATAL and ERROR messages
-  if [ "$level_value" -le 1 ] || [ "$level_value" -le "$LOG_LEVEL" ]; then
-    if [ "$level_value" -eq 7 ]; then
-      gum style \
-        "$(gum style --foreground 23 'TRACE') $*" >&2
-    else
-      gum log --level "$level" "$message"
-    fi
-  fi
-  # Return 1 for FATAL and ERROR levels
-  if [ "$level_value" -le 1 ]; then
-    return 1
+  if [ "$level_value" -le "$LOG_LEVEL" ]; then
+    gum log \
+      --level "$gum_level" \
+      "$message"
   fi
 }
 

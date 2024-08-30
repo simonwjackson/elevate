@@ -284,13 +284,17 @@ run_moonlight_session() {
 
     debug "Command: $moonlight_cmd"
 
+    for key in "${!local_config[@]}"; do
+      debug "$key: ${local_config[$key]}"
+    done
+
     if [[ "${local_config[dry_run]}" == "true" ]]; then
       info "Dry Mode: Exiting.."
       return 0
     fi
 
     if moonlight_session "$moonlight_cmd" "${local_config[reconnect]}"; then
-      log info "Exiting."
+      log info "User Quit. Exiting."
       break
     fi
 

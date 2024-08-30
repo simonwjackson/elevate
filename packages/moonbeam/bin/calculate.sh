@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-BASE_DIR=${BASE_DIR:-$(dirname "$0")}
-
-source "${BASE_DIR}/log.sh"
-
 ##
 # @brief Check if a resolution string is valid
 #
@@ -102,7 +98,7 @@ estimate_required_bitrate() {
   IFS='x' read -r width height <<<"$resolution"
 
   if ! [[ "$width" =~ ^[0-9]+$ && "$height" =~ ^[0-9]+$ && "$fps" =~ ^[0-9]+$ ]]; then
-    error "Invalid input. Width, height, and FPS must be positive integers."
+    # error "Invalid input. Width, height, and FPS must be positive integers."
     return 1
   fi
 
@@ -161,7 +157,7 @@ find_best_fps_for_latency() {
   if ((ideal_fps > max_fps)); then
     ideal_fps=$max_fps
   elif ((ideal_fps < min_fps)); then
-    error "Latency is too high for the given FPS range"
+    # error "Latency is too high for the given FPS range"
     return 1
   fi
 
@@ -173,7 +169,7 @@ find_best_fps_for_latency() {
   done
 
   if ((best_fps == 0)); then
-    error "No suitable FPS found for the given latency"
+    # error "No suitable FPS found for the given latency"
     exit 1
   fi
 
@@ -249,7 +245,7 @@ optimize_streaming_settings() {
   fi
 
   if [[ "$found_setting" != "true" ]]; then
-    error "No suitable settings found within the given constraints"
+    # error "No suitable settings found within the given constraints"
     return 1
   fi
 
@@ -258,7 +254,7 @@ optimize_streaming_settings() {
   IFS='x' read -r best_width best_height <<<"$best_resolution"
 
   if ((best_width < min_width || best_height < min_height)); then
-    warn "Cannot find suitable settings above minimum resolution. Using minimum resolution with adjusted FPS."
+    # warn "Cannot find suitable settings above minimum resolution. Using minimum resolution with adjusted FPS."
     best_resolution="$min_resolution"
 
     for current_fps in $(echo "$valid_fps_values" | tr ' ' '\n' | sort -nr); do
@@ -274,7 +270,7 @@ optimize_streaming_settings() {
     done
 
     if [[ "$found_setting" != "true" ]]; then
-      error "No suitable settings found within the given constraints"
+      # error "No suitable settings found within the given constraints"
       return 1
     fi
   fi
@@ -306,7 +302,7 @@ parse_resolution() {
     height="${BASH_REMATCH[2]}"
     echo "$width $height"
   else
-    gum log --level error "Invalid resolution format: $res"
+    # gum log --level error "Invalid resolution format: $res"
     return 1
   fi
 }
@@ -374,7 +370,7 @@ generate_resolutions() {
   scale_factor_height=$(bc -l <<<"$target_height / $current_height")
   max_scale_factor=$(bc -l <<<"if ($scale_factor_width > $scale_factor_height) $scale_factor_width else $scale_factor_height")
 
-  for i in $(seq 1 $count | sort -r); do
+  for i in $(seq 1 "$count" | sort -r); do
     local scale_factor
     scale_factor=$(bc -l <<<"1 + ($max_scale_factor - 1) * ($i - 1) / ($count - 1)")
     local new_width new_height
