@@ -111,20 +111,33 @@ verbose() { log "verbose" "$@"; }
 
 ##
 # @brief Validate and set the log level
-# @param input_level The log level to set
+# @param input_level The log level to set (can be a name or a number)
 validate_and_set_log_level() {
   local input_level="$1"
   # Trim leading and trailing whitespace
   input_level=$(echo "$input_level" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-  input_level=$(echo "$input_level" | tr '[:lower:]' '[:upper:]')
-  case "$input_level" in
-  FATAL | ERROR | QUIET | SIMPLE | INFO | WARN | DEBUG | TRACE | VERBOSE)
-    LOG_LEVEL=$(get_level_value "$input_level")
-    debug "Log level set to: $input_level"
-    ;;
-  *)
-    LOG_LEVEL=8 # VERBOSE
-    warn "Invalid log level '$input_level'. Setting to VERBOSE. Valid levels are: FATAL, ERROR, QUIET, SIMPLE, INFO, WARN, DEBUG, TRACE, VERBOSE"
-    ;;
-  esac
+
+  # Check if input is a number
+  if [[ "$input_level" =~ ^[0-9]+$ ]]; then
+    if [ "$input_level" -ge 0 ] && [ "$input_level" -le 8 ]; then
+      LOG_LEVEL=$input_level
+      debug "Log level set to: ${LOG_LEVELS[$LOG_LEVEL]}"
+    else
+      LOG_LEVEL=8 # VERBOSE
+      warn "Invalid numeric log level '$input_level'. Setting to VERBOSE. Valid levels are 0-8."
+    fi
+  else
+    # Handle named log levels
+    input_level=$(echo "$input_level" | tr '[:lower:]' '[:upper:]')
+    case "$input_level" in
+    FATAL | ERROR | QUIET | SIMPLE | INFO | WARN | DEBUG | TRACE | VERBOSE)
+      LOG_LEVEL=$(get_level_value "$input_level")
+      debug "Log level set to: $input_level"
+      ;;
+    *)
+      LOG_LEVEL=8 # VERBOSE
+      warn "Invalid log level '$input_level'. Setting to VERBOSE. Valid levels are: FATAL, ERROR, QUIET, SIMPLE, INFO, WARN, DEBUG, TRACE, VERBOSE"
+      ;;
+    esac
+  fi
 }
