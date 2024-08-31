@@ -1,0 +1,154 @@
+---
+title: Integrating Moonbeam with Other Tools
+description: Learn how to integrate Moonbeam with other tools to enhance your game streaming experience
+---
+import { Steps, Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This section covers several example integrations.
+
+:::note
+The examples in this section are not exclusive to Moonbeam and might also work with the standard Moonlight application. However, Moonbeam offers additional features that can further optimize these integrations.
+:::
+
+## Gamescope Integration
+
+When you run Gamescope alongside Moonbeam, you can enjoy the following benefits:
+
+### Moonbeam: Client-side Benefits
+- Save bandwidth: Stream at a lower resolution and Gamescope will upscale them with improved visuals.
+- Increase FPS: The reduced bandwith from a lower resolution may allow for a bump in FPS.
+
+### Sunshine: Host-side Benefits
+- Save bandwidth: You could reduce the resolution of the game running on the host. Useful for hosts who may have data caps or transfer limitis.
+- Older hardware: Lower resolutions allow some games to run smoother on older hardware. 
+- Increase FPS: The reduced bandwith from a lower resolution may allow for a bump in FPS.
+
+Use Gamescope with Moonbeam:
+
+   <Tabs>
+   <TabItem label="FidelityFX Super Resolution">
+
+   This command upscales with FSR (FidelityFX Super Resolution) upscaling enabled. 
+
+   ```bash
+   nix run nixpkgs#gamescope -- \
+   -f \
+   -w 1280 \
+   -h 720 \
+   -F fsr -- \
+   moonbeam stream <HOST> <APP> --max-resolution 720p --priority fps
+   ```
+   :::tip[GPU Compatibility]
+   FSR works with virtually any GPU, providing improved image quality and performance across a wide range of hardware.
+   :::
+
+   ###### Gamescope
+
+   - `-f`: Enables fullscreen mode
+   - `-w 1280 -h 720`: Sets gamescope internal resolution to 720p (1280x720)
+   - `-F fsr`: Enables FSR (FidelityFX Super Resolution) upscaling
+
+   ###### Moonbeam
+
+   - `--max-resolution 720p`: limits the stream resolution to 720p
+   - `--priority fps`: Prioritizes frame rate over image quality
+
+   </TabItem>
+   <TabItem label="NVIDIA Image Scaling">
+   This command upscales with NIS (NVIDIA Image Scaling) upscaling enabled. 
+
+   ```bash
+   nix run nixpkgs#gamescope -- \
+   -f \
+  -w 1280 \
+   -h 720 \
+   -F nis -- \
+   moonbeam stream <HOST> <APP> --max-resolution 720p --priority fps
+   ```
+
+   :::tip[GPU Compatibility]
+   NIS works with virtually any GPU, providing improved image quality and performance across a wide range of hardware.
+   :::
+
+   ###### Gamescope
+
+   - `-f`: Enables fullscreen mode
+   - `-w 1280 -h 720`: Sets gamescope internal resolution to 720p (1280x720)
+   - `-F nis`: Enables NVIDIA Image Scaling (NIS) for upscaling
+
+   ###### Moonbeam
+
+   - `--max-resolution 720p`: limits the stream resolution to 720p
+   - `--priority fps`: Prioritizes frame rate over image quality
+   </TabItem>
+   <TabItem label="Pixel Perfect">
+
+   This command attempts to preserve pixel-perfect scaling
+
+   ```bash
+   nix run nixpkgs#gamescope -- \
+   -f \
+   -w 1280 \
+   -h 720 \
+   -S fit \
+   -F nearest \
+   -- moonbeam stream <HOST> <APP> --max-resolution 720p --priority resolution
+   ```
+
+   ###### Gamescope
+
+   - `-f`: Enables fullscreen mode
+   - `-w 1280 -h 720`: Sets gamescope internal resolution to 720p (1280x720)
+   - `-S fit`: Uses fit scaling, which scales the image to fit the output while preserving aspect ratio
+   - `-F nearest`: Uses nearest-neighbor filtering for scaling, which helps preserve pixel-perfect appearance 
+
+   ###### Moonbeam
+
+   - `--max-resolution 720p`: limits the stream resolution to 720p
+   - `--priority resolution`: prioritizes image quality over frame rate
+
+   </TabItem>
+   </Tabs>
+
+:::tip
+The double dash (`--`) separates Gamescope options from the Moonbeam command, ensuring each application correctly interprets its own options.
+:::
+
+## Gamemode Integration
+
+Gamemode is a daemon that can optimize your system for gaming.
+
+Use Gamemode with Moonbeam:
+
+```bash
+nix run nixpkgs#gamemoderun -- moonbeam stream <HOST> <APP>
+```
+
+This command applies Gamemode optimizations while running your Moonbeam stream.
+
+
+:::caution
+Gamemode may conflict with some power management tools. Test thoroughly to ensure compatibility with your system.
+:::
+
+## Integration with Desktop Environments
+
+You can create desktop shortcuts or menu entries for quick access to your favorite games and applications through Moonbeam. 
+
+> This method works for both Moonbeam and standard Moonlight.
+
+Create a `.desktop` file in `~/.local/share/applications/`:
+
+```ini
+[Desktop Entry]
+Name=Stream Game
+Exec=moonbeam stream <HOST> "My Favorite Game"
+Type=Application
+Categories=Game;
+```
+
+This creates a menu entry that launches your specified game through Moonbeam when clicked.
+
+:::note
+Replace `<HOST>` and `"My Favorite Game"` with your actual host and game name.
+:::

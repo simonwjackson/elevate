@@ -1,5 +1,5 @@
 ---
-title: Understanding Moonbeam Error Messages
+title: Error Messages
 description: A guide to interpreting and resolving common error messages in Moonbeam
 sidebar:
   order: 2
@@ -25,22 +25,6 @@ Moonbeam provides various error messages to help you identify and resolve issues
    2. Ensure the host computer is powered on and running Sunshine.
    3. Verify that both client and host are on the same network.
    4. Check your firewall settings on both the host and client.
-
-   </Steps>
-
-2. **"Unable to pair with host"**
-
-   This error appears when Moonbeam can't complete the pairing process with the host.
-
-   ```bash
-   Error: Unable to pair with host. PIN may be incorrect.
-   ```
-
-   <Steps>
-   
-   1. Double-check the PIN you entered.
-   2. Ensure Sunshine is running and accepting connections on the host.
-   3. Try restarting both Moonbeam and Sunshine.
 
    </Steps>
 
@@ -149,28 +133,4 @@ Moonbeam provides various error messages to help you identify and resolve issues
 When troubleshooting, always check the Moonbeam log file (default location: `/tmp/moonbeam.log`) for more detailed error information. You can increase the verbosity of logs using the `--log-level` option.
 :::
 
-### Debug Mode Errors
-
-When running Moonbeam with the `--debug` option, you may see more detailed error messages:
-
-1. **"Failed to measure network speed"**
-
-   ```bash
-   DEBUG: Failed to measure network speed to host. Using estimated bitrate.
-   ```
-
-   This message indicates that the iperf3 speed test couldn't be completed. Moonbeam will fall back to estimated values based on resolution and FPS.
-
-2. **"Unable to detect display refresh rate"**
-
-   ```bash
-   DEBUG: Unable to detect display refresh rate. Using default value of 60Hz.
-   ```
-
-   This message appears when Moonbeam can't determine your display's refresh rate. It will use a safe default value.
-
-:::caution
-While debug mode provides more information, it may also expose sensitive data. Be cautious when sharing debug logs and ensure to redact any private information.
-:::
-
-By understanding these error messages, you can more effectively troubleshoot issues with Moonbeam and ensure a smoother streaming experience. If you encounter persistent errors or issues not covered here, consider reaching out to the Moonbeam community for support.
+If you encounter persistent errors or issues not covered here, consider reaching out to the Moonbeam community for support.

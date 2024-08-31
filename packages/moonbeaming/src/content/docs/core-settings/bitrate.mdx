@@ -1,0 +1,56 @@
+---
+title: Bitrate
+description: Learn how to configure bitrate settings in Moonbeam for optimal streaming quality and performance
+sidebar:
+  order: 4
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+The bitrate setting affects stream quality in Moonbeam as it directly represents the amount of data transmitted per second.
+
+## Setting Bitrate
+
+You can set the maximum bitrate for your stream using the `--max-bitrate` option:
+
+```bash
+moonbeam --max-bitrate 20000 stream MyHost "My Game"
+```
+
+Moonbeam adjusts stream bandwidth up to 20 Mbps. It scales down based on network conditions or lower resolution/FPS needs.
+
+:::note
+* The `--bitrate` option is an alias for `--max-bitrate`. Both options function identically.
+* Bitrate values are specified in Kbps (kilobits per second). So 20000 represents 20 Mbps.
+:::
+
+## Automatic Calculation
+
+If you don't specify a max bitrate, Moonbeam will automatically calculate an appropriate bitrate based on the resolution and FPS settings. This calculation takes into account:
+
+1. The maximum resolution you've set (or your display's native resolution if not specified)
+2. The maximum FPS you've set (or your display's refresh rate if not specified)
+3. Your current network conditions
+
+:::tip
+For most users, allowing Moonbeam to automatically calculate the bitrate will provide the best balance of quality and performance.
+:::
+
+## Best Practices
+
+1. **Network Speed**: Set your max bitrate to no more than 70-80% of your upload speed (on the host) and download speed (on the client) to leave headroom for other network traffic and to account for fluctuations.
+
+2. **Resolution and FPS Considerations**: Higher resolutions and frame rates require higher bitrates. As a rough guide:
+   - 1080p60: 10-20 Mbps
+   - 1440p60: 20-40 Mbps
+   - 4K60: 40-80 Mbps
+
+3. **Game Type Considerations**: 
+   - Fast-paced games with lots of motion (e.g., FPS, racing) benefit from higher bitrates.
+   - Slower-paced games (e.g., strategy, RPGs) can often look good at lower bitrates.
+
+4. **Visual Quality vs. Latency**: Higher bitrates generally provide better visual quality but can increase latency. Find a balance that works for your game and network.
+
+:::caution
+Setting a bitrate that's too high for your network can result in increased latency, frame drops, or connection instability. Always ensure your network can handle the bitrate you set.
+:::

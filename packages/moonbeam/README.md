@@ -10,7 +10,7 @@
 
 # Moonbeam
 
-Moonbeam optimizes settings for [Moonlight](https://moonlight-stream.org), adapting to your system and network conditions. 
+A simple, automated, network aware launcher for  [Moonlight](https://moonlight-stream.org).
 
 ## Features
 
@@ -24,11 +24,11 @@ Moonbeam optimizes settings for [Moonlight](https://moonlight-stream.org), adapt
 
 - Linux operating system
 - [Nix package manager](https://nixos.org/download.html)
-- [Moonlight](https://moonlight-stream.org) and [Sunshine](https://github.com/LizardByte/Sunshine) installed and configured
+- [Sunshine](https://github.com/LizardByte/Sunshine) installed and configured
 
 ## Installation
 
-Moonbeam can be installed using the Nix package manager. For detailed installation instructions, please refer to the [Installation Guide](https://docs.moonbeam.ing/getting-started/installing-moonbeam) in our documentation.
+Moonbeam can be installed using the Nix package manager. For detailed installation instructions, please refer to the [Installation Guide](https://moonbeam.ing/getting-started/installation-guide/) in our documentation.
 
 ## Quick Start
 

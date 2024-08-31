@@ -1,0 +1,107 @@
+---
+title: Resolution
+description: Learn how to configure resolution settings in Moonbeam for Moonlight streaming
+sidebar:
+  order: 2
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Resolution settings dictate the stream's visual quality. Moonbeam offers multiple resolution options. You can adjust these to match your network conditions and display capabilities.
+
+:::note
+Once the stream starts, the resolution remains static regardless of the option used.
+:::
+
+## Configuring
+
+:::tip
+If you're unsure about your network conditions or experiencing inconsistent performance, try running Moonbeam without any resolution flags. This allows the software to dynamically find optimal settings for your situation.
+:::
+
+
+Moonbeam offers several approaches to set resolution:
+
+   <Tabs>
+   <TabItem label="Resolution Range">
+   `--min-resolution` & `--max-resolution` set the boundaries around which resolution Moonbeam will consider after running speed tests.
+   
+   ```bash
+   moonbeam \
+     --max-resolution 1920x1080 \
+     --min-resolution 1280x720 \
+     stream MyHost "My Game"
+   ```
+
+   </TabItem>
+   <TabItem label="Fixed Resolution">
+   To set a fixed resolution, use the `--resolution` option:
+   
+   ```bash
+   moonbeam --resolution 1920x1080 stream MyHost "My Game"
+   ```
+   
+   This setting is equivalent to the resolution option in the standard Moonlight client. It sets both the minimum and maximum resolution to the specified value.
+   
+   Moonbeam provides convenient shorthand options for common resolutions:
+   
+   ```bash
+   moonbeam --720p stream MyHost "My Game"
+   ```
+   
+   Available shorthand options include:
+   - `--360p` (640x360)
+   - `--480p` (854x480)
+   - `--540p` (960x540)
+   - `--720p` (1280x720)
+   - `--900p` (1600x900)
+   - `--1080p` (1920x1080)
+   - `--1440p` (2560x1440)
+   - `--2K` (2048x1080)
+   - `--4K` (3840x2160)
+   
+   :::note
+   When using shorthand options, similar to `--resolution` both the maximum and minimum resolution are set to the specified value.
+   :::
+
+   </TabItem>
+   </Tabs>
+
+## Scaling Steps
+
+The `--resolution-steps` option allows for more granular control over resolution optimization:
+
+```bash
+moonbeam --max-resolution 1920x1080 --min-resolution 1280x720 --resolution-steps 5 stream MyHost "My Game"
+```
+
+This option determines the number of intermediate resolutions Moonbeam will consider. Here's an example of the resolutions that might be considered:
+
+1. 1280x720
+2. 1440x810
+3. 1600x900
+4. 1760x990
+5. 1920x1080
+
+:::tip
+The default value is 9, which works well for most scenarios. Adjust this value based on your specific needs and network conditions.
+:::
+
+## Best Practices for Resolution Configuration
+
+1. **Match Your Display**: Set the maximum resolution to match your display's native resolution for the best visual quality.
+
+2. **Consider Your Network**:
+   - For stable, high-bandwidth connections: Consider using higher resolutions for improved visual clarity.
+   - For low-bandwidth or high-latency connections: Use a lower resolution range (e.g., `--max-resolution 1080p --min-resolution 720p`) or omit resolution flags to allow automatic adjustment.
+
+3. **Flexible Resolution Range**: Using a wide resolution range allows Moonbeam to find the ideal setting. For unstable connections, consider omitting resolution constraints entirely.
+
+4. **Balance Resolution and FPS**: Higher resolutions require more bandwidth. Adjust both resolution and FPS based on your game's needs and network capacity.
+
+5. **Performance Considerations**: For demanding games, you might want to cap the maximum resolution lower than your display's native resolution to maintain high frame rates.
+
+:::caution
+Setting a resolution higher than your display's native resolution provides no visible benefit and may waste bandwidth. In such cases, Moonbeam will likely automatically reduce the resolution to match your current display's resolution.
+:::
+
+Experiment to find the best balance for your specific setup and preferences.

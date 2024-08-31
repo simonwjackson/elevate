@@ -7,7 +7,7 @@ sidebar:
 
 import { Steps, Badge } from '@astrojs/starlight/components';
 
-While we strive to make Moonbeam as robust as possible, you may encounter bugs or need additional support. This section will guide you through the process of reporting issues and seeking help from the Moonbeam community.
+This section will guide you through the process of reporting issues and seeking help from the Moonbeam community.
 
 ### Reporting Bugs
 
@@ -27,17 +27,17 @@ When you encounter a bug in Moonbeam, it's important to report it so that it can
    - Network setup (e.g., Wi-Fi or Ethernet)
    - Any relevant hardware details
 
-3. **Enable Debug Mode**
+3. **Enable Verbose Logging**
    
-   Run Moonbeam with the `--debug` option to gather more detailed logs:
+   Run Moonbeam with the `--log-level VERBOSE` option to gather more detailed logs:
 
    ```bash
-   moonbeam --debug stream MyHost MyGame
+   moonbeam --log-level VERBOSE stream MyHost MyGame
    ```
 
 4. **Create a Bug Report**
    
-   Go to the [Moonbeam GitHub Issues](https://github.com/example/moonbeam/issues) page and click on "New Issue". Choose the "Bug Report" template if available.
+   Go to the [Moonbeam GitHub Issues](https://github.com/simonwjackson/elevate/issues?q=is%3Aopen+is%3Aissue+label%3Amoonbeam) page and click on "New Issue".
 
 5. **Fill Out the Bug Report**
    
@@ -66,25 +66,15 @@ If you're experiencing difficulties with Moonbeam or have questions about its us
    
    Always check the official Moonbeam documentation first. Many common issues and questions are addressed there.
 
-2. **Community Forums**
+4. **GitHub Discussions**
    
-   Join the Moonbeam community forums to ask questions and share experiences with other users. 
-
-   <Badge text="Coming Soon" variant="note" />
+   For more technical discussions or feature requests, use the [GitHub Discussions](https://github.com/simonwjackson/elevate/discussions?discussions_q=is%3Aopen+label%3Amoonbeam) page.
 
 3. **Discord Channel**
    
    Join our Discord server for real-time chat with other Moonbeam users and developers.
 
    <Badge text="Coming Soon" variant="note" />
-
-4. **GitHub Discussions**
-   
-   For more technical discussions or feature requests, use the [GitHub Discussions](https://github.com/example/moonbeam/discussions) page.
-
-5. **Stack Overflow**
-   
-   For programming-related questions, especially if you're integrating Moonbeam into your own projects, you can ask on Stack Overflow using the `moonbeam` tag.
 
 ### Best Practices for Seeking Help
 
@@ -100,8 +90,4 @@ When seeking support, follow these best practices to get the most helpful respon
 
 5. **Pay It Forward**: As you become more experienced with Moonbeam, consider helping others with their questions.
 
-:::tip
-If you're reporting a security vulnerability, please do not post it publicly. Instead, follow the security policy outlined in the Moonbeam repository to report it privately to the maintainers.
-:::
-
-By following these guidelines for reporting bugs and seeking support, you'll not only get help more quickly but also contribute to improving Moonbeam for all users. Remember, a well-documented issue or question is much easier for the community to assist with and resolve.
+Remember, a well-documented issue or question is much easier for the community to assist with and resolve.

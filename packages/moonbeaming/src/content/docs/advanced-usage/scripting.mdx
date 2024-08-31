@@ -3,33 +3,37 @@ title: Scripting with Moonbeam
 description: Learn how to create scripts and advanced integrations with Moonbeam to customize your game streaming experience
 ---
 
-## Scripting with Moonbeam
-
 You can create shell scripts that use Moonbeam to automate various aspects of your streaming setup. Here are several creative examples:
 
-### Time-based streaming profile
+### Night Mode Streaming 
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#brightnessctl nixpkgs#redshift nixpkgs#moonbeam -c bash
 
-# time_based_streaming.sh
+# night_mode__streaming.sh
 current_hour=$(date +%H)
 
 if (( current_hour >= 22 || current_hour < 6 )); then
-  # Night mode: lower brightness, warmer colors
-  moonbeam stream <HOST> <APP> --max-resolution 720p --fps 30 --extra-moonlight-options "--contrast -10 --saturation 80"
+  # Night mode
+
+  # Lower brightness
+  brightnessctl set 50%
+
+  # Warmer colors
+  redshift -O 3500
+
+  moonbeam stream <HOST> <APP> --max-bandwidth 5000
 else
-  # Day mode: standard settings
   moonbeam stream <HOST> <APP>
 fi
 ```
 
-This script adjusts streaming settings based on the time of day, potentially reducing eye strain during night hours.
+This script adjusts streaming settings based on the time of day, potentially reducing eye strain during night hours and limiting the bitrate to 5000 kbps during nighttime streaming.
 
 ### Multi-game launcher
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#moonbeam -c bash
 
 # multi_game_launcher.sh
 games=("Game 1" "Game 2" "Game 3" "Game 4")
@@ -52,7 +56,7 @@ This script presents a menu of games, each with customized streaming settings.
 ### Conditional Streaming Settings
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#moonbeam -c bash
 
 # adaptive-moonbeam.sh
 HOST="my-gaming-pc"
@@ -84,7 +88,7 @@ Here are some more advanced integration examples that showcase Moonbeam's versat
 This script uses the `timewarrior` time tracking tool to monitor your gaming sessions and limit them to a specified duration.
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#moonbeam nixpkgs#timewarrior -c bash
 
 # game_session_tracker.sh
 MAX_SESSION_TIME=120 # Maximum session time in minutes
@@ -117,20 +121,18 @@ timew stop
 echo "Gaming session ended. Total time: $(timew summary)"
 ```
 
-To use this script:
-
-1. Install timewarrior: `sudo apt install timewarrior` (or equivalent for your distribution)
-2. Make the script executable: `chmod +x game_session_tracker.sh`
-3. Run the script: `./game_session_tracker.sh`
-
 This script will start a Moonbeam stream, track the session time using timewarrior, and automatically stop the stream after the specified time limit.
 
 ### Moonbeam Integration with Home Automation Systems
 
 This example integrates Moonbeam with Home Assistant, a popular home automation platform, to control your gaming environment.
 
+:::note
+This is a contrived example to demonstrate the potential integration of Moonbeam with home automation systems. In practice, the specific implementation would depend on your home automation setup, available devices, and personal preferences.
+:::
+
 ```bash
-#!/bin/bash
+#!/usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#moonbeam -c bash
 
 # gaming_environment.sh
 HASS_URL="http://homeassistant.local:8123"
@@ -158,67 +160,3 @@ call_hass_service "climate/set_temperature" '{"entity_id": "climate.gaming_room"
 
 This script adjusts your room's lighting and temperature before starting a game stream, and resets them after you're done gaming.
 
-### Voice-Controlled Game Streaming Assistant
-
-This example uses the `speech_recognition` Python library to create a voice-controlled interface for Moonbeam.
-
-First, install the required Python library:
-
-```bash
-pip install SpeechRecognition
-```
-
-Then, create the following Python script:
-
-```python
-# voice_controlled_moonbeam.py
-import speech_recognition as sr
-import subprocess
-
-def run_moonbeam(command):
-    subprocess.run(f"moonbeam {command}", shell=True)
-
-r = sr.Recognizer()
-
-print("Voice-controlled Moonbeam Assistant. Say 'start game' to begin streaming.")
-
-while True:
-    with sr.Microphone() as source:
-        audio = r.listen(source)
-    
-    try:
-        command = r.recognize_google(audio).lower()
-        print(f"You said: {command}")
-
-        if "start game" in command:
-            print("Starting game stream...")
-            run_moonbeam("stream <HOST> '<GAME>'")
-        elif "stop stream" in command:
-            print("Stopping stream...")
-            run_moonbeam("quit")
-        elif "exit" in command:
-            print("Exiting voice control...")
-            break
-        else:
-            print("Command not recognized. Try again.")
-    
-    except sr.UnknownValueError:
-        print("Could not understand audio")
-    except sr.RequestError as e:
-        print(f"Could not request results; {e}")
-```
-
-To use this voice-controlled assistant:
-
-1. Make sure you have a working microphone.
-2. Run the script: `python voice_controlled_moonbeam.py`
-3. Speak commands like "start game" or "stop stream" to control Moonbeam.
-
-:::caution
-This script requires an internet connection for speech recognition. Ensure you have the necessary permissions and consider the privacy implications of using cloud-based speech recognition.
-:::
-
-These advanced integration examples demonstrate how Moonbeam can be incorporated into larger systems and controlled through various interfaces, enhancing the overall gaming experience and integrating it with other aspects of your digital life.
-
-By leveraging these integrations and scripting techniques, you can create a more customized and efficient game streaming setup, tailored to your specific needs and preferences. Remember, these methods demonstrate Moonbeam's compatibility with existing Moonlight setups and tools.
-

@@ -7,11 +7,11 @@ sidebar:
 
 import { Steps, Badge } from '@astrojs/starlight/components';
 
-Moonbeam offers an auto-reconnect feature that helps restore your streaming session when faced with temporary network disruptions. This feature is particularly useful for users with unstable internet connections or those who frequently switch between networks.
+Moonbeam can automatically restore your streaming session if faced with a temporary network disruption. 
 
 ## Enabling Auto-reconnect
 
-To enable the auto-reconnect functionality, use the `--reconnect` flag when launching your Moonbeam streaming session:
+To enable the auto-reconnect functionality, add the `--reconnect` flag when launching Moonbeam:
 
 ```bash
 moonbeam --reconnect stream MyHost "My Game"
@@ -23,27 +23,27 @@ When auto-reconnect is enabled, Moonbeam will:
 
 <Steps>
 
-1. Detect any disconnection event.
+1. Connect to the host
+
+2. During the stream, detect any disconnection event.
 
 3. Reevaluate the connection quality to the host.
 
-4. Adjust streaming parameters if necessary based on the new connection quality.L
+4. Adjust streaming parameters (if necessary).
 
 6. Attempt to resume the streaming session.
-
-7. Once connected, your game or application will continue from where it left off.
 
 </Steps>
 
 :::tip
-Auto-reconnect is especially useful for portable gaming devices or when using Moonbeam on laptops that might frequently change Wi-Fi networks.
+Auto-reconnect is especially useful for portable PC gaming devices or laptops on unstable/mobile internet connections.
 :::
 
 ## Limitations and Considerations
 
 While auto-reconnect is a useful feature in many situations, it's important to understand its limitations:
 
-- <Badge text="Game Behavior" variant="note" /> Games will continue to run on the host regardless of whether this feature is enabled. While Moonlight sends a controller disconnection event, not every game will respond to this. Check your game's settings for an option to pause when a controller is disconnected.
+- <Badge text="Game Behavior" variant="note" /> Games can continue to run on the host regardless of whether this feature is enabled. Upon disconnect, Sunshine will send a `controller disconnection event` to the host. However, not every game will respond the same way to this event. Check your game's settings for an option to pause when a controller is disconnected.
 
 - <Badge text="Resumption Issues" variant="caution" /> Some games may not properly resume after reconnection. A common issue is that controller input may not work until the game is restarted.
 
@@ -51,7 +51,7 @@ While auto-reconnect is a useful feature in many situations, it's important to u
 
 To make the most of the auto-reconnect feature:
 
-1. Ensure your host computer is set to remain awake and doesn't enter sleep mode.
+1. Ensure your host computer is set to remain awake and doesn't enter sleep mode. Check out [Gamemode Integration](/advanced-usage/integrating-moonbeam/#gamemode-integration)
 2. For critical gaming sessions, consider using a wired connection on both the host and client side.
 3. If you experience frequent disconnections, try lowering your stream quality settings.
 

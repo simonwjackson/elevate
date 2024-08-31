@@ -3,6 +3,10 @@
 
 [group('development')]
 moonbeaming-dev:
+    nix develop .#moonbeaming
+
+[group('development')]
+moonbeaming-dev-serve:
     nix develop .#moonbeaming --command bunx --bun astro dev
 
 [group('production')]

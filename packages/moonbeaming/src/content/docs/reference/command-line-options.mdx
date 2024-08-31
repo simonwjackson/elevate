@@ -1,0 +1,257 @@
+---
+title: Command-Line Options 
+description: A comprehensive guide to all command-line options available in Moonbeam
+sidebar:
+  order: 2
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+
+# Full Command-Line Options Reference
+
+This section provides a detailed reference for all command-line options available in Moonbeam. Understanding these options will help you fine-tune your streaming experience and take full advantage of Moonbeam's capabilities.
+
+## Basic Usage
+
+The basic structure of a Moonbeam command is:
+
+```bash
+moonbeam [options] stream <host> <app>
+```
+
+- `moonbeam`: The name of the application you're running.
+- `[options]`: Optional flags and parameters that modify how Moonbeam behaves (we'll cover these in the [Core Settings](/core-settings/resolution) section).
+- `stream`: The action you want Moonbeam to perform, telling it to start a streaming session.
+- `<host>`: The hostname or IP address of the computer you want to stream from.
+- `<app>`: The name of the game or application you want to stream.
+
+
+## Moonbeam-Specific Options
+
+These options are unique to Moonbeam and provide additional functionality beyond standard Moonlight options.
+
+### Resolution Options
+
+###### <Badge text="--resolution <WxH>" variant="tip" size="small" />
+
+Set both minimum and maximum resolution simultaneously (e.g., 1920x1080). This option is a shorthand for setting both `--min-resolution` and `--max-resolution` to the same value. It's useful when you want to force a specific resolution. If specified, it overrides individual `--min-resolution` and `--max-resolution` settings.
+
+
+
+###### <Badge text="--max-resolution <WxH>" variant="tip" size="small" />
+
+Set the maximum resolution for the stream (e.g., 1920x1080). Moonbeam will not exceed this resolution even if higher resolutions are available on your system. This is useful for limiting bandwidth usage or ensuring compatibility with certain displays.
+
+###### <Badge text="--min-resolution <WxH>" variant="tip" size="small" />
+
+Set the minimum resolution for the stream (e.g., 640x360). Moonbeam will not go below this resolution even in low bandwidth conditions. This ensures a baseline quality for your stream.
+
+###### <Badge text="--resolution-steps <steps>" variant="tip" size="small" />
+
+Set the number of intermediate steps for resolution scaling. Default is 128. Higher values provide more granular resolution options, allowing Moonbeam to fine-tune the resolution based on network conditions. For example, with a higher step count, Moonbeam might choose 1600x900 instead of jumping directly from 1080p to 720p.
+
+#### Resolution Shorthand Options
+
+Moonbeam provides convenient shorthand options for common resolutions:
+
+###### <Badge text="--360" variant="tip" size="small" />
+Force a 640x360 resolution
+
+###### <Badge text="--480" variant="tip" size="small" />
+Force a 854x480 resolution
+
+###### <Badge text="--540" variant="tip" size="small" />
+Force a 960x540 resolution
+
+###### <Badge text="--720" variant="tip" size="small" />
+Force a 1280x720 resolution
+
+###### <Badge text="--900" variant="tip" size="small" />
+Force a 1600x900 resolution
+    
+###### <Badge text="--1080" variant="tip" size="small" />
+    Force a 1920x1080 resolution
+
+###### <Badge text="--1440" variant="tip" size="small" />
+Force a 2560x1440 resolution
+
+###### <Badge text="--2K" variant="tip" size="small" />
+Force a 2048x1080 resolution
+
+###### <Badge text="--4K" variant="tip" size="small" />
+Force a 3840x2160 resolution
+
+### FPS Options
+
+###### <Badge text="--fps <fps>" variant="tip" size="small" />
+
+Set both minimum and maximum FPS (frames per second) simultaneously (e.g., 60). This option is a shorthand for setting both `--min-fps` and `--max-fps` to the same value. It's useful when you want to lock the stream to a specific frame rate.
+
+###### <Badge text="--max-fps <fps>" variant="tip" size="small" />
+
+Set the maximum FPS for the stream (e.g., 120). Moonbeam will not exceed this frame rate even if higher rates are available. This can be useful for capping the frame rate to match your display's refresh rate or to reduce bandwidth usage.
+
+###### <Badge text="--min-fps <fps>" variant="tip" size="small" />
+
+Set the minimum FPS for the stream (e.g., 30). Moonbeam will not go below this frame rate even in low bandwidth conditions. This ensures a baseline smoothness for your stream.
+
+### Bitrate Options
+
+###### <Badge text="--max-bitrate <bitrate>" variant="tip" size="small" />
+
+Set the maximum available bitrate for the stream. This option allows you to manually specify the maximum bandwidth in kilobits per second (Kbps). If not provided, Moonbeam will automatically calculate an appropriate bitrate based on the maximum resolution and FPS.
+
+- `--max-bitrate` is an alias for `--bitrate`. Both options function identically.
+- You can use suffixes like 'Mbps' for convenience (e.g., '10Mbps').
+- If no suffix is provided, the value is assumed to be in Kbps.
+- When specified, Moonbeam will adjust the FPS and resolution settings to match the given bitrate, unless fixed values for `--fps` or `--resolution` are also provided.
+
+### Latency Option
+
+###### <Badge text="--max-latency <ms>" variant="tip" size="small" />
+
+Set the maximum allowed latency in milliseconds. If the measured latency exceeds this value, Moonbeam will abort the connection. This helps ensure a responsive gaming experience by setting an upper limit on acceptable input lag.
+
+### Priority Option
+
+###### <Badge text="--priority <resolution|fps>" variant="tip" size="small" />
+
+Set the priority for optimization. Use `resolution` to prioritize higher resolutions, or `fps` to prioritize higher frame rates. Default is `fps`. This option tells Moonbeam which aspect to favor when it needs to make trade-offs due to bandwidth limitations.
+
+### Other Moonbeam Options
+
+###### <Badge text="--reconnect" variant="tip" size="small" />
+
+Enable automatic reconnection if the stream is disconnected. This is particularly useful for unstable network conditions or when switching between different networks (e.g., moving from Wi-Fi to cellular data).
+
+###### <Badge text="--log-level <level>" variant="tip" size="small" />
+
+Set the logging verbosity. Valid levels are `QUIET`, `SIMPLE`, `INFO`, `WARN`, `DEBUG`, `TRACE`, and `VERBOSE`. Higher levels provide more detailed output, which can be useful for troubleshooting. QUIET provides minimal output, while VERBOSE gives the most detailed logs.
+
+###### <Badge text="--dry-run" variant="tip" size="small" />
+
+Show the Moonlight command that would be executed without actually starting the stream. This is useful for testing and debugging your Moonbeam configuration without initiating a connection. It allows you to see how Moonbeam would interpret your settings and what command it would pass to Moonlight.
+
+## Moonlight Options
+
+Moonbeam supports Moonlight's `stream` options as well. These options will be forwarded directly to Moonlight when the streaming session is launched. For a complete list of available Moonlight options, refer to the [Moonlight documentation](https://github.com/moonlight-stream/moonlight-docs/wiki/Command-Line-Setup).
+
+### Display Options
+
+###### <Badge text="--[no-]vsync" variant="tip" size="small" />
+
+Enable or disable vertical synchronization. Vsync synchronizes the game's frame rate with your monitor's refresh rate, which can reduce screen tearing. However, it may also increase input latency. Use `--vsync` to enable, or `--no-vsync` to disable this feature.
+
+###### <Badge text="--display-mode <display-mode>" variant="tip" size="small" />
+
+Set the display mode for the stream. Common options include:
+- `fullscreen`: Run the stream in full-screen mode
+- `windowed`: Run the stream in a window
+- `borderless`: Run the stream in a borderless window
+
+Example: `--display-mode fullscreen`
+
+### Audio Options
+
+###### <Badge text="--audio-config <audio-config>" variant="tip" size="small" />
+
+Configure advanced audio settings. This can include options for:
+- Surround sound configuration (e.g., 5.1, 7.1)
+- Stereo or mono output
+- Specific audio device selection
+
+Example: `--audio-config surround51`
+
+###### <Badge text="--[no-]mute-on-focus-loss" variant="tip" size="small" />
+
+Control whether the stream's audio is muted when the window loses focus. This can be useful to automatically silence the game when you switch to another application. Use `--mute-on-focus-loss` to enable this feature, or `--no-mute-on-focus-loss` to keep audio playing even when the window is not focused.
+
+###### <Badge text="--[no-]audio-on-host" variant="tip" size="small" />
+
+Enable or disable audio playback on the host machine (the computer running the game). This can be useful if you want to stream a game to another device but still hear the audio on your main computer. Use `--audio-on-host` to enable host audio, or `--no-audio-on-host` to disable it.
+
+### Input Options
+
+###### <Badge text="--[no-]multi-controller" variant="tip" size="small" />
+
+Enable or disable support for multiple controllers. When enabled, Moonlight will support multiple gamepads connected to the client device. Use `--multi-controller` to enable this feature, or `--no-multi-controller` to limit input to a single controller.
+
+###### <Badge text="--[no-]absolute-mouse" variant="tip" size="small" />
+
+Choose between absolute or relative mouse mode. Absolute mode directly maps your mouse position to the game, which can be more precise but may feel less natural for some users. Relative mode translates mouse movements, which can feel more natural but may be less precise. Use `--absolute-mouse` for absolute mode, or `--no-absolute-mouse` for relative mode.
+
+###### <Badge text="--[no-]mouse-buttons-swap" variant="tip" size="small" />
+
+Swap the functions of the left and right mouse buttons. This can be useful for left-handed users or for games with unconventional mouse controls. Use `--mouse-buttons-swap` to enable button swapping, or `--no-mouse-buttons-swap` to use default button mapping.
+
+###### <Badge text="--[no-]touchscreen-trackpad" variant="tip" size="small" />
+
+Enable or disable the use of a touchscreen as a trackpad. When enabled, you can use touch input to control the mouse cursor. This is particularly useful for mobile devices. Use `--touchscreen-trackpad` to enable this feature, or `--no-touchscreen-trackpad` to disable it.
+
+###### <Badge text="--[no-]reverse-scroll-direction" variant="tip" size="small" />
+
+Reverse the direction of scrolling. This can be useful if you're more comfortable with "natural" scrolling as used on some operating systems. Use `--reverse-scroll-direction` to enable reversed scrolling, or `--no-reverse-scroll-direction` for standard scrolling.
+
+###### <Badge text="--[no-]swap-gamepad-buttons" variant="tip" size="small" />
+
+Swap the A/B and X/Y gamepad buttons. This can be helpful when switching between consoles with different button layouts. Use `--swap-gamepad-buttons` to enable button swapping, or `--no-swap-gamepad-buttons` to use the default layout.
+
+###### <Badge text="--[no-]background-gamepad" variant="tip" size="small" />
+
+Allow or disallow gamepad input when the Moonlight window is not in focus. This can be useful if you want to use your gamepad for other applications while streaming. Use `--background-gamepad` to allow background input, or `--no-background-gamepad` to restrict gamepad input to when the Moonlight window is focused.
+
+### Performance and Optimization
+
+###### <Badge text="--packet-size <packet-size>" variant="tip" size="small" />
+
+Set the maximum packet size for network transmissions. This can be adjusted to optimize performance on different networks. Smaller packet sizes may work better on less stable connections, while larger sizes can improve efficiency on good connections. Example: `--packet-size 1024`
+
+###### <Badge text="--[no-]quit-after" variant="tip" size="small" />
+
+Control whether Moonlight should quit after the game exits. Use `--quit-after` to automatically close Moonlight when you exit the game, or `--no-quit-after` to keep Moonlight running.
+
+###### <Badge text="--[no-]game-optimization" variant="tip" size="small" />
+
+Enable or disable game-specific optimizations. When enabled, Moonlight may apply specific settings or tweaks for known games to improve performance or compatibility. Use `--game-optimization` to enable these optimizations, or `--no-game-optimization` to disable them.
+
+###### <Badge text="--[no-]frame-pacing" variant="tip" size="small" />
+
+Enable or disable frame pacing. Frame pacing helps to smooth out irregular frame rates, which can result in a more consistent visual experience. Use `--frame-pacing` to enable this feature, or `--no-frame-pacing` to disable it.
+
+###### <Badge text="--[no-]keep-awake" variant="tip" size="small" />
+
+Control whether the device should stay awake during streaming. This is particularly useful for mobile devices to prevent them from going to sleep during longer gaming sessions. Use `--keep-awake` to keep the device awake, or `--no-keep-awake` to allow normal sleep behavior.
+
+###### <Badge text="--[no-]performance-overlay" variant="tip" size="small" />
+
+Show or hide a performance overlay during streaming. This overlay displays real-time information about stream quality, network performance, and system resource usage. Use `--performance-overlay` to show this information, or `--no-performance-overlay` to hide it.
+
+### Video Options
+
+###### <Badge text="--[no-]hdr" variant="tip" size="small" />
+
+Enable or disable High Dynamic Range (HDR) streaming. HDR can provide more vibrant colors and better contrast, but requires compatible hardware on both the host and client. Use `--hdr` to enable HDR streaming if supported, or `--no-hdr` to force SDR mode.
+
+###### <Badge text="--video-codec <video-codec>" variant="tip" size="small" />
+
+Specify the video codec to use for streaming. Common options include H.264 and HEVC (H.265). HEVC can provide better quality at lower bitrates but requires more processing power. Example: `--video-codec HEVC`
+
+###### <Badge text="--video-decoder <video-decoder>" variant="tip" size="small" />
+
+Specify the video decoder to use for decoding the stream. This can be used to force a specific hardware or software decoder. Options may vary depending on your system. Example: `--video-decoder h264_mmal`
+
+### System Integration
+
+###### <Badge text="--capture-system-keys <capture-system-keys>" variant="tip" size="small" />
+
+Configure how system keys (like Alt+Tab or the Windows key) are captured during streaming. Options typically include:
+- `always`: Always capture system keys
+- `never`: Never capture system keys
+- `fullscreen`: Only capture system keys in fullscreen mode
+
+Example: `--capture-system-keys fullscreen`
+
+:::note
+The availability and behavior of some options may depend on your specific version of Moonlight and the operating system you're using. Always refer to the latest Moonlight documentation for the most up-to-date information.
+:::

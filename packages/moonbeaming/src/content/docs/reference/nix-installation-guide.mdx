@@ -1,0 +1,98 @@
+---
+title: Installing Nix 
+description: A guide to installing the Nix package manager and enabling Nix Flakes
+sidebar:
+  order: 1
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+This guide will walk you through the process of installing the Nix package manager and setting up Nix Flakes, which are prerequisites for installing and using Moonbeam.
+
+:::note[What is Nix?]
+Nix is the tool that Moonbeam uses to install itself and manage its dependencies. It ensures that Moonbeam has everything it needs to run correctly on your system, regardless of your Linux distribution.
+:::
+
+## Nix
+
+Follow these steps to install the Nix package manager:
+
+<Steps>
+
+1. Open a terminal on your Linux system.
+
+2. Run the following command to install Nix:
+
+   :::caution
+   Always read and understand any scripts before executing them on your system.
+   :::
+
+   ```bash title="Installing Nix..."
+   sh <(curl -L https://nixos.org/nix/install) --daemon
+   ```
+
+3. Follow the on-screen prompts to complete the installation.
+
+4. After installation, restart your terminal or run:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+5. Verify the installation:
+
+   ```bash
+   nix --version
+   ```
+
+   You should see output similar to:
+
+   ```
+   nix (Nix) 2.3.12
+   ```
+
+</Steps>
+
+## Setting Up Nix Flakes
+
+Flakes ensure a consistent environment across different systems. Here's how to enable them:
+
+<Steps>
+
+1. Edit your Nix configuration file:
+
+   ```bash
+   sudo nano /etc/nix/nix.conf
+   ```
+
+2. Add or modify the following line:
+
+   ```
+   experimental-features = nix-command flakes
+   ```
+
+3. Save the file and exit the editor.
+
+4. Restart the Nix daemon:
+
+   ```bash
+   sudo systemctl restart nix-daemon
+   ```
+
+</Steps>
+
+## Verifying Flakes Setup
+
+To verify that Flakes are properly set up, you can run a simple Flake command:
+
+```bash
+nix flake --version
+```
+
+If Flakes are correctly enabled, you should see output indicating the Nix version with Flake support.
+
+Congratulations! You have successfully installed Nix and set up Flakes. You're now ready to proceed with installing Moonbeam.
+
+:::tip
+Return to the [Moonbeam Installation Guide](/getting-started/installation-guide/) to continue with the Moonbeam installation process.
+:::

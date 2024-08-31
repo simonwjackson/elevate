@@ -1,0 +1,548 @@
+---
+title: Installation Guide
+description: A comprehensive guide to installing Moonbeam, a Moonlight optimization tool for Linux nomads
+sidebar:
+  order: 2
+---
+
+import { Steps, Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This guide will walk you through various methods of installing and using Moonbeam.
+
+## Prerequisites
+
+Before you begin, ensure that you have:
+
+- Linux operating system
+- [Nix package manager](https://nixos.org/download.html) with Flakes enabled
+- [Sunshine](https://github.com/LizardByte/Sunshine) installed and configured
+
+:::note
+Windows & macOS are not supported at this time.
+:::
+
+## Installing Nix and Setting Up Flakes
+
+If you haven't installed Nix or set up Flakes yet, follow the [Nix Installation and Flakes Setup Guide](/reference/nix-installation-guide/). This guide will walk you through:
+
+1. Installing the Nix package manager
+2. Configuring Nix for your system
+3. Enabling and setting up Nix Flakes
+
+Once you've completed these steps, return here to continue with Moonbeam installation or usage.
+
+## Installation Options
+
+<Tabs syncKey="method">
+  <TabItem label="Run">
+    You can run Moonbeam directly without installing it using:
+
+    <Tabs syncKey="method">
+      <TabItem label="Stable">
+        ```bash
+        nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam
+        ```
+      </TabItem>
+      <TabItem label="Bleeding Edge">
+        ```bash
+        nix run github:simonwjackson/elevate/main#moonbeam
+        ```
+      </TabItem>
+    </Tabs>
+
+    :::note
+    To pass options to Moonbeam when using this method, simply add them after the package name:
+
+    <Tabs syncKey="method">
+      <TabItem label="Stable">
+        ```bash
+        nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam -- --help
+        ```
+      </TabItem>
+      <TabItem label="Bleeding Edge">
+        ```bash
+        nix run github:simonwjackson/elevate/main#moonbeam -- --help
+        ```
+      </TabItem>
+    </Tabs>
+    :::
+
+    This method is perfect for trying out Moonbeam without making any changes to your system.
+  </TabItem>
+
+  <TabItem label="Nix">
+    To install Moonbeam globally using `nix-env`:
+
+    <Tabs syncKey="method">
+      <TabItem label="Stable">
+        ```bash
+        nix-env -iA github:simonwjackson/elevate/stable/moonbeam#moonbeam
+        ```
+      </TabItem>
+      <TabItem label="Bleeding Edge">
+        ```bash
+        nix-env -iA github:simonwjackson/elevate/main#moonbeam
+        ```
+      </TabItem>
+    </Tabs>
+
+    :::caution
+    This method is not recommended for NixOS systems as it can lead to conflicts with the declarative system configuration.
+    :::
+  </TabItem>
+
+  <TabItem label="NixOS">
+    For NixOS users, you can add Moonbeam to your system configuration using Flakes:
+
+    <Steps>
+
+    1. Create or edit your `flake.nix` file in your NixOS configuration directory:
+
+       ```bash
+       sudo nano /etc/nixos/flake.nix
+       ```
+
+    2. Add Moonbeam to your inputs and include it in your system configuration:
+
+       <Tabs syncKey="method">
+         <TabItem label="Stable">
+           ```nix
+           {
+             inputs = {
+               nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+               elevate.url = "github:simonwjackson/elevate/stable/moonbeam";
+             };
+
+             outputs = { self, nixpkgs, elevate }: {
+               nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+                 system = "x86_64-linux";
+                 modules = [
+                   ./configuration.nix
+                   ({ pkgs, ... }: {
+                     environment.systemPackages = [ elevate.packages.x86_64-linux.moonbeam ];
+                   })
+                 ];
+               };
+             };
+           }
+           ```
+         </TabItem>
+         <TabItem label="Bleeding Edge">
+           ```nix
+           {
+             inputs = {
+               nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+               elevate.url = "github:simonwjackson/elevate/main";
+             };
+
+             outputs = { self, nixpkgs, elevate }: {
+               nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+                 system = "x86_64-linux";
+                 modules = [
+                   ./configuration.nix
+                   ({ pkgs, ... }: {
+                     environment.systemPackages = [ elevate.packages.x86_64-linux.moonbeam ];
+                   })
+                 ];
+               };
+             };
+           }
+           ```
+         </TabItem>
+       </Tabs>
+
+       Replace `your-hostname` with your actual hostname.
+
+    3. Rebuild your NixOS configuration:
+
+       ```bash
+       sudo nixos-rebuild switch --flake /etc/nixos
+       ```
+
+    </Steps>
+  </TabItem>
+
+  <TabItem label="Source">
+    To build from source:
+
+    <Steps>
+
+    1. Clone the Elevate repository:
+
+       <Tabs syncKey="method">
+         <TabItem label="Stable">
+           ```bash
+           git clone -b stable/moonbeam --single-branch --depth 1 https://github.com/simonwjackson/elevate.git
+           ```
+         </TabItem>
+         <TabItem label="Bleeding Edge">
+           ```bash
+           git clone -b main --single-branch --depth 1 https://github.com/simonwjackson/elevate.git
+           ```
+         </TabItem>
+       </Tabs>
+
+    2. Change to the `elevate` directory:
+
+       ```bash
+       cd elevate
+       ```
+
+    3. Build and install Moonbeam.
+
+       ```bash title="Building and installing Moonbeam..."
+       nix profile install .#moonbeam
+       ```
+
+    4. Verify the installation:
+
+       ```bash
+       moonbeam --version
+       ```
+
+    </Steps>
+
+    :::tip[Updating Moonbeam]
+    To update a source installation of Moonbeam:
+
+    ```bash
+    cd elevate
+    git pull
+    nix profile upgrade .#moonbeam
+    ```
+    :::
+  </TabItem>
+</Tabs>
+
+## Verifying the Installation
+
+Regardless of the installation method, you can verify Moonbeam is correctly installed by running:
+
+```bash
+moonbeam --version
+```
+
+You should see output indicating the version of Moonbeam you've installed.
+
+<Tabs syncKey="version">
+  <TabItem label="Stable">
+    ```bash
+    nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam
+    ```
+  </TabItem>
+  <TabItem label="Bleeding Edge">
+    ```bash
+    nix run github:simonwjackson/elevate/main#moonbeam
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+To pass options to Moonbeam when using this method, simply add them after the package name:
+
+<Tabs syncKey="version">
+  <TabItem label="Stable">
+    ```bash
+    nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam -- --help
+    ```
+  </TabItem>
+  <TabItem label="Bleeding Edge">
+    ```bash
+    nix run github:simonwjackson/elevate/main#moonbeam -- --help
+    ```
+  </TabItem>
+</Tabs>
+:::
+
+This method is perfect for trying out Moonbeam without making any changes to your system.
+
+## Installing Moonbeam
+
+Now you have several options to install Moonbeam:
+
+### Option 1: Install Using nix-env
+
+To install Moonbeam globally using `nix-env`:
+
+<Tabs syncKey="version">
+  <TabItem label="Stable">
+    ```bash
+    nix-env -iA github:simonwjackson/elevate/stable/moonbeam#moonbeam
+    ```
+  </TabItem>
+  <TabItem label="Bleeding Edge">
+    ```bash
+    nix-env -iA github:simonwjackson/elevate/main#moonbeam
+    ```
+  </TabItem>
+</Tabs>
+
+:::caution
+This method is not recommended for NixOS systems as it can lead to conflicts with the declarative system configuration.
+:::
+
+### Option 2: Building from Source
+
+For the latest version:
+
+<Steps>
+
+1. Clone the Elevate repository:
+
+   <Tabs syncKey="version">
+     <TabItem label="Stable">
+       ```bash
+       git clone -b stable/moonbeam --single-branch --depth 1 https://github.com/simonwjackson/elevate.git
+       ```
+     </TabItem>
+     <TabItem label="Bleeding Edge">
+       ```bash
+       git clone -b main --single-branch --depth 1 https://github.com/simonwjackson/elevate.git
+       ```
+     </TabItem>
+   </Tabs>
+
+2. Change to the `elevate` directory:
+
+   ```bash
+   cd elevate
+   ```
+
+3. Build and install Moonbeam.
+
+   ```bash title="Building and installing Moonbeam..."
+   nix profile install .#moonbeam
+   ```
+
+4. Verify the installation:
+
+   ```bash
+   moonbeam --version
+   ```
+
+</Steps>
+
+:::tip[Updating Moonbeam]
+To update a source installation of Moonbeam:
+
+```bash
+cd elevate
+git pull
+nix profile upgrade .#moonbeam
+```
+:::
+
+### Option 3: Add to NixOS Configuration
+
+For NixOS users, you can add Moonbeam to your system configuration using Flakes:
+
+<Steps>
+
+1. If you haven't already, enable Flakes in your NixOS configuration by adding the following to your `configuration.nix`:
+
+   ```nix
+   nix = {
+     package = pkgs.nixFlakes;
+     extraOptions = ''
+       experimental-features = nix-command flakes
+     '';
+   };
+   ```
+
+2. Create or edit your `flake.nix` file in your NixOS configuration directory:
+
+   ```bash
+   sudo nano /etc/nixos/flake.nix
+   ```
+
+3. Add Moonbeam to your inputs and include it in your system configuration:
+
+   <Tabs syncKey="version">
+     <TabItem label="Stable">
+       ```nix
+       {
+         inputs = {
+           nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+           elevate.url = "github:simonwjackson/elevate/stable/moonbeam";
+         };
+
+         outputs = { self, nixpkgs, elevate }: {
+           nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+             system = "x86_64-linux";
+             modules = [
+               ./configuration.nix
+               ({ pkgs, ... }: {
+                 environment.systemPackages = [ elevate.packages.x86_64-linux.moonbeam ];
+               })
+             ];
+           };
+         };
+       }
+       ```
+     </TabItem>
+     <TabItem label="Bleeding Edge">
+       ```nix
+       {
+         inputs = {
+           nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+           elevate.url = "github:simonwjackson/elevate/main";
+         };
+
+         outputs = { self, nixpkgs, elevate }: {
+           nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+             system = "x86_64-linux";
+             modules = [
+               ./configuration.nix
+               ({ pkgs, ... }: {
+                 environment.systemPackages = [ elevate.packages.x86_64-linux.moonbeam ];
+               })
+             ];
+           };
+         };
+       }
+       ```
+     </TabItem>
+   </Tabs>
+
+   Replace `your-hostname` with your actual hostname.
+
+4. Rebuild your NixOS configuration:
+
+   ```bash
+   sudo nixos-rebuild switch --flake /etc/nixos
+   ```
+
+</Steps>
+
+
+## Shell Completion
+
+To enable shell completion for Moonbeam, follow these steps:
+
+<Steps>
+
+1. Locate the Moonbeam completion script. If you installed Moonbeam using `nix-env -iA`, the script should be located at:
+   ```
+   ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+2. For Bash:
+   Add the following line to your `~/.bashrc` file:
+   ```bash
+   source ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+3. For Zsh:
+   Add the following lines to your `~/.zshrc` file:
+   ```zsh
+   autoload -U +X bashcompinit && bashcompinit
+   source ~/.nix-profile/share/bash-completion/completions/moonbeam
+   ```
+
+4. Restart your shell or run `source ~/.bashrc` (for Bash) or `source ~/.zshrc` (for Zsh) to apply the changes.
+
+</Steps>
+
+Now you can use tab completion with Moonbeam commands and options.
+
+:::note
+If you installed Moonbeam using a different method, the completion script might be in a different location. You may need to search for it or consult the documentation for your specific installation method.
+:::
+
+
+## Upgrading Moonbeam
+
+To upgrade Moonbeam to the latest version, follow the method you used for installation:
+
+<Tabs syncKey="method">
+  <TabItem label="Run">
+    When using `nix run`, you're always using the latest version specified. To upgrade, simply use the command again:
+
+    <Tabs syncKey="method">
+      <TabItem label="Stable">
+        ```bash
+        nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam
+        ```
+      </TabItem>
+      <TabItem label="Bleeding Edge">
+        ```bash
+        nix run github:simonwjackson/elevate/main#moonbeam
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+
+  <TabItem label="Nix">
+    If you installed using `nix-env`, upgrade with:
+
+    <Tabs syncKey="method">
+      <TabItem label="Stable">
+        ```bash
+        nix-env -uA github:simonwjackson/elevate/stable/moonbeam#moonbeam
+        ```
+      </TabItem>
+      <TabItem label="Bleeding Edge">
+        ```bash
+        nix-env -uA github:simonwjackson/elevate/main#moonbeam
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+
+  <TabItem label="NixOS">
+    For NixOS users, update your flake inputs and rebuild:
+
+    ```bash
+    sudo nix flake update /etc/nixos
+    sudo nixos-rebuild switch --flake /etc/nixos
+    ```
+  </TabItem>
+
+  <TabItem label="Source">
+    To upgrade a source installation:
+
+    ```bash
+    cd elevate
+    git pull
+    nix profile upgrade .#moonbeam
+    ```
+  </TabItem>
+</Tabs>
+
+## Uninstalling Moonbeam
+
+To remove Moonbeam from your system:
+
+<Tabs syncKey="method">
+  <TabItem label="Run">
+    No uninstallation is necessary when using `nix run`.
+  </TabItem>
+
+  <TabItem label="Nix">
+    If installed with `nix-env`, uninstall using:
+
+    ```bash
+    nix-env -e moonbeam
+    ```
+  </TabItem>
+
+  <TabItem label="NixOS">
+    Remove Moonbeam from your NixOS configuration, then rebuild:
+
+    ```bash
+    sudo nixos-rebuild switch --flake /etc/nixos
+    ```
+  </TabItem>
+
+  <TabItem label="Source">
+    To uninstall a source installation:
+
+    ```bash
+    nix profile remove github:simonwjackson/elevate#moonbeam
+    ```
+  </TabItem>
+</Tabs>
+
+Congratulations! You have successfully installed or set up Moonbeam on your Linux system. You're now ready to start optimizing your Moonlight game streaming experience.
+
+<Badge text="Next Steps" variant="success" /> Proceed to the [Core Settings](/core-settings/resolution/) section to learn how to use Moonbeam for streaming games and applications.

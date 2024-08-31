@@ -1,0 +1,261 @@
+---
+title: Network Considerations 
+description: Understanding network speed tests and latency measurements and their impact on Moonbeam streaming
+sidebar:
+  order: 3
+---
+
+import { Steps, Badge } from '@astrojs/starlight/components';
+
+This section will help you understand how Moonbeam interacts with your network, performs speed tests and latency measurements, and how these factors affect your streaming experience.
+
+## Sunshine Availability Check
+
+Moonbeam's Sunshine availability check requires open communication on port 47989. This port is used for both TCP and UDP traffic. When setting up your network or configuring firewalls, ensure that this port is open between your client device (where Moonbeam is running) and your host PC (where Sunshine is installed). Failure to have this port open may result in Moonbeam being unable to detect Sunshine, even if it's running correctly on the host.
+
+## Using VPNs for Remote Access
+
+If you want to access your home network remotely without setting up port forwarding on your router, using a VPN (Virtual Private Network) can be an excellent solution. This method provides a secure way to connect to your home network from anywhere, allowing you to use Moonbeam for remote streaming.
+
+### Tailscale
+
+Tailscale is a user-friendly VPN that uses the WireGuard protocol. It's known for its ease of use and quick setup process.
+
+#### Key Features:
+
+- Auto-configuring mesh network
+- End-to-end encryption
+- Works across different networks and firewalls
+
+### ZeroTier
+
+ZeroTier is another excellent option that creates a virtual network over the internet, allowing your devices to communicate as if they were on the same local network.
+
+#### Key Features:
+
+- Software-defined networking
+- Peer-to-peer connection when possible
+- Centralized management of network access
+
+### Setting Up VPN
+
+<Steps>
+
+1. Choose either Tailscale or ZeroTier and install it on both your home streaming PC and your remote device.
+2. Set up your VPN network following the provider's instructions.
+3. Ensure both your home PC and remote device are connected to the same VPN network.
+4. Use Moonbeam to connect to your home PC using its VPN IP address instead of your public IP.
+
+</Steps>
+
+## Speed Tests
+
+Moonbeam uses network speed tests to determine the optimal streaming settings for your current network conditions. These tests are crucial for providing you with the best possible streaming experience.
+
+### How Moonbeam Performs Speed Tests
+
+<Steps>
+
+1. **Initialization**: When you start a Moonbeam streaming session, it first checks if a speed test is necessary.
+
+2. **Connection to Host**: Moonbeam attempts to connect to your streaming host (the computer running Sunshine) with the `iperf3` tool over port 31347# to perform a brief speed test.
+
+3. **Result Analysis**: The speed test results are analyzed to determine the available bandwidth.
+
+4. **Settings Optimization**: Based on the speed test results, Moonbeam adjusts streaming parameters such as resolution, FPS, and bitrate.
+
+</Steps>
+
+:::note
+Moonbeam requires the `iperf3` server to be running on your streaming host for accurate speed tests. Make sure it's properly set up and running on port 31347.
+:::
+
+### Interpreting Speed Test Results
+
+Moonbeam categorizes your network speed into different tiers, which influence the streaming settings:
+
+- **High Speed** (30+ Mbps): Allows for high resolution and high FPS streaming.
+- **Medium Speed** (15-30 Mbps): May require some compromises in resolution or FPS.
+- **Low Speed** (< 15 Mbps): Will prioritize a smooth experience over high resolution.
+
+:::tip
+If you're consistently getting low speed test results, consider troubleshooting your network or moving closer to your router for a better Wi-Fi signal.
+:::
+
+### Speed Test Failures
+
+If Moonbeam fails to perform a speed test, it will:
+
+1. Log a warning message.
+2. Fall back to using estimated bitrate based on your chosen resolution and FPS.
+
+#### Troubleshooting 
+
+<Steps>
+
+1. Check if `iperf3` is running on your host machine:
+
+   ```bash
+   pgrep -f "iperf3 -s -p 31347"
+   ```
+
+2. If it's not running, start it manually:
+
+   ```bash
+   iperf3 -s -p 31347
+   ```
+
+3. Ensure your firewall allows traffic on port 31347.
+
+</Steps>
+
+## Bitrate
+
+### Benchmarking Scenarios
+
+To find the optimal bitrate settings for your games and network conditions, you can simulate different network speeds using the `tc` (traffic control) tool on Linux. This allows you to test how your game streaming performs under various bandwidth limitations.
+
+<Steps>
+
+1. Start by limiting your network bandwidth to 2 Mbps (replace `<WIFI>` with your actual interface name):
+   ```bash
+   sudo tc qdisc add dev <WIFI> root tbf rate 2mbit latency 1ms burst 32k
+   ```
+
+2. Launch your game with Moonbeam and observe the streaming quality:
+   ```bash
+   moonbeam --max-bitrate 2000 stream MyHost "My Game"
+   ```
+
+3. Gradually increase the bandwidth limit to test higher bitrate scenarios:
+   ```bash
+   sudo tc qdisc change dev <WIFI> root tbf rate 5mbit latency 1ms burst 32k
+   ```
+
+4. Test your games at different bandwidth levels (e.g., 2 Mbps, 5 Mbps, 10 Mbps) to understand how they perform:
+   ```bash
+   moonbeam --max-bitrate 5000 stream MyHost "My Game"
+   ```
+   ```bash
+   sudo tc qdisc change dev <WIFI> root tbf rate 10mbit latency 1ms burst 32k
+   moonbeam --max-bitrate 10000 stream MyHost "My Game"
+   ```
+
+5. When you're done testing, remove the bandwidth limitation:
+   ```bash
+   sudo tc qdisc del dev <WIFI> root
+   ```
+
+</Steps>
+
+:::caution
+Remember to remove the bandwidth limitation after testing to restore your normal network performance.
+:::
+
+:::tip
+By starting with a low bandwidth and gradually increasing it, you can find the lowest bitrate at which each game remains playable with acceptable quality. This helps in optimizing your streaming settings for different network conditions.
+:::
+
+
+## Latency
+
+Moonbeam incorporates latency measurements to fine-tune the resolution and FPS settings.
+
+### Impact of Latency 
+
+Latency affects various aspects of the connection to the host:
+
+1. **Input Responsiveness**: Higher latency means a longer delay between your actions and seeing the results on screen.
+
+2. **Frame Rate**: Moonbeam may adjust the target frame rate based on latency to maintain smooth playback.
+
+3. **Video Quality**: In some cases, Moonbeam might reduce video quality to maintain responsiveness in high-latency situations.
+
+4. **Audio Sync**: High latency can cause audio and video to become out of sync.
+
+### How Moonbeam Measures Latency
+
+Moonbeam uses a simple method to measure latency:
+
+<Steps>
+
+1. **Ping Test**: Moonbeam sends a series of ICMP echo requests (pings) to your streaming host.
+
+2. **Sample Collection**: It collects multiple samples to ensure accuracy.
+
+3. **Average Calculation**: The average round-trip time is calculated from these samples.
+
+4. **Result Interpretation**: This average is then used as the latency measurement for optimization calculations.
+
+</Steps>
+
+:::note
+Moonbeam uses the `ping` command with specific parameters to ensure quick and accurate measurements:
+
+```bash
+ping -c 3 -i 0.2 -W 1 <host>
+```
+
+This sends 3 pings with a 0.2-second interval and a 1-second timeout.
+:::
+
+### Benchmarking Scenarios
+
+To simulate different network conditions, you can use the `tc` (traffic control) tool on Linux. This allows you to artificially introduce latency and test how your games and applications perform under various conditions.
+
+<Steps>
+
+1. Start by adding a 200ms delay to your network interface (replace `<WIFI>` with your actual interface name):
+   ```bash
+   sudo tc qdisc add dev <WIFI> root netem delay 200ms 
+   ```
+
+2. Launch (and play) your game with Moonbeam and observe the performance:
+   ```bash
+   moonbeam --max-latency 200 stream MyHost "My Game"
+   ```
+
+3. Gradually decrease the latency to test lower latency scenarios:
+   ```bash
+   sudo tc qdisc change dev <WIFI> root netem delay 100ms
+   ```
+
+4. When you're done testing, remove the artificial delay:
+   ```bash
+   sudo tc qdisc del dev <WIFI> root
+   ```
+
+</Steps>
+
+:::caution
+Remember to remove the artificial delay after testing to restore your normal network performance.
+:::
+
+By starting with a high latency and gradually decreasing it, you can find the highest latency at which each game remains playable. This can help you determine which games are suitable for different network conditions.
+
+### Best Practices
+
+1. **Network Quality**:
+
+   Your network quality significantly impacts latency. Consider these factors:
+
+   - Physical distance to the host
+   - Network congestion
+   - Wi-Fi vs. Ethernet connection
+
+1. **Network Router**: Ensure your router is configured for gaming, with QoS (Quality of Service) settings prioritizing your gaming devices if available.
+
+2. **Game-Specific Tuning**
+
+   Adjust based on the [type of game](/core-settings/latency/#games-suitable-for-high-latency-environments):
+
+   - For fast-paced, competitive games (e.g., FPS, fighting games), set a lower max latency.
+   - For slower-paced games (e.g., strategy, RPGs), you can likely tolerate higher latency.
+Here are some additional steps you can take to minimize latency:
+
+1. **Use a Wired Connection**: Whenever possible, use Ethernet instead of Wi-Fi on both the host and client devices.
+
+
+3. **Close Bandwidth-Heavy Applications**: On both host and client, close applications that might be using significant bandwidth (e.g., file synchronization services, video streaming).
+
+4. **Consider Host Hardware**: On the host PC, using a hardware encoder (like NVENC on NVIDIA GPUs) can help reduce encoding latency.
