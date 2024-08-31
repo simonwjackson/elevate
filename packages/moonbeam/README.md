@@ -10,7 +10,7 @@
 
 # Moonbeam
 
-Moonbeam optimizes settings for [Moonlight](https://moonlight-stream.org), adapting to your system and network conditions. 
+A simple, automated, network aware launcher for  [Moonlight](https://moonlight-stream.org).
 
 ## Features
 

@@ -89,19 +89,21 @@ Nix Flakes provide a more deterministic and reproducible way to manage Nix packa
 
 </Steps>
 
-## Try Moonbeam Without Installing
+## Use Moonbeam Without Installing
 
 You can run Moonbeam directly without installing it using:
 
 ```bash
-nix run github:simonwjackson/elevate#moonbeam
+nix run github:simonwjackson/elevate/stable/moonbeam#moonbeam
 ```
 
+:::note
 To pass options to Moonbeam when using this method, simply add them after the package name:
 
 ```bash
 nix run github:simonwjackson/elevate#moonbeam -- --help
 ```
+:::
 
 This method is perfect for trying out Moonbeam without making any changes to your system.
 
