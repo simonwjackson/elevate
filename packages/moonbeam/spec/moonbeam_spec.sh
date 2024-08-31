@@ -205,3 +205,23 @@ Describe 'moonbeam'
     The stderr should include 'priority: fps'
   End
 End
+
+# TODO
+# Processes dry-run flag
+# Handles reconnect option
+# Passes through unrecognized options as Moonlight options
+# Generates correct missing configurations
+# Calculates appropriate bitrate based on resolution and FPS
+# Handles incompatible resolution options gracefully
+# Validates resolution_steps input
+# Processes and converts bitrate values correctly
+# Sets log level from environment variable
+# Sets log level from command-line argument
+# Handles non-stream Moonlight commands correctly
+# Validates user input for required arguments
+# Calculates minimum viable resolution correctly
+# Finds appropriate FPS values within given range and steps
+# Processes multiple command-line arguments in various orders
+# Handles invalid input gracefully (e.g., invalid resolutions, FPS values)
+# Correctly applies default values when options are not specified
+

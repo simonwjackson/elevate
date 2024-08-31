@@ -1,18 +1,29 @@
+<p align="center">
+  <img src="./moonbeam-logo.png" alt="Moonbeam Logo" width="400">
+</p>
+
+<p align="center">
+    <img alt="Nix" src="https://img.shields.io/badge/Nix-5277C3?style=for-the-badge&logo=nixos&logoColor=white" style="max-width: 100%;">
+    <img alt="Linux" src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" style="max-width: 100%;">
+    <img alt="GPL2" src="https://img.shields.io/badge/license-GPL2-blue.svg?style=for-the-badge" style="max-width: 100%;">
+</p>
+
 # Moonbeam
 
-Moonbeam is an intelligent shell script that enhances the Moonlight game streaming experience for Linux users. It automatically optimizes streaming settings based on your system and network conditions.
+Moonbeam optimizes settings for [Moonlight](https://moonlight-stream.org), adapting to your system and network conditions. 
 
 ## Features
 
-- 🚀 Automatic optimization of streaming settings
-- 🔄 Compatibility with existing Moonlight setups
-- 🌐 Smart network detection and dynamic adjustments
-- 🔁 Auto-reconnect functionality
-- 💼 Versatility for gaming and productivity
+- 🤖 Auto-tuning Moonlight settings
+- 🔌 Reconnect automatically on disconnection
+- ⚖️ Prioritize FPS, resolution, or bandwidth
+- 🧩 Scriptable and launcher-friendly
+
 
 ## Prerequisites
 
 - Linux operating system
+- [Nix package manager](https://nixos.org/download.html)
 - [Moonlight](https://moonlight-stream.org) and [Sunshine](https://github.com/LizardByte/Sunshine) installed and configured
 
 ## Installation
@@ -21,7 +32,7 @@ Moonbeam can be installed using the Nix package manager. For detailed installati
 
 ## Quick Start
 
-1. Ensure the `iperf3` speed test server is running on your host PC:
+1. Start an `iperf3` server on your host PC:
 
    ```bash
    iperf3 -s -p 31347
@@ -39,26 +50,7 @@ For more usage examples and advanced configurations, refer to the [Streaming Bas
 
 ## Documentation
 
-Comprehensive documentation for Moonbeam is available at [docs.moonbeam.ing](https://docs.moonbeam.ing/). Key sections include:
-
-- [Introduction](https://docs.moonbeam.ing/getting-started/introduction)
-- [Installing Moonbeam](https://docs.moonbeam.ing/getting-started/installing-moonbeam)
-- [Streaming Basics](https://docs.moonbeam.ing/getting-started/streaming-basics)
-- [Configuration Options](https://docs.moonbeam.ing/reference/Options/)
-  - [Resolution Settings](https://docs.moonbeam.ing/reference/Options/resolution-settings)
-  - [FPS Settings](https://docs.moonbeam.ing/reference/Options/fps-settings)
-  - [Bitrate Settings](https://docs.moonbeam.ing/reference/Options/bitrate-settings)
-  - [Latency Settings](https://docs.moonbeam.ing/reference/Options/latency-settings)
-  - [Priority Settings](https://docs.moonbeam.ing/reference/Options/priority-settings)
-  - [Auto-reconnect](https://docs.moonbeam.ing/reference/Options/auto-reconnect)
-- [Troubleshooting](https://docs.moonbeam.ing/reference/Troubleshooting/)
-  - [Moonbeam Troubleshooting](https://docs.moonbeam.ing/reference/Troubleshooting/troubleshooting)
-  - [Understanding Error Messages](https://docs.moonbeam.ing/reference/Troubleshooting/error-messages)
-  - [Network Considerations](https://docs.moonbeam.ing/reference/Troubleshooting/understanding-network-speed-tests)
-  - [Getting Support](https://docs.moonbeam.ing/reference/Troubleshooting/bugs-and-support)
-- [Advanced Usage](https://docs.moonbeam.ing/reference/Advanced-Usage/)
-  - [Scripting with Moonbeam](https://docs.moonbeam.ing/reference/Advanced-Usage/scripting)
-  - [Integrating Moonbeam with Other Tools](https://docs.moonbeam.ing/reference/Advanced-Usage/integrating-moonbeam)
+Comprehensive documentation for Moonbeam is available at [docs.moonbeam.ing](https://docs.moonbeam.ing/).
 
 ## Contributing
 
