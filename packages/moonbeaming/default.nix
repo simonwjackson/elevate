@@ -1,8 +1,9 @@
 {
-  lib,
-  stdenv,
   bun,
+  lib,
   mkShell,
+  pkgs,
+  stdenv,
   writeShellScriptBin,
 }: let
   packageJson = lib.importJSON ./package.json;
@@ -45,6 +46,7 @@ in
     buildInputs = [
       bunWrapper
       bunxWrapper
+      pkgs.just
     ];
 
     shellHook = ''
