@@ -276,10 +276,10 @@ get_rotated_resolution() {
   local transform=$3
 
   case $transform in
-  normal | 0 | 180)
+  0 | 2)
     echo "${width}x${height}"
     ;;
-  90 | 270)
+  1 | 3)
     echo "${height}x${width}"
     ;;
   *)
@@ -299,7 +299,8 @@ get_display_resolution_hyprland() {
     exit 1
   fi
 
-  monitor_info=$(hyprctl monitors -j | jq -r '.[0]')
+  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
+  monitor_info=$(hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)")
 
   local width height transform
   width=$(echo "$monitor_info" | jq -r '.width')
@@ -317,7 +318,8 @@ get_display_refresh_rate_hyprland() {
     exit 1
   fi
 
-  hyprctl monitors -j | jq -r '.[0].refreshRate' | awk '{printf "%.0f\n", $1}'
+  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
+  hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor) | .refreshRate" | awk '{printf "%.0f\n", $1}'
 }
 
 # @brief Retrieves the display resolution using available methods.
