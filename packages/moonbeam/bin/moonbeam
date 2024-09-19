@@ -205,18 +205,17 @@ validate_user_input() {
 }
 
 set_early_log_level() {
-  if [[ -n "${LOG_LEVEL:-}" ]]; then
-    validate_and_set_log_level "$LOG_LEVEL"
-    trace "Log level set from environment variable: $LOG_LEVEL"
-    return 0
-  fi
+  # Initialize LOG_LEVEL with a default value
+  LOG_LEVEL="SIMPLE"
 
-  # If LOG_LEVEL is not set in the environment, check command-line arguments
+  # Check command-line arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
     --log-level)
       if [[ -n "${2:-}" ]]; then
-        validate_and_set_log_level "$2"
+        LOG_LEVEL="$2"
+        validate_and_set_log_level "$LOG_LEVEL"
+        export LOG_LEVEL
         trace "Log level set from command-line argument: $LOG_LEVEL"
         return 0
       else
@@ -228,7 +227,10 @@ set_early_log_level() {
     shift
   done
 
-  trace "No LOG_LEVEL environment variable or --log-level specified, using default"
+  # If no --log-level argument was found, set and export the default
+  validate_and_set_log_level "$LOG_LEVEL"
+  export LOG_LEVEL
+  trace "No --log-level specified, using default: $LOG_LEVEL"
   return 0
 }
 

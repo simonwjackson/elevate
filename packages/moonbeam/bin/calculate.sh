@@ -157,7 +157,7 @@ find_best_fps_for_latency() {
   if ((ideal_fps > max_fps)); then
     ideal_fps=$max_fps
   elif ((ideal_fps < min_fps)); then
-    # error "Latency is too high for the given FPS range"
+    error "Latency is too high for the given FPS range"
     return 1
   fi
 
@@ -169,7 +169,7 @@ find_best_fps_for_latency() {
   done
 
   if ((best_fps == 0)); then
-    # error "No suitable FPS found for the given latency"
+    error "No suitable FPS found for the given latency"
     exit 1
   fi
 
@@ -217,6 +217,7 @@ optimize_streaming_settings() {
       if ((current_fps <= max_allowed_fps)); then
         for current_resolution in $(generate_scaled_resolutions "$min_resolution" "$max_resolution" "$scaling_steps" | sort -nr); do
           current_bitrate=$(estimate_required_bitrate "$current_resolution" "$current_fps")
+
           if ((current_bitrate <= available_bandwidth_kbps)); then
             best_resolution="$current_resolution"
             best_fps="$current_fps"
@@ -245,7 +246,7 @@ optimize_streaming_settings() {
   fi
 
   if [[ "$found_setting" != "true" ]]; then
-    # error "No suitable settings found within the given constraints"
+    error "No suitable settings found within the given constraints (1)"
     return 1
   fi
 
@@ -254,7 +255,7 @@ optimize_streaming_settings() {
   IFS='x' read -r best_width best_height <<<"$best_resolution"
 
   if ((best_width < min_width || best_height < min_height)); then
-    # warn "Cannot find suitable settings above minimum resolution. Using minimum resolution with adjusted FPS."
+    warn "Cannot find suitable settings above minimum resolution. Using minimum resolution with adjusted FPS."
     best_resolution="$min_resolution"
 
     for current_fps in $(echo "$valid_fps_values" | tr ' ' '\n' | sort -nr); do
@@ -270,7 +271,7 @@ optimize_streaming_settings() {
     done
 
     if [[ "$found_setting" != "true" ]]; then
-      # error "No suitable settings found within the given constraints"
+      error "No suitable settings found within the given constraints (2)"
       return 1
     fi
   fi

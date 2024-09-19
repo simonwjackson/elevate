@@ -14,10 +14,6 @@
 # @brief Global variable to store the process ID of the Moonlight stream
 MOONLIGHT_PID=""
 
-## @var LOG_LEVEL
-# @brief Global variable to set the logging verbosity
-LOG_LEVEL="${LOG_LEVEL:-0}"
-
 ##
 # @brief Kills a process given its PID
 # @param $1 The process ID to kill
@@ -243,6 +239,16 @@ run_moonlight_session() {
     )
 
     debug "Calculating best settings..."
+
+    echo \
+      "min_fps:" "${local_config[min_fps]}" \
+      "max_fps:" "${local_config[max_fps]}" \
+      "min_res:" "${local_config[min_resolution]}" \
+      "max_res:" "${local_config[max_resolution]}" \
+      "bitrate:" "$new_available_bitrate" \
+      "latency:" "$new_latency" \
+      "priority:" "${local_config[priority]}" \
+      "steps:" "${local_config[resolution_steps]}"
 
     if ! result=$(
       await \
