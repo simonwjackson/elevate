@@ -12,5 +12,9 @@ testMoonbeamVersion() {
   assertContains "$output" "Moonbeam version"
 }
 
+test_Moonbeam_Basic() {
+  output=$(moonbeam stream localhost Desktop --dry-run --log-level VERBOSE)
+}
+
 # shellcheck disable=SC1091
 . shunit2

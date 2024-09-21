@@ -205,7 +205,6 @@ run_moonlight_session() {
 
   while true; do
     if ! check_sunshine_availability "${local_config[host]}"; then
-      error "Sunshine is not available on the host. Please ensure it's running."
       return 1
     fi
 
@@ -239,16 +238,6 @@ run_moonlight_session() {
     )
 
     debug "Calculating best settings..."
-
-    echo \
-      "min_fps:" "${local_config[min_fps]}" \
-      "max_fps:" "${local_config[max_fps]}" \
-      "min_res:" "${local_config[min_resolution]}" \
-      "max_res:" "${local_config[max_resolution]}" \
-      "bitrate:" "$new_available_bitrate" \
-      "latency:" "$new_latency" \
-      "priority:" "${local_config[priority]}" \
-      "steps:" "${local_config[resolution_steps]}"
 
     if ! result=$(
       await \
