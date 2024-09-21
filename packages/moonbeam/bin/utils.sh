@@ -43,10 +43,10 @@ convert_args_to_assoc_array() {
   shift # Remove the first argument (the array name)
 
   local key
-  local index=0
+  local positional_index=0
 
   trace "Starting convert_args_to_assoc_array with $# arguments"
-  trace Bash version "$BASH_VERSION"
+  trace "Bash version $BASH_VERSION"
 
   while [[ $# -gt 0 ]]; do
     trace "Processing argument: $1"
@@ -60,7 +60,6 @@ convert_args_to_assoc_array() {
         args_array["$key"]=$2
         trace "Set ${key}=$2"
         shift
-        trace "Shifted arguments. Remaining: $#"
       fi
     elif [[ $1 == -* ]]; then
       key="${1#-}"
@@ -72,18 +71,11 @@ convert_args_to_assoc_array() {
         args_array["$key"]=$2
         trace "Set ${key}=$2"
         shift
-        trace "Shifted arguments. Remaining: $#"
       fi
     else
-      args_array["$index"]=$1
-      trace "Set args_array[$index]=$1"
-      trace "Current index value: $index"
-      index=$((index + 1))
-      if [[ ! "$index" =~ ^[0-9]+$ ]]; then
-        trace ERROR "Index is not a valid integer after increment: $index"
-        return 1
-      fi
-      trace "New index value: $index"
+      args_array["$positional_index"]=$1
+      trace "Set args_array[$positional_index]=$1"
+      positional_index=$((positional_index + 1))
     fi
     shift
     trace "Shifted arguments. Remaining: $#"

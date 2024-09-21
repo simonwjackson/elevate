@@ -299,6 +299,10 @@ get_display_resolution_hyprland() {
     exit 1
   fi
 
+  if ! output=$(hyprctl monitors 2>&1); then
+    exit 1
+  fi
+
   active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
   monitor_info=$(hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)")
 
@@ -315,6 +319,10 @@ get_display_resolution_hyprland() {
 # @return The display refresh rate as an integer
 get_display_refresh_rate_hyprland() {
   if ! command -v hyprctl &>/dev/null; then
+    exit 1
+  fi
+
+  if ! output=$(hyprctl monitors 2>&1); then
     exit 1
   fi
 

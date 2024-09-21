@@ -26,22 +26,22 @@
   ];
 
   inputBins = map (pkg: "${pkg}/bin") commonInputs;
-
-  generateVersion = let
-    getDate = pkgs.writeShellScript "get-date" ''
-      date +%Y.%m.%d
-    '';
-
-    sourceHash = builtins.substring 0 8 (builtins.hashString "sha256" (builtins.readFile ./bin/moonbeam));
-  in
-    pkgs.lib.removeSuffix "\n" (builtins.readFile (pkgs.runCommand "version" {} ''
-      date=$(${getDate})
-      echo "$date-${sourceHash}" > $out
-    ''));
+  # generateVersion = let
+  #   getDate = pkgs.writeShellScript "get-date" ''
+  #     date +%Y.%m.%d
+  #   '';
+  #
+  #   sourceHash = builtins.substring 0 8 (builtins.hashString "sha256" (builtins.readFile ./bin/moonbeam));
+  # in
+  #   pkgs.lib.removeSuffix "\n" (builtins.readFile (pkgs.runCommand "version" {} ''
+  #     date=$(${getDate})
+  #     echo "$date-${sourceHash}" > $out
+  #   ''));
 in
   resholve.mkDerivation rec {
     pname = "moonbeam";
-    version = generateVersion;
+    version = "0";
+    # version = generateVersion;
     src = ./.;
 
     buildInputs = commonInputs;
@@ -67,26 +67,26 @@ in
       sed -i 's|log_command="gum|log_command="${lib.getExe pkgs.gum}|g' ./bin/moonbeam
 
       # Replace version placeholder
-      sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
     '';
+    # sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
 
     buildPhase = ''
       mkdir -p $out
       cp -R . $out
     '';
 
-    checkInputs = with pkgs; [
-      shellspec
-    ];
-
-    checkPhase = ''
-      runHook preCheck
-
-      cd $out
-      shellspec --fail-fast --format tap --env LOG_LEVEL=VERBOSE --xtrace
-
-      runHook postCheck
-    '';
+    # checkInputs = with pkgs; [
+    #   shellspec
+    # ];
+    #
+    # checkPhase = ''
+    #   runHook preCheck
+    #
+    #   cd $out
+    #   shellspec --fail-fast --format tap --xtrace
+    #
+    #   runHook postCheck
+    # '';
 
     # doCheck = true;
 

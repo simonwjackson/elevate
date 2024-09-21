@@ -168,7 +168,7 @@ validate_user_input() {
   validate_resolution_options || exit 1
 
   # Validate stream command arguments
-  if [[ "${args[0]:-}" == "stream" ]]; then
+  if [[ "${args[0]:-}" == "stream" && ! "${args[help]:-}" == "true" ]]; then
     if [[ -z "${args[1]:-}" || -z "${args[2]:-}" ]]; then
       error "Missing required arguments: stream <host> <app>"
       return 1
@@ -254,14 +254,15 @@ process_args() {
     exit $?
   fi
 
+  if [[ "$1" == "stream" ]] && [[ "$*" =~ "--help" ]]; then
+    echo "$usage_doc"
+    exit 0
+  fi
+
   while [[ $# -gt 0 ]]; do
     case $1 in
     --version)
       echo "Moonbeam version $VERSION"
-      exit 0
-      ;;
-    --help | -h)
-      echo "$usage_doc"
       exit 0
       ;;
     --max-latency)
