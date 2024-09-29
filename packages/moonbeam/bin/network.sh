@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
 # @file network.sh
@@ -95,6 +95,8 @@ get_optimal_bitrate() {
   fi
 }
 
+run_iperf3() { iperf3 "$@"; }
+
 ##
 # @brief Measure network speed to a specific host using iperf3.
 #
@@ -114,7 +116,7 @@ measure_network_speed_to_host() {
 
     info "Running speed test..."
     result=$(
-      iperf3 \
+      run_iperf3 \
         -c "$host" \
         -p "$port" \
         -t 2 \
@@ -150,6 +152,8 @@ measure_network_speed_to_host() {
   return 1
 }
 
+run_ping() { ping "$@"; }
+
 ##
 # @brief Measure latency to a specific host using ping.
 #
@@ -163,11 +167,10 @@ measure_latency() {
   info "Measuring ping..."
 
   ping_result=$(
-    ping \
+    run_ping \
       -c 3 \
       -i 0.2 \
-      -W 1 \
-      "$host" |
+      -W 1 \  "$host" |
       tail -1 |
       awk '{print $4}' |
       cut -d '/' -f 2 |

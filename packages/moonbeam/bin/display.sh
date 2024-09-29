@@ -289,24 +289,26 @@ get_rotated_resolution() {
   esac
 }
 
+get_monitor_info_hyprland() {
+  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
+  hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)"
+}
+
+is_hyprland_running() {
+  pgrep -f hyprland >/dev/null
+}
+
 # @brief Retrieves the display resolution for Hyprland environments.
 #
 # @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_hyprland() {
-  local monitor_info
-
-  if ! command -v hyprctl &>/dev/null; then
+  if ! is_hyprland_running; then
     exit 1
   fi
 
-  if ! output=$(hyprctl monitors 2>&1); then
-    exit 1
-  fi
+  local monitor_info width height transform
 
-  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
-  monitor_info=$(hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)")
-
-  local width height transform
+  monitor_info=$(get_monitor_info_hyprland)
   width=$(echo "$monitor_info" | jq -r '.width')
   height=$(echo "$monitor_info" | jq -r '.height')
   transform=$(echo "$monitor_info" | jq -r '.transform')
@@ -318,16 +320,13 @@ get_display_resolution_hyprland() {
 #
 # @return The display refresh rate as an integer
 get_display_refresh_rate_hyprland() {
-  if ! command -v hyprctl &>/dev/null; then
+  if ! is_hyprland_running; then
     exit 1
   fi
 
-  if ! output=$(hyprctl monitors 2>&1); then
-    exit 1
-  fi
-
-  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
-  hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor) | .refreshRate" | awk '{printf "%.0f\n", $1}'
+  get_monitor_info_hyprland |
+    jq -r .refreshRate |
+    awk '{printf "%.0f\n", $1}'
 }
 
 # @brief Retrieves the display resolution using available methods.

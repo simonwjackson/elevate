@@ -23,6 +23,7 @@
     netcat
     procps
     xorg.xrandr
+    cowsay
   ];
 
   inputBins = map (pkg: "${pkg}/bin") commonInputs;
@@ -63,7 +64,7 @@ in
     patchPhase = ''
       # HACK
       sed -i 's| -- iperf| -- ${pkgs.iperf3}/bin/iperf3|g' ./bin/moonbeam
-      # HACK
+      sed -i "s|'tput cnorm|'${pkgs.ncurses5}/bin/tput cnorm|g" ./bin/utils.sh
       sed -i 's|log_command="gum|log_command="${lib.getExe pkgs.gum}|g' ./bin/moonbeam
 
       # Replace version placeholder
@@ -74,21 +75,6 @@ in
       mkdir -p $out
       cp -R . $out
     '';
-
-    # checkInputs = with pkgs; [
-    #   shellspec
-    # ];
-    #
-    # checkPhase = ''
-    #   runHook preCheck
-    #
-    #   cd $out
-    #   shellspec --fail-fast --format tap --xtrace
-    #
-    #   runHook postCheck
-    # '';
-
-    # doCheck = true;
 
     installPhase = ''
       mkdir -p $out/bin $out/share/bash-completion/completions $out/share/zsh/site-functions
@@ -140,7 +126,6 @@ in
           "cannot:${coreutils}/bin/uniq"
           "cannot:${coreutils}/bin/wc"
           "cannot:${findutils}/bin/xargs"
-          "cannot:${shellspec}/bin/shellspec"
           "cannot:${gawk}/bin/awk"
           "cannot:${gnugrep}/bin/grep"
           "cannot:${gnused}/bin/sed"

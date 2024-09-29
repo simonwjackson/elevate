@@ -1,28 +1,39 @@
 {
+  lib,
   pkgs,
   inputs,
+  ...
 }: let
-  moonbeam = pkgs.callPackage ../../packages/moonbeam {inherit inputs;};
-  shunit2 = pkgs.shunit2;
-
-  # Read mock executables from files
-  mockPing = pkgs.writeShellScriptBin "ping" (builtins.readFile ./mock_ping.sh);
-  mockIperf3 = pkgs.writeShellScriptBin "iperf3" (builtins.readFile ./mock_iperf3.sh);
-  mockXrandr = pkgs.writeShellScriptBin "xrandr" (builtins.readFile ./mock_xrandr.sh);
-  mockMoonlight = pkgs.writeShellScriptBin "moonlight" (builtins.readFile ./mock_moonlight.sh);
-
-  # Create a derivation for the test script
-  testScript = pkgs.writeShellApplication {
-    name = "test_moonbeam";
-    runtimeInputs = [shunit2 moonbeam];
-    text = builtins.readFile ./test_moonbeam.sh;
-  };
+  moonbeam = inputs.self.packages.${pkgs.system}.moonbeam;
 in
-  pkgs.runCommand "moonbeam-check" {
-    buildInputs = [moonbeam shunit2 mockPing mockIperf3 mockXrandr mockMoonlight testScript];
+  pkgs.runCommand "test-moonbeam" {
+    buildInputs = [
+      pkgs.bats
+      pkgs.kcov
+      pkgs.bash
+      pkgs.coreutils
+      moonbeam
+    ];
+    src = ./.;
   } ''
-    export PATH="${mockPing}/bin:${mockIperf3}/bin:${mockXrandr}/bin:${mockMoonlight}/bin:$PATH"
+    mkdir -p $out/coverage
+    mkdir -p $out/bin
+    cp -r $src/* $out/
 
-    test_moonbeam
-    touch $out
+    # Make test.sh executable
+    if [ -f $out/test.sh ]; then
+      chmod +x $out/test.sh
+    else
+      echo "test.sh not found" >&2
+      exit 1
+    fi
+
+    export PATH="${lib.makeBinPath [moonbeam pkgs.bash pkgs.coreutils]}:$out/mocks:$PATH"
+
+    # Run tests
+    if bats $out/test.sh; then
+      echo "Tests passed successfully!"
+    else
+      exit 1
+    fi
   ''
