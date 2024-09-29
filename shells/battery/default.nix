@@ -6,6 +6,9 @@
   mkShell,
   ...
 }: let
+  pkgCommon = import ../../packages/battery/common.nix {inherit pkgs;};
+  repoCommon = import ../../common.nix {inherit pkgs;};
+
   # Create a custom wrapped version of just
   wrappedJust = pkgs.symlinkJoin {
     name = "wrapped-just";
@@ -19,19 +22,17 @@
   };
 in
   mkShell {
-    packages = [
-      (pkgs.bats.withLibraries (p: [p.bats-support p.bats-assert]))
-      pkgs.shellcheck
-      pkgs.bash
-      pkgs.entr
-      wrappedJust # This now correctly references the let-bound wrappedJust
-    ];
+    packages =
+      pkgCommon.buildInputs
+      ++ repoCommon.buildInputs
+      ++ [
+        wrappedJust
+      ];
 
     shellHook = ''
       echo "Welcome to the Bandwidth Calculator development environment!"
-      echo "BATS with support and assert libraries is available."
-      echo "Use 'bats' to run your tests."
       echo "The 'just' command has been wrapped to always use the project root as the working directory"
       echo "and the justfile in the project root."
+      echo "Additional build inputs from common.nix have been added to the environment."
     '';
   }
