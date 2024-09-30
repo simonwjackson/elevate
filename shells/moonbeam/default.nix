@@ -28,6 +28,7 @@ in
       # pkgCommon.buildInputs
       ++ [
         wrappedJust
+        moonbeam
         pkgs.bats
         pkgs.kcov
         pkgs.bash

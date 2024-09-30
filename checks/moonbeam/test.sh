@@ -12,16 +12,6 @@ check_sunshine_availability() {
 }
 export -f check_sunshine_availability
 
-# get_display_refresh_rate() {
-#   echo 60
-# }
-# export -f get_display_refresh_rate
-#
-# get_display_resolution() {
-#   echo "1920x1080"
-# }
-# export -f get_display_resolution
-
 run_ping() {
   cat <<EOF
 PING example.com (93.184.216.34) 56(84) bytes of data.
@@ -152,8 +142,6 @@ EOF
   export -f is_hyprland_running
 
   run main stream host Desktop --dry-run --log-level VERBOSE
-
-  echo $output
 
   [ "$status" -eq 0 ]
   [[ "$output" =~ "Measured network speed: 100000" ]]

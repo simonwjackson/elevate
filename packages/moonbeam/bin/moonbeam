@@ -46,71 +46,71 @@ Usage:
   $(basename "$0") [options] stream <host> <app>
 
 Moonbeam Options:
-  --bitrate <bitrate>                          Available bitrate in Kbps (default: calculated from max resolution and FPS)
-  --resolution <WxH>                           Set both min and max resolution (e.g., 1920x1080)
-  --max-resolution <WxH>                       Maximum resolution (e.g., 1920x1080)
-  --min-resolution <WxH>                       Minimum resolution (e.g., 640x360)
-  --resolution-steps <steps>                   Number of steps for resolution scaling (default: 128)
-  --reconnect                                  Automatically reconnect if the stream is disconnected
-  --360                                        Force a 640x360 resolution
-  --480                                        Force a 854x480 resolution
-  --540                                        Force a 960x540 resolution
-  --720                                        Force a 1280x720 resolution
-  --900                                        Force a 1600x900 resolution
   --1080                                       Force a 1920x1080 resolution
   --1440                                       Force a 2560x1440 resolution
   --2K                                         Force a 2048x1080 resolution
+  --360                                        Force a 640x360 resolution
+  --480                                        Force a 854x480 resolution
   --4K                                         Force a 3840x2160 resolution
-  --fps <fps>                                  Set both min and max FPS (e.g., 60)
-  --max-fps <fps>                              Maximum FPS (e.g., 120)
-  --min-fps <fps>                              Minimum FPS (e.g., 30)
-  --max-latency <ms>                           Maximum allowed latency in milliseconds
-  --priority <resolution|fps>              Prioritize resolution or FPS in optimization (default: fps)
-  --log-level <level>                          Set log level (QUIET, SIMPLE, INFO, WARN, DEBUG, TRACE, VERBOSE)
+  --540                                        Force a 960x540 resolution
+  --720                                        Force a 1280x720 resolution
+  --900                                        Force a 1600x900 resolution
+  --bitrate <bitrate>                          Available bitrate in Kbps (default: calculated from max resolution and FPS)
   --dry-run                                    Show the Moonlight command without executing it
+  --fps <fps>                                  Set both min and max FPS (e.g., 60)
+  --log-level <level>                          Set log level (QUIET, SIMPLE, INFO, WARN, DEBUG, TRACE, VERBOSE)
+  --max-fps <fps>                              Maximum FPS (e.g., 120)
+  --max-latency <ms>                           Maximum allowed latency in milliseconds
+  --max-resolution <WxH>                       Maximum resolution (e.g., 1920x1080)
+  --min-fps <fps>                              Minimum FPS (e.g., 30)
+  --min-resolution <WxH>                       Minimum resolution (e.g., 640x360)
+  --priority <resolution|fps>                  Prioritize resolution or FPS in optimization (default: fps)
   --reconnect                                  Automatically reconnect if the stream is disconnected
-  -h, --help                                   Show this help message
+  --reconnect                                  Automatically reconnect if the stream is disconnected
+  --resolution <WxH>                           Set both min and max resolution (e.g., 1920x1080)
+  --resolution-steps <steps>                   Number of steps for resolution scaling (default: 128)
   --version                                    Show version information
+  -h, --help                                   Show this help message
 
 Moonlight Options:
-  --vsync                                      Use V-Sync.
+  --absolute-mouse                             Use remote desktop optimized mouse control.
+  --audio-config <audio-config>                Select audio config: 5.1-surround/7.1-surround/stereo.
+  --audio-on-host                              Use audio on host PC.
+  --background-gamepad                         Use background gamepad input.
+  --capture-system-keys <capture-system-keys>  Select capture system key combos: always/fullscreen/never.
+  --display-mode <display-mode>                Select display mode: borderless/fullscreen/windowed.
+  --frame-pacing                               Use frame pacing.
+  --game-optimization                          Use game optimizations.
+  --hdr                                        Use HDR streaming.
+  --keep-awake                                 Use prevent display sleep while streaming.
+  --mouse-buttons-swap                         Use left and right mouse buttons swap.
+  --multi-controller                           Use multiple controller support.
+  --mute-on-focus-loss                         Use mute audio when Moonlight window loses focus.
+  --no-absolute-mouse                          Do not use remote desktop optimized mouse control.
+  --no-audio-on-host                           Do not use audio on host PC.
+  --no-background-gamepad                      Do not use background gamepad input.
+  --no-frame-pacing                            Do not use frame pacing.
+  --no-game-optimization                       Do not use game optimizations.
+  --no-hdr                                     Do not use HDR streaming.
+  --no-keep-awake                              Do not use prevent display sleep while streaming.
+  --no-mouse-buttons-swap                      Do not use left and right mouse buttons swap.
+  --no-multi-controller                        Do not use multiple controller support.
+  --no-mute-on-focus-loss                      Do not use mute audio when Moonlight window loses focus.
+  --no-performance-overlay                     Do not use show performance overlay.
+  --no-quit-after                              Do not use quit app after session.
+  --no-reverse-scroll-direction                Do not use inverted scroll direction.
+  --no-swap-gamepad-buttons                    Do not use swap A/B and X/Y gamepad buttons (Nintendo-style).
+  --no-touchscreen-trackpad                    Do not use touchscreen in trackpad mode.
   --no-vsync                                   Do not use V-Sync.
   --packet-size <packet-size>                  Specify video packet size to use.
-  --display-mode <display-mode>                Select display mode: borderless/fullscreen/windowed.
-  --audio-config <audio-config>                Select audio config: 5.1-surround/7.1-surround/stereo.
-  --multi-controller                           Use multiple controller support.
-  --no-multi-controller                        Do not use multiple controller support.
-  --quit-after                                 Use quit app after session.
-  --no-quit-after                              Do not use quit app after session.
-  --absolute-mouse                             Use remote desktop optimized mouse control.
-  --no-absolute-mouse                          Do not use remote desktop optimized mouse control.
-  --mouse-buttons-swap                         Use left and right mouse buttons swap.
-  --no-mouse-buttons-swap                      Do not use left and right mouse buttons swap.
-  --touchscreen-trackpad                       Use touchscreen in trackpad mode.
-  --no-touchscreen-trackpad                    Do not use touchscreen in trackpad mode.
-  --game-optimization                          Use game optimizations.
-  --no-game-optimization                       Do not use game optimizations.
-  --audio-on-host                              Use audio on host PC.
-  --no-audio-on-host                           Do not use audio on host PC.
-  --frame-pacing                               Use frame pacing.
-  --no-frame-pacing                            Do not use frame pacing.
-  --mute-on-focus-loss                         Use mute audio when Moonlight window loses focus.
-  --no-mute-on-focus-loss                      Do not use mute audio when Moonlight window loses focus.
-  --background-gamepad                         Use background gamepad input.
-  --no-background-gamepad                      Do not use background gamepad input.
-  --reverse-scroll-direction                   Use inverted scroll direction.
-  --no-reverse-scroll-direction                Do not use inverted scroll direction.
-  --swap-gamepad-buttons                       Use swap A/B and X/Y gamepad buttons (Nintendo-style).
-  --no-swap-gamepad-buttons                    Do not use swap A/B and X/Y gamepad buttons (Nintendo-style).
-  --keep-awake                                 Use prevent display sleep while streaming.
-  --no-keep-awake                              Do not use prevent display sleep while streaming.
   --performance-overlay                        Use show performance overlay.
-  --no-performance-overlay                     Do not use show performance overlay.
-  --hdr                                        Use HDR streaming.
-  --no-hdr                                     Do not use HDR streaming.
-  --capture-system-keys <capture-system-keys>  Select capture system key combos: always/fullscreen/never.
+  --quit-after                                 Use quit app after session.
+  --reverse-scroll-direction                   Use inverted scroll direction.
+  --swap-gamepad-buttons                       Use swap A/B and X/Y gamepad buttons (Nintendo-style).
+  --touchscreen-trackpad                       Use touchscreen in trackpad mode.
   --video-codec <video-codec>                  Select video codec: AV1/H.264/HEVC/auto.
   --video-decoder <video-decoder>              Select video decoder.
+  --vsync                                      Use V-Sync.
 
 Arguments:
   stream                     Start stream
