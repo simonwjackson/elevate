@@ -48,7 +48,11 @@ launch_moonlight() {
   local fifo="$2"
 
   info "Opening Moonlight stream"
-  $command >"$fifo" 2>&1 &
+  debug "moonlight $command"
+  echo "$command" |
+    xargs moonlight \
+      >"$fifo" \
+      2>&1 &
   MOONLIGHT_PID=$!
 }
 
@@ -102,7 +106,7 @@ build_moonlight_cmd() {
   local app=$5
   local extra=$6
 
-  echo "moonlight --resolution $resolution --fps $fps --bitrate $bitrate $extra stream $host $app"
+  echo "stream $host $app --resolution $resolution --fps $fps --bitrate $bitrate $extra"
 }
 
 ##
@@ -201,8 +205,6 @@ check_sunshine_availability() {
 run_moonlight_session() {
   local -n local_config=$1
 
-  log info "Starting Moonlight stream"
-
   while true; do
     if ! check_sunshine_availability "${local_config[host]}"; then
       return 1
@@ -287,6 +289,8 @@ run_moonlight_session() {
       info "Dry Mode: Exiting.."
       return 0
     fi
+
+    log info "Starting Moonlight stream"
 
     if moonlight_session "$moonlight_cmd" "${local_config[reconnect]}"; then
       log info "User Quit. Exiting."
