@@ -11,7 +11,6 @@
 # @param max_fps The maximum FPS
 #
 # @return A string containing the effective max resolution and max FPS
-#
 limit_max_display_values() {
   local max_resolution_set=$1
   local resolution_set=$2
@@ -176,59 +175,17 @@ get_effective_max_resolution() {
 calculate_resolution_area_calculate_resolution_area() {
   local resolution="$1"
   local width height
+
   width=$(echo "$resolution" | cut -d'x' -f1)
   height=$(echo "$resolution" | cut -d'x' -f2)
+
   echo $((width * height))
-}
-
-# @brief Retrieves the display resolution for KDE environments.
-#
-# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
-get_display_resolution_kde() {
-  if ! command -v kscreen-doctor &>/dev/null; then
-    exit 1
-  fi
-
-  display=$(kscreen-doctor -o | awk '
-    /Output:/ {
-        if (enabled && priority > max_priority) {
-            max_priority = priority
-            result = block
-        }
-        block = $0 "\n"
-        enabled = 0
-        priority = 0
-    }
-    /enabled/ { enabled = 1 }
-    /priority/ { priority = $NF }
-    { block = block $0 "\n" }
-    END {
-        if (enabled && priority > max_priority) {
-            result = block
-        }
-        print result
-    }
-')
-
-  resolution=$(echo -e "$display" | grep "Modes" | grep -o '[0-9]\+x[0-9]\+@[0-9]\+\*' | sed 's/@[0-9]\+\*//')
-  rotation=$(echo -e "$display" | grep "Rotation:" | awk '{print $3}' | tr -cd '0-9' | tr -d '0' | cut -c1-)
-  warn "$rotation"
-
-  if [ $((rotation % 2)) -eq 0 ]; then
-    echo "$resolution" | awk -F'x' '{print $2 "x" $1}'
-  else
-    echo "$resolution"
-  fi
 }
 
 # @brief Retrieves the display resolution for X.Org environments.
 #
 # @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
-get_display_resolution_xorg() {
-  if ! command -v xrandr &>/dev/null; then
-    exit 1
-  fi
-
+get_display_resolution_xrandr() {
   xrandr 2>/dev/null | awk '
     /connected/ {
         output = $1
@@ -336,8 +293,7 @@ get_display_resolution() {
   local result
   local methods=(
     "get_display_resolution_hyprland"
-    "get_display_resolution_kde"
-    "get_display_resolution_xorg"
+    "get_display_resolution_xrandr"
   )
   for method in "${methods[@]}"; do
     if type "$method" &>/dev/null; then
@@ -362,9 +318,7 @@ get_display_refresh_rate() {
   # List of functions to try, in order of preference
   local methods=(
     "get_display_refresh_rate_hyprland"
-    "get_display_refresh_rate_kde"
-    "get_display_refresh_rate_xorg"
-    # Add more methods here in the future
+    "get_display_refresh_rate_xrandr"
   )
 
   for method in "${methods[@]}"; do
@@ -381,36 +335,10 @@ get_display_refresh_rate() {
   return 1
 }
 
-# @brief Retrieves the display refresh rate for KDE environments.
-#
-# @return The display refresh rate as an integer
-get_display_refresh_rate_kde() {
-  if ! command -v kscreen-doctor &>/dev/null; then
-    exit 1
-  fi
-
-  kscreen-doctor -o 2>/dev/null | awk '
-        /Output:/ {output=$2; connected=0; priority=-1}
-        /connected/ {connected=1}
-        /enabled/ {enabled=1}
-        /priority/ {priority=$2}
-        /Modes:/ && enabled==1 && connected==1 {
-            if (priority > max_priority) {
-                max_priority = priority
-                match($0, /[0-9]+x[0-9]+@([0-9]+)\*/, arr)
-                if (arr[1] != "") {
-                    result = arr[1]
-                }
-            }
-        }
-        END {print result}
-    '
-}
-
 # @brief Retrieves the display refresh rate for X.Org environments.
 #
 # @return The display refresh rate as an integer
-get_display_refresh_rate_xorg() {
+get_display_refresh_rate_xrandr() {
   if ! command -v xrandr &>/dev/null; then
     exit 1
   fi
