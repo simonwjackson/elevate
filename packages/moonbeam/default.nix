@@ -31,7 +31,6 @@
   #   getDate = pkgs.writeShellScript "get-date" ''
   #     date +%Y.%m.%d
   #   '';
-  #
   #   sourceHash = builtins.substring 0 8 (builtins.hashString "sha256" (builtins.readFile ./bin/moonbeam));
   # in
   #   pkgs.lib.removeSuffix "\n" (builtins.readFile (pkgs.runCommand "version" {} ''
@@ -45,7 +44,11 @@ in
     # version = generateVersion;
     src = ./.;
 
-    buildInputs = commonInputs;
+    buildInputs =
+      [
+        pkgs.bats
+      ]
+      ++ commonInputs;
 
     # HACK: needed for tests
     postUnpack = ''
@@ -71,6 +74,19 @@ in
     '';
     # sed -i 's|__VERSION__|${version}|g' ./bin/moonbeam
 
+    checkPhase = ''
+      runHook preCheck
+
+      # export PATH="$out/bin:$PATH"
+      cd $out/bin
+      ${pkgs.bats}/bin/bats --verbose-run ../spec
+      cd $out
+
+      runHook postCheck
+    '';
+
+    doCheck = true;
+
     buildPhase = ''
       mkdir -p $out
       cp -R . $out
@@ -78,7 +94,6 @@ in
 
     installPhase = ''
       mkdir -p $out/bin $out/share/bash-completion/completions $out/share/zsh/site-functions
-      cp bin/moonbeam $out/bin/
       cp completion/moonbeam-completion.bash $out/share/bash-completion/completions/moonbeam
       cp completion/moonbeam-completion.bash $out/share/zsh/site-functions/_moonbeam
       chmod +x $out/bin/*

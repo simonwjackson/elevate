@@ -14,30 +14,6 @@ is_valid_resolution() {
   [[ "$width" =~ ^[0-9]+$ && "$height" =~ ^[0-9]+$ && $width -ge 256 && $height -ge 256 ]]
 }
 
-# TODO: move to validation
-# if ! [[ "$min_fps" =~ ^[0-9]+$ && "$max_fps" =~ ^[0-9]+$ ]]; then
-#   error "min_fps and max_fps must be positive integers"
-#   return 1
-# fi
-#
-# if ((min_fps > max_fps)); then
-#   error "min_fps cannot be greater than max_fps"
-#   return 1
-# fi
-
-# TODO: move to verification
-# if ! [[ "$min_width" =~ ^[0-9]+$ && "$min_height" =~ ^[0-9]+$ &&
-#   "$max_width" =~ ^[0-9]+$ && "$max_height" =~ ^[0-9]+$ &&
-#   "$scaling_steps" =~ ^[0-9]+$ ]]; then
-#   error "Invalid input. All parameters must be positive integers."
-#   return 1
-# fi
-
-# if ((min_width > max_width || min_height > max_height)); then
-#   error "min_resolution cannot be greater than max_resolution"
-#   return 1
-# fi
-
 ##
 # @brief Generate scaled resolutions between min and max resolutions
 #
