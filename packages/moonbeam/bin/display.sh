@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+######
+# Main
+######
+
 ###
 # @brief Limits the maximum display values based on system capabilities.
 #
@@ -34,6 +38,37 @@ limit_max_display_values() {
   echo "$new_max_resolution" "$new_max_fps"
 }
 
+#######################
+# Resolution Functions
+#######################
+
+# @brief Determines the effective maximum resolution based on system capabilities.
+#
+# @param requested_resolution The requested maximum resolution
+#
+# @return The effective maximum resolution
+get_effective_max_resolution() {
+  local requested_resolution=$1
+  local system_resolution
+  local lower_resolution
+
+  system_resolution=$(get_display_resolution)
+  debug "System resolution: $system_resolution"
+
+  lower_resolution=$(
+    get_lowest_resolution \
+      "$requested_resolution" \
+      "$system_resolution"
+  )
+
+  if [[ "$lower_resolution" != "$requested_resolution" ]]; then
+    warn "Requested resolution ($requested_resolution) is higher than system resolution ($system_resolution). Using system resolution."
+
+    debug "Using resolution: $lower_resolution"
+    echo "$lower_resolution"
+  fi
+}
+
 # @brief Compares two resolutions and returns the one with the lower area.
 #
 # @param res1 First resolution in format "widthxheight"
@@ -58,45 +93,19 @@ get_lowest_resolution() {
   fi
 }
 
-# @brief Determines the effective maximum FPS based on system capabilities.
+# @brief Calculates the area of a given resolution.
 #
-# @param current_max_fps The current maximum FPS setting
+# @param resolution The resolution in "widthxheight" format
 #
-# @return The effective maximum FPS
-get_effective_max_fps() {
-  local current_max_fps=$1
-  local display_fps
+# @return The area of the resolution (width * height)
+calculate_resolution_area_calculate_resolution_area() {
+  local resolution="$1"
+  local width height
 
-  display_fps="$(get_display_refresh_rate)"
-  debug "System refresh rate: $display_fps"
+  width=$(echo "$resolution" | cut -d'x' -f1)
+  height=$(echo "$resolution" | cut -d'x' -f2)
 
-  # debug "No max FPS specified. Using display refresh rate: $display_fps"
-  local lower_fps
-  lower_fps=$(get_lowest_value "$current_max_fps" "$display_fps")
-
-  if [[ "$lower_fps" != "$current_max_fps" ]]; then
-    warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
-  fi
-
-  debug "Using FPS: $lower_fps"
-  echo "$lower_fps"
-}
-
-# @brief Returns the lower of two values.
-#
-# @param x First value
-# @param y Second value
-#
-# @return The lower of the two input values
-get_lowest_value() {
-  local x="$1"
-  local y="$2"
-
-  if ((x <= y)); then
-    echo "$x"
-  else
-    echo "$y"
-  fi
+  echo $((width * height))
 }
 
 # @brief Converts shorthand resolution notation to full "widthxheight" format.
@@ -122,6 +131,11 @@ convert_shorthand_resolution() {
   esac
 }
 
+# @brief Converts full resolution to shorthand notation if possible.
+#
+# @param resolution The full resolution in "widthxheight" format
+#
+# @return The shorthand notation or the original resolution if no shorthand exists
 convert_resolution_to_shorthand() {
   local resolution=$1
 
@@ -139,152 +153,57 @@ convert_resolution_to_shorthand() {
   esac
 }
 
-# @brief Determines the effective maximum resolution based on system capabilities.
+#######################
+# FPS Functions
+#######################
+
+# @brief Determines the effective maximum FPS based on system capabilities.
 #
-# @param requested_resolution The requested maximum resolution
+# @param current_max_fps The current maximum FPS setting
 #
-# @return The effective maximum resolution
-get_effective_max_resolution() {
-  local requested_resolution=$1
-  local system_resolution
-  local lower_resolution
+# @return The effective maximum FPS
+get_effective_max_fps() {
+  local current_max_fps=$1
+  local display_fps
 
-  system_resolution=$(get_display_resolution)
-  debug "System resolution: $system_resolution"
+  display_fps="$(get_display_refresh_rate)"
+  debug "System refresh rate: $display_fps"
 
-  # debug "No resolution specified. Using system resolution: $system_resolution"
-  lower_resolution=$(
-    get_lowest_resolution \
-      "$requested_resolution" \
-      "$system_resolution"
-  )
+  local lower_fps
+  lower_fps=$(get_lowest_value "$current_max_fps" "$display_fps")
 
-  if [[ "$lower_resolution" != "$requested_resolution" ]]; then
-    warn "Requested resolution ($requested_resolution) is higher than system resolution ($system_resolution). Using system resolution."
+  if [[ "$lower_fps" != "$current_max_fps" ]]; then
+    warn "Requested FPS ($current_max_fps) is higher than system refresh rate ($display_fps). Using system refresh rate."
+  fi
 
-    debug "Using resolution: $lower_resolution"
-    echo "$lower_resolution"
+  debug "Using FPS: $lower_fps"
+  echo "$lower_fps"
+}
+
+#######################
+# Utility Functions
+#######################
+
+# @brief Returns the lower of two values.
+#
+# @param x First value
+# @param y Second value
+#
+# @return The lower of the two input values
+get_lowest_value() {
+  local x="$1"
+  local y="$2"
+
+  if ((x <= y)); then
+    echo "$x"
+  else
+    echo "$y"
   fi
 }
 
-# @brief Calculates the area of a given resolution.
-#
-# @param resolution The resolution in "widthxheight" format
-#
-# @return The area of the resolution (width * height)
-calculate_resolution_area_calculate_resolution_area() {
-  local resolution="$1"
-  local width height
-
-  width=$(echo "$resolution" | cut -d'x' -f1)
-  height=$(echo "$resolution" | cut -d'x' -f2)
-
-  echo $((width * height))
-}
-
-# @brief Retrieves the display resolution for X.Org environments.
-#
-# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
-get_display_resolution_xrandr() {
-  xrandr 2>/dev/null | awk '
-    /connected/ {
-        output = $1
-        if ($2 == "primary") {
-            primary = output
-        }
-        connected[output] = 1
-    }
-    /^[^ ]/ {
-        current = $1
-    }
-    /\*/ {
-        if (connected[current]) {
-            match($0, /([0-9]+x[0-9]+)/, arr)
-            if (arr[1] != "") {
-                resolution[current] = arr[1]
-            }
-        }
-    }
-    END {
-        if (primary != "" && resolution[primary] != "") {
-            print resolution[primary]
-        } else {
-            for (out in connected) {
-                if (resolution[out] != "") {
-                    print resolution[out]
-                    exit
-                }
-            }
-        }
-    }
-  '
-}
-
-# @brief Calculates the rotated resolution based on the transform.
-#
-# @param width The original width
-# @param height The original height
-# @param transform The rotation transform (0, 90, 180, 270, or "normal")
-#
-# @return The rotated resolution in "widthxheight" format
-get_rotated_resolution() {
-  local width=$1
-  local height=$2
-  local transform=$3
-
-  case $transform in
-  0 | 2)
-    echo "${width}x${height}"
-    ;;
-  1 | 3)
-    echo "${height}x${width}"
-    ;;
-  *)
-    error "Unknown transform $transform"
-    echo "${width}x${height}"
-    ;;
-  esac
-}
-
-get_monitor_info_hyprland() {
-  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
-  hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)"
-}
-
-is_hyprland_running() {
-  pgrep -f hyprland >/dev/null
-}
-
-# @brief Retrieves the display resolution for Hyprland environments.
-#
-# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
-get_display_resolution_hyprland() {
-  if ! is_hyprland_running; then
-    exit 1
-  fi
-
-  local monitor_info width height transform
-
-  monitor_info=$(get_monitor_info_hyprland)
-  width=$(echo "$monitor_info" | jq -r '.width')
-  height=$(echo "$monitor_info" | jq -r '.height')
-  transform=$(echo "$monitor_info" | jq -r '.transform')
-
-  get_rotated_resolution "$width" "$height" "$transform"
-}
-
-# @brief Retrieves the display refresh rate for Hyprland environments.
-#
-# @return The display refresh rate as an integer
-get_display_refresh_rate_hyprland() {
-  if ! is_hyprland_running; then
-    exit 1
-  fi
-
-  get_monitor_info_hyprland |
-    jq -r .refreshRate |
-    awk '{printf "%.0f\n", $1}'
-}
+#######################
+# Display Information Functions
+#######################
 
 # @brief Retrieves the display resolution using available methods.
 #
@@ -333,6 +252,124 @@ get_display_refresh_rate() {
 
   echo "Error: Could not determine refresh rate" >&2
   return 1
+}
+
+#############################
+# Hyprland-specific Functions
+#############################
+
+# @brief Checks if Hyprland is running.
+#
+# @return 0 if Hyprland is running, 1 otherwise
+is_hyprland_running() {
+  pgrep -f hyprland >/dev/null
+}
+
+# @brief Retrieves monitor information for Hyprland environments.
+#
+# @return JSON object containing monitor information
+get_monitor_info_hyprland() {
+  active_monitor=$(hyprctl activewindow -j | jq -r '.monitor')
+  hyprctl monitors -j | jq -r ".[] | select(.id == $active_monitor)"
+}
+
+# @brief Retrieves the display resolution for Hyprland environments.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
+get_display_resolution_hyprland() {
+  if ! is_hyprland_running; then
+    exit 1
+  fi
+
+  local monitor_info width height transform
+
+  monitor_info=$(get_monitor_info_hyprland)
+  width=$(echo "$monitor_info" | jq -r '.width')
+  height=$(echo "$monitor_info" | jq -r '.height')
+  transform=$(echo "$monitor_info" | jq -r '.transform')
+
+  get_rotated_resolution_hyprland "$width" "$height" "$transform"
+}
+
+# @brief Calculates the rotated resolution based on the transform.
+#
+# @param width The original width
+# @param height The original height
+# @param transform The rotation transform (0, 90, 180, 270, or "normal")
+#
+# @return The rotated resolution in "widthxheight" format
+get_rotated_resolution_hyprland() {
+  local width=$1
+  local height=$2
+  local transform=$3
+
+  case $transform in
+  0 | 2)
+    echo "${width}x${height}"
+    ;;
+  1 | 3)
+    echo "${height}x${width}"
+    ;;
+  *)
+    error "Unknown transform $transform"
+    echo "${width}x${height}"
+    ;;
+  esac
+}
+
+# @brief Retrieves the display refresh rate for Hyprland environments.
+#
+# @return The display refresh rate as an integer
+get_display_refresh_rate_hyprland() {
+  if ! is_hyprland_running; then
+    exit 1
+  fi
+
+  get_monitor_info_hyprland |
+    jq -r .refreshRate |
+    awk '{printf "%.0f\n", $1}'
+}
+
+#########
+# xrandr
+#########
+
+# @brief Retrieves the display resolution for X.Org environments.
+#
+# @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
+get_display_resolution_xrandr() {
+  xrandr 2>/dev/null | awk '
+    /connected/ {
+        output = $1
+        if ($2 == "primary") {
+            primary = output
+        }
+        connected[output] = 1
+    }
+    /^[^ ]/ {
+        current = $1
+    }
+    /\*/ {
+        if (connected[current]) {
+            match($0, /([0-9]+x[0-9]+)/, arr)
+            if (arr[1] != "") {
+                resolution[current] = arr[1]
+            }
+        }
+    }
+    END {
+        if (primary != "" && resolution[primary] != "") {
+            print resolution[primary]
+        } else {
+            for (out in connected) {
+                if (resolution[out] != "") {
+                    print resolution[out]
+                    exit
+                }
+            }
+        }
+    }
+  '
 }
 
 # @brief Retrieves the display refresh rate for X.Org environments.
