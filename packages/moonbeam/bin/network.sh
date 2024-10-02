@@ -152,7 +152,7 @@ measure_network_speed_to_host() {
   return 1
 }
 
-run_ping() { ping "$@"; }
+_ping() { ping "$@"; }
 
 ##
 # @brief Measure latency to a specific host using ping.
@@ -167,7 +167,7 @@ measure_latency() {
   info "Measuring ping..."
 
   ping_result=$(
-    run_ping \
+    _ping \
       -c 3 \
       -i 0.2 \
       -W 1 \  "$host" |

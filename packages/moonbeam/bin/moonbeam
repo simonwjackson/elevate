@@ -13,7 +13,19 @@ source "${BASE_DIR}/display.sh"
 source "${BASE_DIR}/network.sh"
 source "${BASE_DIR}/moonlight_session.sh"
 
+_nc() {
+  nc "$@"
+}
+
 declare -A CONFIG
+
+validate_env() {
+  [[ "$XDG_SESSION_TYPE" == "wayland" || -n "${DISPLAY:-}" ]] || {
+    error "Neither Wayland nor X11 session detected. A graphical environment is required."
+    return 1
+  }
+  error "Neither Wayland nor X11 session detected. A graphical environment is required."
+}
 
 initialize_config() {
   # Check if CONFIG is already declared
@@ -65,7 +77,6 @@ Moonbeam Options:
   --min-fps <fps>                              Minimum FPS (e.g., 30)
   --min-resolution <WxH>                       Minimum resolution (e.g., 640x360)
   --priority <resolution|fps>                  Prioritize resolution or FPS in optimization (default: fps)
-  --reconnect                                  Automatically reconnect if the stream is disconnected
   --reconnect                                  Automatically reconnect if the stream is disconnected
   --resolution <WxH>                           Set both min and max resolution (e.g., 1920x1080)
   --resolution-steps <steps>                   Number of steps for resolution scaling (default: 128)
@@ -172,6 +183,14 @@ validate_user_input() {
     if [[ -z "${args[1]:-}" || -z "${args[2]:-}" ]]; then
       error "Missing required arguments: stream <host> <app>"
       return 1
+    fi
+  fi
+
+  # Check if bandwidth is provided or if iperf3 is available
+  if [[ -z "${args[bitrate]:-}" && -z "${args[max_bitrate]:-}" ]]; then
+    if ! _nc -z "${CONFIG[host]}" 31347 &>/dev/null; then
+      error "Bandwidth detection failed. Run iperf3 on ${CONFIG[host]}:31347 or use --max-bandwidth"
+      exit 1
     fi
   fi
 
@@ -352,11 +371,12 @@ generate_missing_config() {
 }
 
 main() {
-  initialize_config
   set_early_log_level "$@"
-  validate_user_input "$@"
+  validate_env
+  initialize_config
   process_args "$@"
   generate_missing_config
+  validate_user_input "$@"
   run_moonlight_session CONFIG
 }
 

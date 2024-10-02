@@ -334,11 +334,15 @@ get_display_refresh_rate_hyprland() {
 # xrandr
 #########
 
+_xrandr() {
+  xrandr
+}
+
 # @brief Retrieves the display resolution for X.Org environments.
 #
 # @return The display resolution in "widthxheight" format, or exits with 1 if unsuccessful
 get_display_resolution_xrandr() {
-  xrandr 2>/dev/null | awk '
+  _xrandr 2>/dev/null | awk '
     /connected/ {
         output = $1
         if ($2 == "primary") {
@@ -376,11 +380,7 @@ get_display_resolution_xrandr() {
 #
 # @return The display refresh rate as an integer
 get_display_refresh_rate_xrandr() {
-  if ! command -v xrandr &>/dev/null; then
-    exit 1
-  fi
-
-  xrandr 2>/dev/null | awk '
+  _xrandr 2>/dev/null | awk '
         /connected/ {
             output = $1
             if ($2 == "primary") {
