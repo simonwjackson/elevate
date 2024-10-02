@@ -5,7 +5,8 @@ sidebar:
   order: 1
 ---
 
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
 
 This guide will walk you through the process of installing the Nix package manager and setting up Nix Flakes, which are prerequisites for installing and using Moonbeam.
 
@@ -13,13 +14,54 @@ This guide will walk you through the process of installing the Nix package manag
 Nix is the tool that Moonbeam uses to install itself and manage its dependencies. It ensures that Moonbeam has everything it needs to run correctly on your system, regardless of your Linux distribution.
 :::
 
-## Nix
 
 Follow these steps to install the Nix package manager:
 
+   <Tabs>
+   <TabItem label="Steam Deck">
+   <Steps>
+
+    1. [Switch to desktop mode](https://www.tomsguide.com/how-to/how-to-enable-desktop-mode-on-the-steam-deck).
+
+    2. [Open a terminal](https://www.youtube.com/watch?v=t4w0A6ICs0E).
+
+    3. Run the following command to install Nix:
+
+       :::caution
+       Always read and understand any scripts before executing them on your system.
+       :::
+
+       ```bash title="Installing Nix..."
+       curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install steam-deck
+       ```
+    4. Follow the on-screen prompts to complete the installation.
+
+    </Steps>
+
+   </TabItem>
+   <TabItem label="Simple Installer">
+   <Steps>
+
+    1. Open a terminal.
+
+    2. Run the following command to install Nix:
+
+       :::caution
+       Always read and understand any scripts before executing them on your system.
+       :::
+
+       ```bash title="Installing Nix..."
+       curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --determinate
+       ```
+    3. Follow the on-screen prompts to complete the installation.
+
+    </Steps>
+
+   </TabItem>
+   <TabItem label="Manual">
 <Steps>
 
-1. Open a terminal on your Linux system.
+1. Open a termina.
 
 2. Run the following command to install Nix:
 
@@ -90,6 +132,13 @@ nix flake --version
 ```
 
 If Flakes are correctly enabled, you should see output indicating the Nix version with Flake support.
+
+   </TabItem>
+   </Tabs>
+
+
+
+
 
 Congratulations! You have successfully installed Nix and set up Flakes. You're now ready to proceed with installing Moonbeam.
 
