@@ -24,7 +24,8 @@ validate_env() {
     error "Neither Wayland nor X11 session detected. A graphical environment is required."
     return 1
   }
-  error "Neither Wayland nor X11 session detected. A graphical environment is required."
+
+  return 0
 }
 
 initialize_config() {
