@@ -28,7 +28,7 @@ A simple, automated, network aware launcher for  [Moonlight](https://moonlight-s
 
 ## Installation
 
-Moonbeam can be installed using the Nix package manager. For detailed installation instructions, please refer to the [Installation Guide](https://moonbeam.ing/getting-started/installation-guide/) in our documentation.
+Moonbeam can be installed using the Nix package manager. For detailed installation instructions, please refer to the [Installation Guide](https://moonbeam.ing/getting-started/installation-guide/) in the documentation.
 
 ## Quick Start
 
@@ -52,7 +52,7 @@ Comprehensive documentation for Moonbeam is available at [docs.moonbeam.ing](htt
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://moonbeam.ing/support/contributing/) for more information.
+We welcome contributions! Please see the [Contributing Guide](https://moonbeam.ing/support/contributing/) for more information.
 
 ## License
 
