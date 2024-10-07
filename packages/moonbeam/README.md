@@ -46,15 +46,15 @@ Moonbeam can be installed using the Nix package manager. For detailed installati
 
    Replace `<host>` with your gaming PC's hostname or IP, and `<app>` with the game or application you want to stream.
 
-For more usage examples and advanced configurations, refer to the [Streaming Basics](https://docs.moonbeam.ing/getting-started/streaming-basics) section.
+For more usage examples and advanced configurations, refer to the [user guide](https://moonbeam.ing/getting-started/introduction/) section.
 
 ## Documentation
 
-Comprehensive documentation for Moonbeam is available at [docs.moonbeam.ing](https://docs.moonbeam.ing/).
+Comprehensive documentation for Moonbeam is available at [docs.moonbeam.ing](https://moonbeam.ing/).
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://docs.moonbeam.ing/reference/contributing) for more information.
+We welcome contributions! Please see our [Contributing Guide](https://moonbeam.ing/support/contributing/) for more information.
 
 ## License
 
