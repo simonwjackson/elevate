@@ -24,11 +24,11 @@ export default defineConfig({
       {
         tag: 'script',
         content: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-C0ZLMXSZWZ');
-          `,
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-C0ZLMXSZWZ');
+        `,
       },
     ],
     title: 'Moonbeam',
