@@ -41,7 +41,7 @@ Moonbeam can be installed using the Nix package manager. For detailed installati
 2. Launch Moonbeam with:
 
    ```bash
-   moonbeam stream <host> <app>
+   moonbeam stream <host> <app> --reconnect
    ```
 
    Replace `<host>` with your gaming PC's hostname or IP, and `<app>` with the game or application you want to stream.
