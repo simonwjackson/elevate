@@ -291,5 +291,5 @@ def launch():
 
 
 if __name__ == "__main__":
-    app.run(host="100.65.214.92", debug=True)
-    # app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True)
+

@@ -43,8 +43,20 @@
         <a href="#" class="text-2xl font-bold">Game UI</a>
         <ul class="flex space-x-4" navi-group="menu">
           <li>
-            <a hx-post="/api/remote" href="#" x-navi class="hover:text-blue-200"
-              >aka</a
+            <a x-navi class="hover:text-blue-200" href="#" id="fullscreenButton"
+              >Fullscreen</a
+            >
+          </li>
+
+          <li>
+            <a
+              hx-post="/api/remote"
+              hx-swap="none"
+              x-navi
+              hx-prevent="default"
+              class="hover:text-blue-200"
+              href="#"
+              >Moonlight</a
             >
           </li>
         </ul>
@@ -74,6 +86,40 @@
         </div>
       </div>
     </div>
+
+    <script>
+      document
+        .getElementById("fullscreenButton")
+        .addEventListener("click", function () {
+          if (!document.fullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+              // Firefox
+              document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+              // Chrome, Safari and Opera
+              document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+              // IE/Edge
+              document.documentElement.msRequestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+              // Firefox
+              document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+              // Chrome, Safari and Opera
+              document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+              // IE/Edge
+              document.msExitFullscreen();
+            }
+          }
+        });
+    </script>
 
     <script>
       function toggleFullScreen() {
@@ -416,8 +462,7 @@
 
               // 'A' button (usually index 0) for selection
               if (gamepad.buttons[0].pressed && this.currentElement) {
-                // this.currentElement.click();
-                this.launchGame(this.currentElement);
+                this.currentElement.click();
               }
             }
           },
