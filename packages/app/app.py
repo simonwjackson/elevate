@@ -174,6 +174,53 @@ def resolve_symlink(path):
     return os.path.realpath(path)
 
 
+
+@app.route("/api/remote", methods=["POST"])
+def remote():
+    # data = request.json
+    # game = data.get("game")
+    #
+    # if not game:
+    #     return (
+    #         jsonify({"status": "error", "message": "Missing game parameter"}),
+    #         400,
+    #     )
+
+    command = [
+        "am",
+        "start",
+        "--user",
+        "0",
+        "-n",
+        "com.limelight.root/com.limelight.ShortcutTrampoline",
+        "--es", "UUID", "49CED8D7-F40A-9D27-D79D-9D9648B4C5BE",
+        "--es", "Name", "aka",
+        "--es", "AppId", "1590712279"
+    ]
+
+    try:
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        logger.info(f"Command executed successfully: {result.stdout}")
+        return (
+            jsonify(
+                {"status": "success", "message": "RetroArch launched successfully"}
+            ),
+            200,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error executing command: {e.stderr}")
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Failed to launch RetroArch: {e.stderr}",
+                }
+            ),
+            500,
+        )
+
+
+
 @app.route("/api/launch", methods=["POST"])
 def launch():
     data = request.json
@@ -244,4 +291,5 @@ def launch():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="100.65.214.92", debug=True)
+    # app.run(host="0.0.0.0", debug=True)
