@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Game UI</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="alternate icon" type="image/png" href="/icon.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.5/htmx.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"
+      defer
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        overscroll-behavior: contain;
+      }
+      .aspect-3-2 {
+        aspect-ratio: 3 / 2;
+      }
+      .game-container {
+        scroll-behavior: smooth;
+      }
+    </style>
+  </head>
+  <body
+    x-data="spatialNavigation"
+    class="bg-gray-100 h-screen w-screen overflow-hidden"
+  >
+    <nav class="bg-blue-600 p-4 text-white">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="#" class="text-2xl font-bold">Game UI</a>
+        <ul class="flex space-x-4" navi-group="menu">
+          <li><a href="#" x-navi class="hover:text-blue-200">Home</a></li>
+          <li><a href="#" x-navi class="hover:text-blue-200">About</a></li>
+          <li><a href="#" x-navi class="hover:text-blue-200">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container mx-auto mt-8 px-4">
+      <div class="relative max-w-3xl mx-auto">
+        <div
+          id="game-container"
+          class="game-container flex gap-4 overflow-x-hidden w-full"
+          navi-group="games"
+          hx-get="/api/games"
+          hx-trigger="load"
+        >
+          <div
+            x-navi
+            tabindex="0"
+            @mouseover="handleHover($event.target)"
+            @click="launchGame($event.target)"
+            class="bg-blue-500 text-white rounded hover:bg-teal-300 focus-visible:bg-teal-300 focus-visible:ring-opacity-50 aspect-3-2 flex items-center justify-center cursor-pointer flex-shrink-0 w-48"
+            data-game="game1"
+            data-core="core1"
+          >
+            Game 1
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          } else if (document.documentElement.mozRequestFullScreen) {
+            // Firefox
+            document.documentElement.mozRequestFullScreen();
+          } else if (document.documentElement.webkitRequestFullscreen) {
+            // Chrome, Safari and Opera
+            document.documentElement.webkitRequestFullscreen();
+          } else if (document.documentElement.msRequestFullscreen) {
+            // IE/Edge
+            document.documentElement.msRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            // Firefox
+            document.mozCancelFullScreen();
+          } else if (document.webkitExitFullscreen) {
+            // Chrome, Safari and Opera
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            // IE/Edge
+            document.msExitFullscreen();
+          }
+        }
+      }
+
+      const findElement = {
+        right: function (currentRect, rect) {
+          if (rect.left <= currentRect.right) return null;
+          return Math.hypot(
+            rect.left - currentRect.right,
+            rect.top - currentRect.top,
+          );
+        },
+
+        left: function (currentRect, rect) {
+          if (rect.right >= currentRect.left) return null;
+          return Math.hypot(
+            currentRect.left - rect.right,
+            rect.top - currentRect.top,
+          );
+        },
+
+        down: function (currentRect, rect) {
+          if (rect.top <= currentRect.bottom) return null;
+          return Math.hypot(
+            rect.left - currentRect.left,
+            rect.top - currentRect.bottom,
+          );
+        },
+
+        up: function (currentRect, rect) {
+          if (rect.bottom >= currentRect.top) return null;
+          return Math.hypot(
+            rect.left - currentRect.left,
+            currentRect.top - rect.bottom,
+          );
+        },
+      };
+
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("spatialNavigation", () => ({
+          naviElements: [],
+          naviGroups: {},
+          currentElement: null,
+          currentGroup: null,
+          gamepadConnected: false,
+          lastGamepadTimestamp: 0,
+
+          init() {
+            this.updateNaviElements();
+            this.addMutationObserver();
+            window.addEventListener("keydown", this.handleKeyDown.bind(this));
+            window.addEventListener(
+              "gamepadconnected",
+              this.handleGamepadConnected.bind(this),
+            );
+            window.addEventListener(
+              "gamepaddisconnected",
+              this.handleGamepadDisconnected.bind(this),
+            );
+            this.startGamepadPolling();
+            this.addHoverListeners();
+            this.setFullScreen();
+          },
+
+          setFullScreen() {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+              // Firefox
+              document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+              // Chrome, Safari and Opera
+              document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+              // IE/Edge
+              document.documentElement.msRequestFullscreen();
+            }
+          },
+
+          addMutationObserver() {
+            const observer = new MutationObserver((mutations) => {
+              let shouldUpdate = false;
+              mutations.forEach((mutation) => {
+                if (
+                  mutation.type === "childList" ||
+                  mutation.type === "attributes"
+                ) {
+                  shouldUpdate = true;
+                }
+              });
+              if (shouldUpdate) {
+                this.updateNaviElements();
+              }
+            });
+
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              attributes: true,
+              attributeFilter: ["x-navi"],
+            });
+          },
+
+          launchGame(element) {
+            const game = element.getAttribute("data-game");
+            const core = element.getAttribute("data-core");
+
+            fetch("/api/launch", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ game, core }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                console.log("Game launched:", data);
+                // Handle the response as needed
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+              });
+          },
+
+          addHoverListeners() {
+            document.querySelectorAll("[x-navi]").forEach((element) => {
+              element.addEventListener("mouseover", (event) =>
+                this.handleHover(event.target),
+              );
+            });
+          },
+
+          handleHover(element) {
+            if (element !== this.currentElement) {
+              this.currentElement = element;
+              this.currentGroup = this.getGroupForElement(element);
+              this.currentElement.focus();
+            }
+          },
+
+          updateNaviElements() {
+            this.naviElements = Array.from(
+              document.querySelectorAll("[x-navi]"),
+            );
+            this.naviGroups = {};
+
+            document.querySelectorAll("[navi-group]").forEach((group) => {
+              const groupName = group.getAttribute("navi-group");
+              this.naviGroups[groupName] = Array.from(
+                group.querySelectorAll("[x-navi]"),
+              );
+            });
+
+            if (!this.currentElement && this.naviElements.length > 0) {
+              this.currentElement = this.naviElements[0];
+              this.currentGroup = this.getGroupForElement(this.currentElement);
+              this.currentElement.focus();
+            }
+            this.addHoverListeners();
+          },
+
+          getGroupForElement(element) {
+            for (const [groupName, elements] of Object.entries(
+              this.naviGroups,
+            )) {
+              if (elements.includes(element)) {
+                return groupName;
+              }
+            }
+            return null;
+          },
+
+          handleKeyDown(event) {
+            const key = event.key;
+            if (
+              !["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(key)
+            )
+              return;
+
+            event.preventDefault();
+            this.navigate(key.replace("Arrow", "").toLowerCase());
+          },
+
+          navigate(direction) {
+            const currentRect = this.currentElement.getBoundingClientRect();
+            let closestElement = null;
+            let closestDistance = Infinity;
+
+            const elementsToCheck = this.currentGroup
+              ? this.naviGroups[this.currentGroup]
+              : this.naviElements;
+
+            elementsToCheck.forEach((element) => {
+              if (element === this.currentElement) return;
+              const rect = element.getBoundingClientRect();
+              const distance = findElement[direction](currentRect, rect);
+
+              if (distance !== null && distance < closestDistance) {
+                closestDistance = distance;
+                closestElement = element;
+              }
+            });
+
+            if (!closestElement && this.currentGroup) {
+              // If no element found in the current group, try to switch groups
+              const groupKeys = Object.keys(this.naviGroups);
+              const currentGroupIndex = groupKeys.indexOf(this.currentGroup);
+              let nextGroupIndex;
+
+              if (direction === "down" || direction === "right") {
+                nextGroupIndex = (currentGroupIndex + 1) % groupKeys.length;
+              } else {
+                nextGroupIndex =
+                  (currentGroupIndex - 1 + groupKeys.length) % groupKeys.length;
+              }
+
+              const nextGroup = groupKeys[nextGroupIndex];
+              closestElement = this.naviGroups[nextGroup][0];
+            }
+
+            if (closestElement) {
+              this.currentElement = closestElement;
+              this.currentGroup = this.getGroupForElement(this.currentElement);
+              this.currentElement.focus();
+              this.ensureVisibility(this.currentElement);
+            }
+          },
+
+          ensureVisibility(element) {
+            const container = document.getElementById("game-container");
+            const containerRect = container.getBoundingClientRect();
+            const elementRect = element.getBoundingClientRect();
+
+            if (elementRect.left < containerRect.left) {
+              container.scrollLeft -= containerRect.left - elementRect.left;
+            } else if (elementRect.right > containerRect.right) {
+              container.scrollLeft += elementRect.right - containerRect.right;
+            }
+          },
+
+          scrollGames(direction) {
+            const container = document.getElementById("game-container");
+            const scrollAmount = container.clientWidth * 0.8;
+            if (direction === "left") {
+              container.scrollLeft -= scrollAmount;
+            } else {
+              container.scrollLeft += scrollAmount;
+            }
+          },
+
+          handleGamepadConnected(e) {
+            console.log("Gamepad connected:", e.gamepad.id);
+            this.gamepadConnected = true;
+          },
+
+          handleGamepadDisconnected(e) {
+            console.log("Gamepad disconnected:", e.gamepad.id);
+            this.gamepadConnected = false;
+          },
+
+          startGamepadPolling() {
+            const pollGamepad = () => {
+              if (this.gamepadConnected) {
+                this.checkGamepadInput();
+              }
+              requestAnimationFrame(pollGamepad);
+            };
+            requestAnimationFrame(pollGamepad);
+          },
+
+          checkGamepadInput() {
+            const gamepads = navigator.getGamepads();
+            const gamepad = gamepads[0]; // Assuming we're using the first gamepad
+
+            if (gamepad && gamepad.timestamp !== this.lastGamepadTimestamp) {
+              this.lastGamepadTimestamp = gamepad.timestamp;
+
+              // D-pad
+              if (gamepad.buttons[12].pressed) this.navigate("up");
+              if (gamepad.buttons[13].pressed) this.navigate("down");
+              if (gamepad.buttons[14].pressed) this.navigate("left");
+              if (gamepad.buttons[15].pressed) this.navigate("right");
+
+              // Analog stick (with improved sensitivity)
+              const deadzone = 0.7; // Increased deadzone
+              const now = Date.now();
+              if (!this.lastAnalogMove) this.lastAnalogMove = 0;
+
+              if (now - this.lastAnalogMove > 200) {
+                // 200ms delay between moves
+                const analogThreshold = 0.8; // Higher threshold for full tilt
+
+                if (
+                  Math.abs(gamepad.axes[0]) > deadzone ||
+                  Math.abs(gamepad.axes[1]) > deadzone
+                ) {
+                  if (gamepad.axes[0] < -analogThreshold) {
+                    this.navigate("left");
+                    this.lastAnalogMove = now;
+                  } else if (gamepad.axes[0] > analogThreshold) {
+                    this.navigate("right");
+                    this.lastAnalogMove = now;
+                  } else if (gamepad.axes[1] < -analogThreshold) {
+                    this.navigate("up");
+                    this.lastAnalogMove = now;
+                  } else if (gamepad.axes[1] > analogThreshold) {
+                    this.navigate("down");
+                    this.lastAnalogMove = now;
+                  }
+                }
+              }
+
+              // 'A' button (usually index 0) for selection
+              if (gamepad.buttons[0].pressed && this.currentElement) {
+                // this.currentElement.click();
+                this.launchGame(this.currentElement);
+              }
+            }
+          },
+        }));
+      });
+    </script>
+  </body>
+</html>
