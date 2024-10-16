@@ -31,121 +31,59 @@ cache = Cache(app, config={"CACHE_TYPE": "simple"})
 
 games = [
     {
-        "id": 1,
-        "name": "BS Zelda Map 1",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/bszelda_map1.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
         "id": 2,
         "name": "Secret of Mana",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Secret of Mana (U) [!].smc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 3,
-        "name": "SMW2 Plus 2 - Yoshi's Island",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/SMW2 Plus 2 - Yoshis Island.fig",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 4,
-        "name": "Super Mario World 2 Plus 2",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/super-mario-world-2-plus-2.sfc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 5,
-        "name": "Super Mario World 2 Plus",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/super-mario-world-2-plus.sfc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/20c1fd3638caa5d1dce50b6c0b7fc409.png"
     },
     {
         "id": 6,
         "name": "Super Mario World 2 - Yoshi's Island",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/super-mario-world-2-yoshis-island.sfc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/59857cc70355243795b398b32447b862.png"
     },
     {
         "id": 7,
         "name": "Super Bomberman 4",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Bomberman 4 (Japan).sfc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/400cfdfc88d288dbf92175876e9ec05c.png"
     },
     {
         "id": 8,
         "name": "Super Mario World",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World (U) [!].smc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/b4c447665cda1feecc6f58815d47702d.png"
     },
-    {
-        "id": 9,
-        "name": "Super Mario World",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 10,
-        "name": "Super Mario World 2 - Yoshi's Island",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World 2 - Yoshi's Island (U) (V1.1).smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 11,
-        "name": "Super Mario World 2 - Yoshi's Island (Patched)",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World 2 - Yoshi's Island (U) (V1.1) [patched].smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 12,
-        "name": "Super Mario World DX - Luigi",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World DX - Luigi.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 13,
-        "name": "Super Mario World DX - Mario",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World DX - Mario.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 14,
-        "name": "Super Mario World DX - Peach",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World DX - Peach.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
+
     {
         "id": 15,
         "name": "Super Mario World DX - Toad",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Mario World DX - Toad.smc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://kagi.com/proxy/I9Sd0dA.png?c=LeUEJczBkA3eiHIb6Q3EKisipkFWqUiCnBdTBPWQkaYJAngmA8YutWJsJW8-X_Gd"
     },
     {
         "id": 16,
         "name": "Super Metroid",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Metroid.smc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/9267a5acf6b4bb607c934b2064fbf248.png"
     },
     {
         "id": 17,
         "name": "Super Off Road",
         "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Super Off Road (U) [!].smc",
         "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 18,
-        "name": "Yoshi's Island - SMW2+2",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Yoshi's Island - SMW2+2.smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
-    },
-    {
-        "id": 19,
-        "name": "Yoshi's Islands Frozen Paradise Demo 4",
-        "game": "/data/data/com.termux.nix/files/home/snowscape/gaming/games/nintendo-super-nintendo-entertainment-system/Yoshi's Islands Frozen Paradise Demo 4 (SMW2 Hack).smc",
-        "core": "/data/data/com.retroarch.aarch64/cores/snes9x_libretro_android.so",
+        "image": "https://cdn2.steamgriddb.com/grid/d13535ad5ea4f4b746ab73d0b94a4eb8.png"
     },
 ]
 
+# Dolphin
+# am start   -n org.dolphinemu.dolphinemu/.ui.main.MainActivity   -a android.intent.action.VIEW   -e AutoStartFile "/storage/emulated/0/snowscape/gaming/games/nintendo-wii/super-mario-galaxy-2.wbfs"   --activity-clear-task   --activity-clear-top   --activity-no-history
 
 @app.route("/")
 def index():
@@ -160,12 +98,7 @@ def serve_static(filename):
 
 @app.route("/api/games", methods=["GET"])
 def get_games():
-    games_html = "".join(
-        [
-            f'<div class="bg-blue-500 text-white rounded hover:bg-teal-300 focus-visible:bg-teal-300 focus-visible:ring-opacity-50 aspect-3-2 flex items-center justify-center cursor-pointer flex-shrink-0 w-48" x-navi="" tabindex="0" @mouseover="handleHover($event.target)" @click="launchGame($event.target)" data-game-id="{game["id"]}" data-game-name="{game["name"]}" data-game="{game["game"]}" data-core="{game["core"]}">{game["name"]}</div>'
-            for game in games
-        ]
-    )
+    games_html = "".join([render_template("components/game.html", game=game) for game in games])
     return games_html
 
 

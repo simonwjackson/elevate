@@ -63,27 +63,15 @@
       </div>
     </nav>
 
-    <div class="container mx-auto mt-8 px-4">
-      <div class="relative max-w-3xl mx-auto">
+    <div class="container mx-auto mt-8">
+      <div class="relative mx-auto">
         <div
           id="game-container"
           class="game-container flex gap-4 overflow-x-hidden w-full"
           navi-group="games"
           hx-get="/api/games"
           hx-trigger="load"
-        >
-          <div
-            x-navi
-            tabindex="0"
-            @mouseover="handleHover($event.target)"
-            @click="launchGame($event.target)"
-            class="bg-blue-500 text-white rounded hover:bg-teal-300 focus-visible:bg-teal-300 focus-visible:ring-opacity-50 aspect-3-2 flex items-center justify-center cursor-pointer flex-shrink-0 w-48"
-            data-game="game1"
-            data-core="core1"
-          >
-            Game 1
-          </div>
-        </div>
+        />
       </div>
     </div>
 
@@ -122,36 +110,6 @@
     </script>
 
     <script>
-      function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-          if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
-          } else if (document.documentElement.mozRequestFullScreen) {
-            // Firefox
-            document.documentElement.mozRequestFullScreen();
-          } else if (document.documentElement.webkitRequestFullscreen) {
-            // Chrome, Safari and Opera
-            document.documentElement.webkitRequestFullscreen();
-          } else if (document.documentElement.msRequestFullscreen) {
-            // IE/Edge
-            document.documentElement.msRequestFullscreen();
-          }
-        } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if (document.mozCancelFullScreen) {
-            // Firefox
-            document.mozCancelFullScreen();
-          } else if (document.webkitExitFullscreen) {
-            // Chrome, Safari and Opera
-            document.webkitExitFullscreen();
-          } else if (document.msExitFullscreen) {
-            // IE/Edge
-            document.msExitFullscreen();
-          }
-        }
-      }
-
       const findElement = {
         right: function (currentRect, rect) {
           if (rect.left <= currentRect.right) return null;
@@ -299,6 +257,11 @@
               this.naviGroups[groupName] = Array.from(
                 group.querySelectorAll("[x-navi]"),
               );
+
+              // Initialize last-active-element attribute if not present
+              if (!group.hasAttribute("last-active-element")) {
+                group.setAttribute("last-active-element", "0");
+              }
             });
 
             if (!this.currentElement && this.naviElements.length > 0) {
@@ -365,10 +328,35 @@
               }
 
               const nextGroup = groupKeys[nextGroupIndex];
-              closestElement = this.naviGroups[nextGroup][0];
+              const nextGroupElement = document.querySelector(
+                `[navi-group="${nextGroup}"]`,
+              );
+
+              // Get the index of the last active element for the next group
+              const lastActiveIndex = parseInt(
+                nextGroupElement.getAttribute("last-active-element"),
+                10,
+              );
+              closestElement =
+                this.naviGroups[nextGroup][lastActiveIndex] ||
+                this.naviGroups[nextGroup][0];
             }
 
             if (closestElement) {
+              // Store the current element index as the last active element for the current group
+              if (this.currentGroup) {
+                const currentGroupElement = document.querySelector(
+                  `[navi-group="${this.currentGroup}"]`,
+                );
+                const currentIndex = this.naviGroups[this.currentGroup].indexOf(
+                  this.currentElement,
+                );
+                currentGroupElement.setAttribute(
+                  "last-active-element",
+                  currentIndex.toString(),
+                );
+              }
+
               this.currentElement = closestElement;
               this.currentGroup = this.getGroupForElement(this.currentElement);
               this.currentElement.focus();
@@ -463,6 +451,8 @@
               // 'A' button (usually index 0) for selection
               if (gamepad.buttons[0].pressed && this.currentElement) {
                 this.currentElement.click();
+              } else if (gamepad.buttons[4].pressed && this.currentElement) {
+                document.documentElement.mozRequestFullScreen();
               }
             }
           },

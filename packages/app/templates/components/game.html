@@ -1,0 +1,17 @@
+<div
+  class="bg-blue-500 text-white rounded hover:bg-teal-300 focus-visible:bg-teal-300 focus-visible:ring-opacity-50 flex items-center justify-center cursor-pointer flex-shrink-0 h-48"
+  x-navi=""
+  tabindex="0"
+  @mouseover="handleHover($event.target)"
+  @click="launchGame($event.target)"
+  data-game-id="{{ game['id'] }}"
+  data-game-name="{{ game['name'] }}"
+  data-game="{{ game['game'] }}"
+  data-core="{{ game['core'] }}"
+>
+  <img
+    src="{{ game['image'] }}"
+    alt="{{ game['name'] }}"
+    class="w-full h-full object-cover rounded"
+  />
+</div>
