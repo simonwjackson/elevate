@@ -26,11 +26,12 @@
       body {
         overscroll-behavior: contain;
       }
-      .aspect-3-2 {
-        aspect-ratio: 3 / 2;
-      }
       .game-container {
         scroll-behavior: smooth;
+        scroll-snap-type: x mandatory;
+      }
+      .game-container-wrapper {
+        overflow-x: hidden;
       }
     </style>
   </head>
@@ -64,10 +65,10 @@
     </nav>
 
     <div class="container mx-auto mt-8">
-      <div class="relative mx-auto">
+      <div class="relative mx-auto game-container-wrapper">
         <div
           id="game-container"
-          class="game-container flex gap-4 overflow-x-hidden w-full"
+          class="game-container py-1 flex gap-4 overflow-x-scroll w-full px-1"
           navi-group="games"
           hx-get="/api/games"
           hx-trigger="load"
@@ -143,7 +144,9 @@
           );
         },
       };
+    </script>
 
+    <script>
       document.addEventListener("alpine:init", () => {
         Alpine.data("spatialNavigation", () => ({
           naviElements: [],
@@ -167,22 +170,6 @@
             );
             this.startGamepadPolling();
             this.addHoverListeners();
-            this.setFullScreen();
-          },
-
-          setFullScreen() {
-            if (document.documentElement.requestFullscreen) {
-              document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-              // Firefox
-              document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-              // Chrome, Safari and Opera
-              document.documentElement.webkitRequestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-              // IE/Edge
-              document.documentElement.msRequestFullscreen();
-            }
           },
 
           addMutationObserver() {
@@ -314,65 +301,88 @@
               }
             });
 
-            if (!closestElement && this.currentGroup) {
-              // If no element found in the current group, try to switch groups
-              const groupKeys = Object.keys(this.naviGroups);
-              const currentGroupIndex = groupKeys.indexOf(this.currentGroup);
-              let nextGroupIndex;
-
-              if (direction === "down" || direction === "right") {
-                nextGroupIndex = (currentGroupIndex + 1) % groupKeys.length;
-              } else {
-                nextGroupIndex =
-                  (currentGroupIndex - 1 + groupKeys.length) % groupKeys.length;
-              }
-
-              const nextGroup = groupKeys[nextGroupIndex];
-              const nextGroupElement = document.querySelector(
-                `[navi-group="${nextGroup}"]`,
-              );
-
-              // Get the index of the last active element for the next group
-              const lastActiveIndex = parseInt(
-                nextGroupElement.getAttribute("last-active-element"),
-                10,
-              );
-              closestElement =
-                this.naviGroups[nextGroup][lastActiveIndex] ||
-                this.naviGroups[nextGroup][0];
-            }
-
             if (closestElement) {
-              // Store the current element index as the last active element for the current group
-              if (this.currentGroup) {
-                const currentGroupElement = document.querySelector(
-                  `[navi-group="${this.currentGroup}"]`,
-                );
-                const currentIndex = this.naviGroups[this.currentGroup].indexOf(
-                  this.currentElement,
-                );
-                currentGroupElement.setAttribute(
-                  "last-active-element",
-                  currentIndex.toString(),
-                );
-              }
-
               this.currentElement = closestElement;
-              this.currentGroup = this.getGroupForElement(this.currentElement);
               this.currentElement.focus();
               this.ensureVisibility(this.currentElement);
+            } else if (this.currentGroup) {
+              // If no element found in the current group and we're moving vertically, try to switch groups
+              if (direction === "up" || direction === "down") {
+                const groupKeys = Object.keys(this.naviGroups);
+                const currentGroupIndex = groupKeys.indexOf(this.currentGroup);
+                let nextGroupIndex;
+
+                if (direction === "down") {
+                  nextGroupIndex = (currentGroupIndex + 1) % groupKeys.length;
+                } else {
+                  nextGroupIndex =
+                    (currentGroupIndex - 1 + groupKeys.length) %
+                    groupKeys.length;
+                }
+
+                const nextGroup = groupKeys[nextGroupIndex];
+                const nextGroupElement = document.querySelector(
+                  `[navi-group="${nextGroup}"]`,
+                );
+
+                // Get the index of the last active element for the next group
+                const lastActiveIndex = parseInt(
+                  nextGroupElement.getAttribute("last-active-element"),
+                  10,
+                );
+                closestElement =
+                  this.naviGroups[nextGroup][lastActiveIndex] ||
+                  this.naviGroups[nextGroup][0];
+
+                if (closestElement) {
+                  this.currentElement = closestElement;
+                  this.currentGroup = nextGroup;
+                  this.currentElement.focus();
+                  this.ensureVisibility(this.currentElement);
+                }
+              }
+              // For left/right navigation, we don't switch groups, so we do nothing here
             }
+
+            // Store the current element index as the last active element for the current group
+            if (this.currentGroup) {
+              const currentGroupElement = document.querySelector(
+                `[navi-group="${this.currentGroup}"]`,
+              );
+              const currentIndex = this.naviGroups[this.currentGroup].indexOf(
+                this.currentElement,
+              );
+              currentGroupElement.setAttribute(
+                "last-active-element",
+                currentIndex.toString(),
+              );
+            }
+          },
+
+          getContainerPadding() {
+            const container = document.getElementById("game-container");
+            const style = window.getComputedStyle(container);
+            return {
+              left: parseFloat(style.paddingLeft),
+              right: parseFloat(style.paddingRight),
+            };
           },
 
           ensureVisibility(element) {
             const container = document.getElementById("game-container");
             const containerRect = container.getBoundingClientRect();
             const elementRect = element.getBoundingClientRect();
+            const padding = this.getContainerPadding();
 
-            if (elementRect.left < containerRect.left) {
-              container.scrollLeft -= containerRect.left - elementRect.left;
-            } else if (elementRect.right > containerRect.right) {
-              container.scrollLeft += elementRect.right - containerRect.right;
+            if (elementRect.left < containerRect.left + padding.left) {
+              container.scrollLeft -=
+                containerRect.left + padding.left - elementRect.left;
+            } else if (
+              elementRect.right >
+              containerRect.right - padding.right
+            ) {
+              container.scrollLeft +=
+                elementRect.right - (containerRect.right - padding.right);
             }
           },
 
