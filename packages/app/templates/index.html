@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -22,7 +22,32 @@
       defer
     ></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                bg: "#1a202c",
+                text: "#e2e8f0",
+              },
+            },
+          },
+        },
+      };
+    </script>
     <style>
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      * {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
       body {
         overscroll-behavior: contain;
       }
@@ -30,32 +55,18 @@
         scroll-behavior: smooth;
         scroll-snap-type: x mandatory;
       }
-      .game-container-wrapper {
-        overflow-x: hidden;
-      }
-      .content-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-      .games-section {
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
     </style>
   </head>
-  <body x-data="spatialNavigation" class="bg-gray-100">
-    <div class="content-wrapper">
-      <nav class="bg-blue-600 p-4 text-white">
+  <body x-data="spatialNavigation" class="bg-black text-dark-text">
+    <div class="flex flex-col h-screen">
+      <nav class="bg-black p-4 text-slate-500">
         <div class="container mx-auto flex justify-between items-center">
           <a href="#" class="text-2xl font-bold">Game UI</a>
           <ul class="flex space-x-4" navi-group="menu">
             <li>
               <a
                 x-navi
-                class="hover:text-blue-200"
+                class="hover:text-gray-300"
                 href="#"
                 id="fullscreenButton"
                 >Fullscreen</a
@@ -67,7 +78,7 @@
                 hx-swap="none"
                 x-navi
                 hx-prevent="default"
-                class="hover:text-blue-200"
+                class="hover:text-gray-300"
                 href="#"
                 >Moonlight</a
               >
@@ -76,11 +87,11 @@
         </div>
       </nav>
 
-      <div class="games-section">
-        <div class="relative game-container-wrapper px-4">
+      <div class="flex-grow flex items-center justify-center">
+        <div class="relative px-4 w-full overflow-x-hidden">
           <div
             id="game-container"
-            class="game-container py-1 flex gap-4 overflow-x-scroll w-full px-1"
+            class="py-2 flex gap-4 overflow-x-scroll w-full px-1 snap-x snap-mandatory"
             navi-group="games"
             hx-get="/api/games"
             hx-trigger="load"
@@ -88,7 +99,6 @@
         </div>
       </div>
     </div>
-
     <script>
       document
         .getElementById("fullscreenButton")
