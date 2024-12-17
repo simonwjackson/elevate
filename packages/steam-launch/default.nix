@@ -1,14 +1,7 @@
 {
-  bash,
-  coreutils,
-  gawk,
-  gnugrep,
-  gnused,
-  jq,
+  pkgs,
   lib,
   resholve,
-  steam-run,
-  stdenv,
   binutils,
 }:
 resholve.mkDerivation {
@@ -17,11 +10,11 @@ resholve.mkDerivation {
   src = ./.;
 
   buildInputs = [
-    bash
-    gnused
-    jq
-    steam-run
-    binutils
+    pkgs.bash
+    pkgs.binutils
+    pkgs.gnused
+    pkgs.jq
+    pkgs.steam-run
   ];
 
   installPhase = ''
@@ -31,25 +24,35 @@ resholve.mkDerivation {
   solutions = {
     steam-launch = {
       scripts = ["bin/steam-launch"];
-      interpreter = "${bash}/bin/bash";
+      interpreter = "${pkgs.bash}/bin/bash";
       inputs = [
-        "${gnused}/bin"
-        "${jq}/bin"
-        "${steam-run}/bin"
-        "${coreutils}/bin"
-        "${gawk}/bin"
-        "${gnugrep}/bin"
-        "${binutils}/bin"
+        "${pkgs.binutils}/bin"
+        "${pkgs.coreutils}/bin"
+        "${pkgs.findutils}/bin"
+        "${pkgs.gawk}/bin"
+        "${pkgs.gnugrep}/bin"
+        "${pkgs.gnused}/bin"
+        "${pkgs.gum}/bin"
+        "${pkgs.jq}/bin"
+        "${pkgs.steam-run}/bin"
       ];
       execer = [
-        "cannot:${coreutils}/bin/basename"
-        "cannot:${coreutils}/bin/cat"
-        "cannot:${coreutils}/bin/sleep"
-        "cannot:${gnugrep}/bin/grep"
-        "cannot:${gnused}/bin/sed"
-        "cannot:${gawk}/bin/awk"
-        "cannot:${binutils}/bin/strings"
-        "cannot:${steam-run}/bin/steam-run"
+        "cannot:${pkgs.binutils}/bin/strings"
+        "cannot:${pkgs.coreutils}/bin/basename"
+        "cannot:${pkgs.coreutils}/bin/cat"
+        "cannot:${pkgs.coreutils}/bin/cut"
+        "cannot:${pkgs.coreutils}/bin/dirname"
+        "cannot:${pkgs.coreutils}/bin/head"
+        "cannot:${pkgs.coreutils}/bin/mkdir"
+        "cannot:${pkgs.coreutils}/bin/sleep"
+        "cannot:${pkgs.coreutils}/bin/sort"
+        "cannot:${pkgs.coreutils}/bin/wc"
+        "cannot:${pkgs.findutils}/bin/find"
+        "cannot:${pkgs.gawk}/bin/awk"
+        "cannot:${pkgs.gnugrep}/bin/grep"
+        "cannot:${pkgs.gnused}/bin/sed"
+        "cannot:${pkgs.gum}/bin/gum"
+        "cannot:${pkgs.steam-run}/bin/steam-run"
       ];
       fake = {
         external = ["steam" "pgrep" "setsid"];
